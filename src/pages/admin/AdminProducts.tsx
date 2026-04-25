@@ -57,47 +57,51 @@ const AdminProducts = () => {
         title="Produtos"
         description="Gerencie o estoque que ficará disponível para suas sacoleiras revenderem."
         actions={
-          <Dialog open={open} onOpenChange={setOpen}>
-            <Button type="button" variant="gold" onClick={() => setOpen(true)}>
-              <Plus className="h-4 w-4" /> Novo produto
-            </Button>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle className="font-display text-2xl">Novo produto</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleCreate} className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="name">Nome da joia</Label>
-                  <Input id="name" name="name" placeholder="Ex: Brinco Pérola Dourada" required />
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="category">Categoria</Label>
-                    <select id="category" name="category" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                      {categories.map(category => <option key={category.id}>{category.name}</option>)}
-                    </select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="stock">Estoque</Label>
-                    <Input id="stock" name="stock" type="number" min="0" defaultValue="10" required />
-                  </div>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="wholesalePrice">Preço atacado</Label>
-                    <Input id="wholesalePrice" name="wholesalePrice" type="number" min="1" defaultValue="59" required />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="suggestedPrice">Preço sugerido</Label>
-                    <Input id="suggestedPrice" name="suggestedPrice" type="number" min="1" defaultValue="139" required />
-                  </div>
-                </div>
-                <Button type="submit" variant="gold" className="w-full">Cadastrar produto</Button>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <Button type="button" variant="gold" onClick={() => setOpen(true)}>
+            <Plus className="h-4 w-4" /> Novo produto
+          </Button>
         }
       />
+
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm" onClick={() => setOpen(false)}>
+          <div className="relative w-full max-w-lg rounded-xl border border-border bg-card p-6 shadow-ornate" role="dialog" aria-modal="true" aria-labelledby="new-product-title" onClick={(event) => event.stopPropagation()}>
+            <Button type="button" variant="ghost" size="icon" className="absolute right-3 top-3 h-8 w-8" onClick={() => setOpen(false)} aria-label="Fechar modal">
+              <X className="h-4 w-4" />
+            </Button>
+            <h2 id="new-product-title" className="font-display text-2xl mb-4">Novo produto</h2>
+            <form onSubmit={handleCreate} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="name">Nome da joia</Label>
+                <Input id="name" name="name" placeholder="Ex: Brinco Pérola Dourada" required />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="category">Categoria</Label>
+                  <select id="category" name="category" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    {categories.map(category => <option key={category.id}>{category.name}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="stock">Estoque</Label>
+                  <Input id="stock" name="stock" type="number" min="0" defaultValue="10" required />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="wholesalePrice">Preço atacado</Label>
+                  <Input id="wholesalePrice" name="wholesalePrice" type="number" min="1" defaultValue="59" required />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="suggestedPrice">Preço sugerido</Label>
+                  <Input id="suggestedPrice" name="suggestedPrice" type="number" min="1" defaultValue="139" required />
+                </div>
+              </div>
+              <Button type="submit" variant="gold" className="w-full">Cadastrar produto</Button>
+            </form>
+          </div>
+        </div>
+      )}
 
     <div className="mb-5 flex flex-col sm:flex-row gap-3">
       <div className="relative flex-1">
