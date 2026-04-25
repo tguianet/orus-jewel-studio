@@ -4,6 +4,7 @@ import { LucideIcon, Menu, X, LogOut } from "lucide-react";
 import { OrusLogo } from "./OrusLogo";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 export type NavItem = { label: string; to: string; icon: LucideIcon };
 
@@ -17,6 +18,7 @@ interface Props {
 export const AppShell = ({ nav, scopeLabel, userName, children }: Props) => {
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
+  const { logout } = useAuth();
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -66,7 +68,7 @@ export const AppShell = ({ nav, scopeLabel, userName, children }: Props) => {
                 <p className="text-xs text-muted-foreground truncate">{scopeLabel}</p>
               </div>
             </div>
-            <Link to="/">
+            <Link to="/" onClick={logout}>
               <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground">
                 <LogOut className="h-4 w-4" /> Sair
               </Button>
