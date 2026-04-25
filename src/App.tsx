@@ -70,6 +70,9 @@ const App = () => (
               <Route path="carrinho" element={<StoreCart />} />
               <Route path="checkout" element={<StoreCheckout />} />
             </Route>
+            <Route path="/loja/:slug/*" element={<StoreLayout />}>
+              <Route path="*" element={<StoreHome />} />
+            </Route>
 
             <Route path="*" element={<NotFound />} />
           </Routes>
