@@ -38,7 +38,7 @@ const App = () => (
     <Sonner position="top-center" />
     <AuthProvider>
       <CartProvider>
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/login-admin" element={<LoginPage role="admin" />} />
