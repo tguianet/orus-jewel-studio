@@ -1,12 +1,12 @@
 import { Link, Outlet, useParams } from "react-router-dom";
 import { ShoppingBag, Search, Heart } from "lucide-react";
-import { sacoleiras } from "@/lib/mockData";
+import { getStoreBySlug } from "@/lib/mockData";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 
 const StoreLayout = () => {
   const { slug } = useParams();
-  const store = sacoleiras.find(s => s.storeSlug === slug) ?? sacoleiras[0];
+  const store = getStoreBySlug(slug);
   const { count } = useCart();
 
   return (
