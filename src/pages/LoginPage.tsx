@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { OrusLogo } from "@/components/OrusLogo";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Props { role: "admin" | "sacoleira" }
 
 const LoginPage = ({ role }: Props) => {
   const nav = useNavigate();
+  const { login } = useAuth();
   const isAdmin = role === "admin";
   const target = isAdmin ? "/admin" : "/sacoleira";
 
@@ -42,10 +44,10 @@ const LoginPage = ({ role }: Props) => {
           <h1 className="font-display text-4xl font-light mb-2">Bem-vinda de volta</h1>
           <p className="text-sm text-muted-foreground mb-8">Entre com seus dados para acessar {isAdmin ? "o admin" : "sua loja"}.</p>
 
-          <form onSubmit={(e) => { e.preventDefault(); nav(target); }} className="space-y-4">
+          <form onSubmit={(e) => { e.preventDefault(); login(role, new FormData(e.currentTarget).get("email")?.toString()); nav(target); }} className="space-y-4">
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" defaultValue={isAdmin ? "admin@orus.com" : "marina@email.com"} className="mt-1.5" />
+              <Input id="email" name="email" type="email" defaultValue={isAdmin ? "admin@orus.com" : "marina@email.com"} className="mt-1.5" />
             </div>
             <div>
               <Label htmlFor="pwd">Senha</Label>
