@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { products, categories, formatBRL, Product } from "@/lib/mockData";
 
 const AdminProducts = () => {
@@ -50,9 +50,9 @@ const AdminProducts = () => {
         description="Gerencie o estoque que ficará disponível para suas sacoleiras revenderem."
         actions={
           <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button variant="gold"><Plus className="h-4 w-4" /> Novo produto</Button>
-            </DialogTrigger>
+            <Button type="button" variant="gold" onClick={() => setOpen(true)}>
+              <Plus className="h-4 w-4" /> Novo produto
+            </Button>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle className="font-display text-2xl">Novo produto</DialogTitle>
