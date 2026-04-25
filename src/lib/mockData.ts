@@ -132,8 +132,8 @@ export const fallbackProduct: Product = products[0] ?? {
   active: true,
 };
 
-export const getStoreBySlug = (slug?: string) => sacoleiras.find(s => s.storeSlug === slug) ?? fallbackStore;
+export const getStoreBySlug = (slug?: string): Sacoleira => sacoleiras.find(s => s.storeSlug === slug) ?? fallbackStore;
 
-export const getProductById = (id?: string) => products.find(p => p.id === id);
+export const getProductById = (id?: string): Product => products.find(p => p.id === id) ?? fallbackProduct;
 
 export const formatBRL = (n: number) => Number.isFinite(n) ? n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "R$ 0,00";
