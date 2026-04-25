@@ -1,18 +1,95 @@
 import { Plus, Search, MoreVertical } from "lucide-react";
+import { FormEvent, useState } from "react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { products, formatBRL } from "@/lib/mockData";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { products, categories, formatBRL, Product } from "@/lib/mockData";
 
-const AdminProducts = () => (
-  <AdminLayout>
-    <PageHeader
-      eyebrow="Catálogo do atacado"
-      title="Produtos"
-      description="Gerencie o estoque que ficará disponível para suas sacoleiras revenderem."
-      actions={<Button variant="gold"><Plus className="h-4 w-4" /> Novo produto</Button>}
-    />
+const AdminProducts = () => {
+  const [items, setItems] = useState<Product[]>(products);
+  const [open, setOpen] = useState(false);
+
+  const handleCreate = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const name = String(form.get("name") || "Nova joia Orus");
+    const category = String(form.get("category") || categories[0].name);
+    const wholesalePrice = Number(form.get("wholesalePrice") || 0);
+    const suggestedPrice = Number(form.get("suggestedPrice") || wholesalePrice * 2);
+    const stock = Number(form.get("stock") || 0);
+
+    setItems(current => [
+      {
+        id: `p${Date.now()}`,
+        code: `ORS-${category.charAt(0).toUpperCase()}${String(current.length + 1).padStart(3, "0")}`,
+        name,
+        category,
+        description: "Produto cadastrado no protótipo para apresentação do fluxo administrativo.",
+        costPrice: Math.round(wholesalePrice * 0.58),
+        wholesalePrice,
+        suggestedPrice,
+        stock,
+        minOrder: 2,
+        image: products[0].image,
+        active: true,
+      },
+      ...current,
+    ]);
+    setOpen(false);
+    event.currentTarget.reset();
+  };
+
+  return (
+    <AdminLayout>
+      <PageHeader
+        eyebrow="Catálogo do atacado"
+        title="Produtos"
+        description="Gerencie o estoque que ficará disponível para suas sacoleiras revenderem."
+        actions={
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button variant="gold"><Plus className="h-4 w-4" /> Novo produto</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="font-display text-2xl">Novo produto</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreate} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="name">Nome da joia</Label>
+                  <Input id="name" name="name" placeholder="Ex: Brinco Pérola Dourada" required />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="category">Categoria</Label>
+                    <select id="category" name="category" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                      {categories.map(category => <option key={category.id}>{category.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="stock">Estoque</Label>
+                    <Input id="stock" name="stock" type="number" min="0" defaultValue="10" required />
+                  </div>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="wholesalePrice">Preço atacado</Label>
+                    <Input id="wholesalePrice" name="wholesalePrice" type="number" min="1" defaultValue="59" required />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="suggestedPrice">Preço sugerido</Label>
+                    <Input id="suggestedPrice" name="suggestedPrice" type="number" min="1" defaultValue="139" required />
+                  </div>
+                </div>
+                <Button type="submit" variant="gold" className="w-full">Cadastrar produto</Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
     <div className="mb-5 flex flex-col sm:flex-row gap-3">
       <div className="relative flex-1">
@@ -24,7 +101,7 @@ const AdminProducts = () => (
     </div>
 
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {products.map(p => (
+      {items.map(p => (
         <div key={p.id} className="group rounded-xl border border-border bg-card overflow-hidden hover:border-primary/40 transition-all duration-500">
           <div className="aspect-square overflow-hidden relative">
             <img src={p.image} alt={p.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
@@ -52,6 +129,7 @@ const AdminProducts = () => (
       ))}
     </div>
   </AdminLayout>
-);
+  );
+};
 
 export default AdminProducts;
