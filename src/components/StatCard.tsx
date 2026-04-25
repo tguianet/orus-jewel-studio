@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -10,8 +11,8 @@ interface Props {
   className?: string;
 }
 
-export const StatCard = ({ label, value, hint, icon: Icon, trend, className }: Props) => (
-  <div className={cn("group relative overflow-hidden rounded-xl border border-border bg-card p-5 transition-all duration-500 hover:border-primary/40 hover:shadow-gold", className)}>
+export const StatCard = forwardRef<HTMLDivElement, Props>(({ label, value, hint, icon: Icon, trend, className }, ref) => (
+  <div ref={ref} className={cn("group relative overflow-hidden rounded-xl border border-border bg-card p-5 transition-all duration-500 hover:border-primary/40 hover:shadow-gold", className)}>
     <div className="absolute inset-0 bg-gradient-gold-soft opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
     <div className="relative">
       <div className="flex items-center justify-between mb-3">
@@ -29,4 +30,6 @@ export const StatCard = ({ label, value, hint, icon: Icon, trend, className }: P
       )}
     </div>
   </div>
-);
+));
+
+StatCard.displayName = "StatCard";

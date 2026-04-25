@@ -1,6 +1,6 @@
 import { useParams, useOutletContext, Link, useNavigate } from "react-router-dom";
 import { Minus, Plus, ShoppingBag, ArrowLeft } from "lucide-react";
-import { products, formatBRL, Sacoleira } from "@/lib/mockData";
+import { getProductById, formatBRL, Sacoleira } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useState } from "react";
@@ -9,7 +9,7 @@ import { toast } from "sonner";
 const StoreProduct = () => {
   const { id } = useParams();
   const { store } = useOutletContext<{ store: Sacoleira }>();
-  const product = products.find(p => p.id === id);
+  const product = getProductById(id);
   const { add } = useCart();
   const navigate = useNavigate();
   const [qty, setQty] = useState(1);
