@@ -1,9 +1,9 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CartProvider } from "@/contexts/CartContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 import Landing from "./pages/Landing";
 import LoginPage from "./pages/LoginPage";
@@ -32,13 +32,11 @@ import StoreProduct from "./pages/store/StoreProduct";
 import StoreCart from "./pages/store/StoreCart";
 import StoreCheckout from "./pages/store/StoreCheckout";
 
-const queryClient = new QueryClient();
-
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner position="top-center" />
+  <TooltipProvider>
+    <Toaster />
+    <Sonner position="top-center" />
+    <AuthProvider>
       <CartProvider>
         <BrowserRouter>
           <Routes>
@@ -77,8 +75,8 @@ const App = () => (
           </Routes>
         </BrowserRouter>
       </CartProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+    </AuthProvider>
+  </TooltipProvider>
 );
 
 export default App;
