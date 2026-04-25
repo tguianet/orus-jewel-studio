@@ -3,7 +3,7 @@ import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { categories, products, Product } from "@/lib/mockData";
+import { categories, fallbackProduct, Product } from "@/lib/mockData";
 
 interface NewProductModalProps {
   onCreate?: (product: Product) => void;
@@ -25,7 +25,7 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const name = String(form.get("name") || "Nova joia Orus");
-    const category = String(form.get("category") || categories[0].name);
+    const category = String(form.get("category") || categories[0]?.name || "Joias");
     const wholesalePrice = Number(form.get("wholesalePrice") || 0);
     const suggestedPrice = Number(form.get("suggestedPrice") || wholesalePrice * 2);
     const stock = Number(form.get("stock") || 0);
@@ -41,7 +41,7 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
       suggestedPrice,
       stock,
       minOrder: 2,
-      image: products[0].image,
+      image: fallbackProduct.image,
       active: true,
     });
 
