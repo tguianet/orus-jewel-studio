@@ -104,4 +104,36 @@ export const statusColors: Record<string, string> = {
   confirmado: "bg-success/15 text-success border-success/30",
 };
 
-export const formatBRL = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+export const fallbackStore: Sacoleira = sacoleiras[0] ?? {
+  id: "s-demo",
+  name: "Marina Costa",
+  storeName: "Marina Joias",
+  storeSlug: "marina-joias",
+  email: "marina@email.com",
+  phone: "(11) 98765-4321",
+  status: "approved",
+  tier: "padrão",
+  totalSpent: 0,
+  ordersCount: 0,
+};
+
+export const fallbackProduct: Product = products[0] ?? {
+  id: "p-demo",
+  code: "ORS-DEMO",
+  name: "Joia Orus",
+  category: "Joias",
+  description: "Peça demonstrativa do catálogo Orus.",
+  costPrice: 30,
+  wholesalePrice: 59,
+  suggestedPrice: 139,
+  stock: 10,
+  minOrder: 1,
+  image: ringImg,
+  active: true,
+};
+
+export const getStoreBySlug = (slug?: string) => sacoleiras.find(s => s.storeSlug === slug) ?? fallbackStore;
+
+export const getProductById = (id?: string) => products.find(p => p.id === id);
+
+export const formatBRL = (n: number) => Number.isFinite(n) ? n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "R$ 0,00";
