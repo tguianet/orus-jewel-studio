@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
 import { wholesaleOrders, sacoleiras, products, formatBRL, statusColors, statusLabels } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
+import { NewProductModal } from "@/components/NewProductModal";
 import { Link } from "react-router-dom";
 
 const AdminDashboard = () => {
@@ -16,7 +17,7 @@ const AdminDashboard = () => {
         eyebrow="Visão geral"
         title="Bem-vinda ao seu atacado"
         description="Resumo das operações da sua rede Orus."
-        actions={<Button variant="gold">Novo produto</Button>}
+        actions={<NewProductModal />}
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
