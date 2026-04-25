@@ -1,16 +1,24 @@
-import { Plus, Search, MoreVertical } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { Plus, Search, MoreVertical, X } from "lucide-react";
+import { FormEvent, useEffect, useState } from "react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { products, categories, formatBRL, Product } from "@/lib/mockData";
 
 const AdminProducts = () => {
   const [items, setItems] = useState<Product[]>(products);
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [open]);
 
   const handleCreate = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -38,8 +46,8 @@ const AdminProducts = () => {
       },
       ...current,
     ]);
-    setOpen(false);
     event.currentTarget.reset();
+    setOpen(false);
   };
 
   return (
