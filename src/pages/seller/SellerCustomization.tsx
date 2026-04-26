@@ -20,7 +20,7 @@ const SellerCustomization = () => (
       <div className="rounded-xl border border-border bg-card p-6 space-y-4">
         <h3 className="font-display text-xl">Identidade da loja</h3>
         <div><Label>Nome da loja</Label><Input defaultValue="Marina Aura" className="mt-1.5" /></div>
-        <div><Label>Slug (URL)</Label><Input defaultValue="marina-joias" className="mt-1.5" /></div>
+        <div><Label>Slug (URL)</Label><Input defaultValue="marina-aura" className="mt-1.5" /></div>
         <div><Label>Slogan</Label><Input defaultValue="Joias com sua história" className="mt-1.5" /></div>
         <div><Label>Sobre a loja</Label><Textarea rows={4} defaultValue="Selecionamos as peças mais delicadas para você brilhar todos os dias." className="mt-1.5" /></div>
         <Button variant="gold" className="w-full">Salvar identidade</Button>

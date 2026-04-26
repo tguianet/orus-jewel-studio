@@ -30,7 +30,7 @@ const SellerStore = () => (
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">URL pública da sua loja</p>
-              <p className="font-mono text-sm">orus.app/loja/marina-aura</p>
+              <p className="font-mono text-sm">aura.app/loja/marina-aura</p>
             </div>
             <Button variant="outline" size="sm"><Share2 className="h-4 w-4" /> Copiar</Button>
           </div>
