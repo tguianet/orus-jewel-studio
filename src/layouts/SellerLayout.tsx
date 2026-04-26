@@ -10,7 +10,7 @@ const nav: NavItem[] = [
   { label: "Meus produtos", to: "/sacoleira/meus-produtos", icon: Sparkles },
   { label: "Pedidos", to: "/sacoleira/pedidos", icon: ShoppingBag },
   { label: "Carteira", to: "/sacoleira/clientes", icon: Wallet },
-  { label: "Minha rede", to: "/sacoleira/rede", icon: Network },
+  { label: "Meu MLM", to: "/sacoleira/rede", icon: Network },
   { label: "Configurações", to: "/sacoleira/configuracoes", icon: Settings },
 ];
 

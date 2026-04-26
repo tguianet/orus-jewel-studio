@@ -9,7 +9,7 @@ const nav: NavItem[] = [
   { label: "Sacoleiras", to: "/admin/sacoleiras", icon: Users },
   { label: "Pedidos", to: "/admin/pedidos", icon: ShoppingBag },
   { label: "Comissões", to: "/admin/financeiro", icon: Wallet },
-  { label: "Rede multinível", to: "/admin/rede", icon: Network },
+  { label: "MLM", to: "/admin/rede", icon: Network },
   { label: "Configurações", to: "/admin/configuracoes", icon: Settings },
 ];
 
