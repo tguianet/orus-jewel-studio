@@ -3,6 +3,7 @@ import { useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { Sacoleira, formatBRL } from "@/lib/mockData";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +22,49 @@ const StoreCheckout = () => {
       toast.error("Preencha nome e WhatsApp");
       return;
     }
+    if (items.length === 0) {
+      toast.error("Seu carrinho está vazio");
+      return;
+    }
+
+    const createOrder = async () => {
+      const { data: order, error } = await supabase
+        .from("orders")
+        .insert({
+          seller_store_id: store.id,
+          customer_name: form.name,
+          customer_phone: form.phone,
+          customer_address: form.address || null,
+          notes: form.notes || null,
+          subtotal: total,
+          total,
+          status: "new",
+        })
+        .select("id")
+        .single();
+
+      if (error || !order) throw error;
+
+      const { error: itemsError } = await supabase.from("order_items").insert(items.map((i) => ({
+        order_id: order.id,
+        seller_store_id: store.id,
+        product_id: /^[0-9a-f-]{36}$/i.test(i.product.id) ? i.product.id : null,
+        product_name: i.product.name,
+        quantity: i.qty,
+        unit_price: i.price,
+        total: i.price * i.qty,
+      })));
+
+      if (itemsError) throw itemsError;
+      return order.id;
+    };
+
+    toast.promise(createOrder(), {
+      loading: "Registrando venda e comissões...",
+      success: "Venda criada; comissões pendentes geradas na wallet.",
+      error: "Não foi possível registrar o pedido real.",
+    });
+
     const lines = [
       `*Novo pedido — ${store.storeName}*`,
       "",
@@ -38,7 +82,6 @@ const StoreCheckout = () => {
     const phone = store.phone.replace(/\D/g, "");
     const url = `https://wa.me/55${phone}?text=${encodeURIComponent(lines)}`;
     window.open(url, "_blank");
-    toast.success("Pedido enviado para o WhatsApp!");
     clear();
     setTimeout(() => nav(`/loja/${store.storeSlug}`), 1200);
   };
