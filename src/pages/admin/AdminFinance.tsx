@@ -2,7 +2,7 @@ import { DollarSign, TrendingUp, CreditCard, Clock } from "lucide-react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
-import { commissions, formatBRL, statusColors, sacoleiras, wholesaleOrders } from "@/lib/mockData";
+import { commissions, formatBRL, getWalletBreakdown, statusColors, sacoleiras, wholesaleOrders } from "@/lib/mockData";
 
 const AdminFinance = () => {
   const paid = wholesaleOrders.filter(o => o.status !== "aguardando" && o.status !== "cancelado").reduce((s,o) => s + o.total, 0);
@@ -26,15 +26,30 @@ const AdminFinance = () => {
             <h3 className="font-display text-xl">Wallet das sacoleiras</h3>
           </div>
           <div className="divide-y divide-border">
-            {sacoleiras.map((s) => (
-              <div key={s.id} className="px-5 py-4 flex items-center justify-between gap-4">
-                <div>
+            {sacoleiras.map((s) => {
+              const breakdown = getWalletBreakdown(s.id);
+              return (
+              <div key={s.id} className="px-5 py-4 space-y-3">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
                   <p className="font-medium">{s.storeName}</p>
                   <p className="text-xs text-muted-foreground">Disponível {formatBRL(s.walletAvailable)} · Pendente {formatBRL(s.walletPending)}</p>
+                  </div>
+                  <p className="font-display text-xl text-gold">{formatBRL(s.walletAvailable + s.walletPending)}</p>
                 </div>
-                <p className="font-display text-xl text-gold">{formatBRL(s.walletAvailable + s.walletPending)}</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="rounded-lg border border-primary/20 bg-primary/10 px-3 py-2">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Vendas próprias</p>
+                    <p className="font-display text-lg text-primary">{formatBRL(breakdown.sales)}</p>
+                  </div>
+                  <div className="rounded-lg border border-gold/25 bg-gold/10 px-3 py-2">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Indicação MLM</p>
+                    <p className="font-display text-lg text-gold">{formatBRL(breakdown.referrals)}</p>
+                  </div>
+                </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         </div>
 
