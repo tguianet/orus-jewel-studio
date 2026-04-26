@@ -576,6 +576,7 @@ export type Database = {
       }
       is_admin: { Args: { _user_id?: string }; Returns: boolean }
       is_approved_store: { Args: { _store_id: string }; Returns: boolean }
+      mark_order_paid: { Args: { _order_id: string }; Returns: undefined }
       owns_reseller: {
         Args: { _reseller_id: string; _user_id?: string }
         Returns: boolean
