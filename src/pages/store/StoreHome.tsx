@@ -1,12 +1,12 @@
 import { Link, useOutletContext } from "react-router-dom";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { products, categories, formatBRL, Sacoleira } from "@/lib/mockData";
+import { categories, formatBRL, getStoreProducts, Sacoleira } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
 import heroImg from "@/assets/hero-jewelry.jpg";
 
 const StoreHome = () => {
   const { store } = useOutletContext<{ store: Sacoleira }>();
-  const featured = products.slice(0, 4);
+  const featured = getStoreProducts(store.id).slice(0, 8);
 
   return (
     <>
@@ -60,7 +60,7 @@ const StoreHome = () => {
               </div>
               <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{p.category}</p>
               <h3 className="font-display text-lg leading-tight mt-1 group-hover:text-primary transition-colors">{p.name}</h3>
-              <p className="text-primary font-medium mt-1">{formatBRL(p.suggestedPrice)}</p>
+              <p className="text-primary font-medium mt-1">{formatBRL(p.resellerPrice)}</p>
             </Link>
           ))}
         </div>

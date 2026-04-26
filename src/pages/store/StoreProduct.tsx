@@ -1,6 +1,6 @@
 import { useParams, useOutletContext, Link, useNavigate } from "react-router-dom";
 import { Minus, Plus, ShoppingBag, ArrowLeft } from "lucide-react";
-import { getProductById, formatBRL, Sacoleira } from "@/lib/mockData";
+import { getProductById, getStoreProducts, formatBRL, Sacoleira } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useState } from "react";
@@ -10,6 +10,8 @@ const StoreProduct = () => {
   const { id } = useParams();
   const { store } = useOutletContext<{ store: Sacoleira }>();
   const product = getProductById(id);
+  const storeProduct = getStoreProducts(store.id).find((item) => item.id === product.id);
+  const resellerPrice = storeProduct?.resellerPrice ?? product.suggestedPrice;
   const { add } = useCart();
   const navigate = useNavigate();
   const [qty, setQty] = useState(1);
@@ -17,7 +19,7 @@ const StoreProduct = () => {
   if (!product) return <div className="container py-16 text-center text-muted-foreground">Produto não encontrado.</div>;
 
   const handleAdd = () => {
-    for (let i = 0; i < qty; i++) add(product, product.suggestedPrice);
+    for (let i = 0; i < qty; i++) add(product, resellerPrice);
     toast.success(`${product.name} adicionado ao carrinho`);
   };
 
@@ -43,7 +45,7 @@ const StoreProduct = () => {
 
           <div className="mt-8">
             <p className="text-xs text-muted-foreground uppercase tracking-widest">Preço</p>
-            <p className="font-display text-5xl font-light text-gold mt-1">{formatBRL(product.suggestedPrice)}</p>
+            <p className="font-display text-5xl font-light text-gold mt-1">{formatBRL(resellerPrice)}</p>
             <p className="text-xs text-muted-foreground mt-1">ou em até 3x sem juros</p>
           </div>
 
