@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { LayoutDashboard, Store, Palette, BookOpen, Sparkles, ShoppingBag, Heart, Settings } from "lucide-react";
+import { LayoutDashboard, Store, Palette, BookOpen, Sparkles, ShoppingBag, Network, Wallet, Settings } from "lucide-react";
 import { AppShell, NavItem } from "@/components/AppShell";
 
 const nav: NavItem[] = [
@@ -9,10 +9,11 @@ const nav: NavItem[] = [
   { label: "Catálogo disponível", to: "/sacoleira/catalogo", icon: BookOpen },
   { label: "Meus produtos", to: "/sacoleira/meus-produtos", icon: Sparkles },
   { label: "Pedidos", to: "/sacoleira/pedidos", icon: ShoppingBag },
-  { label: "Clientes", to: "/sacoleira/clientes", icon: Heart },
+  { label: "Carteira", to: "/sacoleira/clientes", icon: Wallet },
+  { label: "Minha rede", to: "/sacoleira/rede", icon: Network },
   { label: "Configurações", to: "/sacoleira/configuracoes", icon: Settings },
 ];
 
 export const SellerLayout = ({ children }: { children: ReactNode }) => (
-  <AppShell nav={nav} scopeLabel="Marina Joias" userName="Marina Costa">{children}</AppShell>
+  <AppShell nav={nav} scopeLabel="Marina Aura" userName="Marina Costa">{children}</AppShell>
 );

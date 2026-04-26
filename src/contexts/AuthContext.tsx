@@ -27,8 +27,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     login: (role, email) => {
       const seller = sacoleiras[0];
       const nextUser: MockUser = role === "admin"
-        ? { id: "admin-demo", role: "admin", name: "Orus Atacado", email: email || "admin@orus.com" }
-        : { id: seller?.id || "seller-demo", role: "sacoleira", name: seller?.name || "Marina Costa", email: email || seller?.email || "marina@email.com", storeSlug: seller?.storeSlug || "marina-joias" };
+        ? { id: "admin-demo", role: "admin", name: "Aura Store Suite", email: email || "admin@aurastore.com" }
+        : { id: seller?.id || "seller-demo", role: "sacoleira", name: seller?.name || "Marina Costa", email: email || seller?.email || "marina@email.com", storeSlug: seller?.storeSlug || "marina-aura" };
 
       setUser(nextUser);
       return nextUser;

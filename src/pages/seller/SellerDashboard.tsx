@@ -9,11 +9,11 @@ import { Link } from "react-router-dom";
 const SellerDashboard = () => (
   <SellerLayout>
     <PageHeader
-      eyebrow="Marina Joias"
+      eyebrow="Marina Aura"
       title="Bem-vinda, Marina"
       description="Resumo da sua loja virtual e dos pedidos recebidos."
       actions={
-        <Link to="/loja/marina-joias" target="_blank">
+        <Link to="/loja/marina-aura" target="_blank">
           <Button variant="goldOutline"><ExternalLink className="h-4 w-4" /> Ver minha loja</Button>
         </Link>
       }
@@ -23,7 +23,7 @@ const SellerDashboard = () => (
       <StatCard label="Vendas (mês)" value={formatBRL(2480)} icon={DollarSign} trend="+24%" />
       <StatCard label="Pedidos novos" value="3" icon={ShoppingBag} hint="aguardando contato" />
       <StatCard label="Visitas na loja" value="412" icon={Eye} trend="+38" hint="esta semana" />
-      <StatCard label="Clientes fiéis" value="18" icon={Heart} hint="2+ compras" />
+      <StatCard label="Comissões pendentes" value="18" icon={Heart} hint="2+ compras" />
     </div>
 
     <div className="grid lg:grid-cols-3 gap-5">
@@ -51,7 +51,7 @@ const SellerDashboard = () => (
       <div className="rounded-xl border border-primary/20 bg-gradient-gold-soft p-6">
         <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Próximo passo</p>
         <h3 className="font-display text-2xl mb-2">Adicione mais brilho à sua vitrine</h3>
-        <p className="text-sm text-muted-foreground mb-4">Você está exibindo 4 produtos. Adicione novos do catálogo Orus para atrair mais clientes.</p>
+        <p className="text-sm text-muted-foreground mb-4">Você está exibindo 4 produtos. Adicione novos do catálogo Aura para atrair mais clientes.</p>
         <Link to="/sacoleira/catalogo"><Button variant="gold" className="w-full">Explorar catálogo</Button></Link>
       </div>
     </div>

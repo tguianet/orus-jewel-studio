@@ -4,11 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Orus Design System — Premium dark + gold for jewelry SaaS */
+/* Aura Store Suite Design System — premium dark + gold for jewelry SaaS */
 
 @layer base {
   :root {
-    /* Default to dark — Orus is dark-first */
+    /* Default to dark — Aura is dark-first */
     --background: 30 12% 6%;
     --foreground: 40 30% 92%;
 
