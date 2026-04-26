@@ -21,7 +21,7 @@ const AdminSellers = () => (
     <PageHeader
       eyebrow="Rede de revenda"
       title="Sacoleiras"
-      description="Cadastre e gerencie as revendedoras da plataforma Orus."
+      description="Aprove, bloqueie e acompanhe revendedoras da Aura Store Suite."
       actions={<Button variant="gold"><UserPlus className="h-4 w-4" /> Nova sacoleira</Button>}
     />
 

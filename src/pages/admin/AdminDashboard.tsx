@@ -15,8 +15,8 @@ const AdminDashboard = () => {
     <AdminLayout>
       <PageHeader
         eyebrow="Visão geral"
-        title="Bem-vinda ao seu atacado"
-        description="Resumo das operações da sua rede Orus."
+        title="Bem-vinda à Aura Store Suite"
+        description="Resumo das operações da sua rede Aura Store Suite."
         actions={<NewProductModal />}
       />
 

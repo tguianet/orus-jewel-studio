@@ -20,7 +20,7 @@ const Landing = () => (
         <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
           <a href="#features" className="hover:text-primary transition-colors">Plataforma</a>
           <a href="#how" className="hover:text-primary transition-colors">Como funciona</a>
-          <Link to="/loja/marina-joias" className="hover:text-primary transition-colors">Loja exemplo</Link>
+          <Link to="/loja/marina-aura" className="hover:text-primary transition-colors">Loja exemplo</Link>
         </nav>
         <div className="flex items-center gap-2">
           <Link to="/login-sacoleira"><Button variant="ghost" size="sm">Entrar</Button></Link>
@@ -44,7 +44,7 @@ const Landing = () => (
             sabe vender.
           </h1>
           <p className="text-lg text-muted-foreground max-w-lg leading-relaxed">
-            Orus conecta seu estoque de atacado a uma rede de sacoleiras com lojas virtuais individuais, elegantes e prontas para revender.
+            Aura Store Suite conecta seu estoque de atacado a uma rede de sacoleiras com lojas virtuais individuais, elegantes e prontas para revender.
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
             <Link to="/admin"><Button variant="gold" size="xl">Entrar como Admin <ArrowRight className="h-4 w-4" /></Button></Link>
@@ -61,7 +61,7 @@ const Landing = () => (
         <div className="relative animate-fade-in">
           <div className="absolute -inset-4 bg-gradient-gold opacity-20 blur-3xl rounded-full" />
           <div className="relative rounded-2xl overflow-hidden border border-primary/20 shadow-elegant">
-            <img src={heroImg} alt="Joias premium Orus" width={1600} height={1024} className="w-full h-auto object-cover" />
+            <img src={heroImg} alt="Joias premium Aura" width={1600} height={1024} className="w-full h-auto object-cover" />
           </div>
           <div className="absolute -bottom-6 -left-6 hidden sm:block glass-panel rounded-xl px-4 py-3">
             <div className="flex items-center gap-3">
@@ -120,7 +120,7 @@ const Landing = () => (
           <h2 className="font-display text-4xl sm:text-5xl font-light max-w-2xl mx-auto">Pronta para multiplicar suas vendas com elegância?</h2>
           <div className="flex flex-wrap justify-center gap-3 mt-8">
             <Link to="/admin"><Button variant="gold" size="xl">Acessar Admin</Button></Link>
-            <Link to="/loja/marina-joias"><Button variant="outline" size="xl">Ver loja exemplo</Button></Link>
+            <Link to="/loja/marina-aura"><Button variant="outline" size="xl">Ver loja exemplo</Button></Link>
           </div>
         </div>
       </div>
@@ -129,7 +129,7 @@ const Landing = () => (
     <footer className="border-t border-border/50 py-8">
       <div className="container flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
         <OrusLogo size="sm" />
-        <p>© {new Date().getFullYear()} Orus. Joias com identidade.</p>
+        <p>© {new Date().getFullYear()} Aura Store Suite. Joias em rede.</p>
       </div>
     </footer>
   </div>

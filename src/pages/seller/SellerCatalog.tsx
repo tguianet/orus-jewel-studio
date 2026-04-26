@@ -13,7 +13,7 @@ const SellerCatalog = () => {
   return (
     <SellerLayout>
       <PageHeader
-        eyebrow="Catálogo Orus"
+        eyebrow="Catálogo Aura"
         title="Escolha seus produtos"
         description="Selecione as peças que você quer expor na sua loja virtual."
         actions={<Button variant="gold">Salvar seleção ({selected.length})</Button>}

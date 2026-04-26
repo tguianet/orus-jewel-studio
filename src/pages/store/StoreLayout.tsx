@@ -19,7 +19,7 @@ const StoreLayout = () => {
             </div>
             <div>
               <p className="font-display text-lg leading-none">{store.storeName}</p>
-              <p className="text-[10px] text-muted-foreground tracking-widest uppercase">por Orus</p>
+              <p className="text-[10px] text-muted-foreground tracking-widest uppercase">por Aura</p>
             </div>
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
@@ -48,7 +48,7 @@ const StoreLayout = () => {
         <div className="container text-center space-y-2">
           <p className="font-display text-xl">{store.storeName}</p>
           <p className="text-xs text-muted-foreground">Atendimento pelo WhatsApp · {store.phone}</p>
-          <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground pt-3">Powered by Orus</p>
+          <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground pt-3">Powered by Aura Store Suite</p>
         </div>
       </footer>
     </div>

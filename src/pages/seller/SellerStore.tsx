@@ -11,7 +11,7 @@ const SellerStore = () => (
       title="Minha loja"
       description="Visão geral da sua loja virtual pública."
       actions={
-        <Link to="/loja/marina-joias" target="_blank">
+        <Link to="/loja/marina-aura" target="_blank">
           <Button variant="gold"><ExternalLink className="h-4 w-4" /> Abrir loja</Button>
         </Link>
       }
@@ -22,7 +22,7 @@ const SellerStore = () => (
         <div className="aspect-[16/7] bg-gradient-gold relative">
           <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
           <div className="absolute bottom-6 left-6">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-primary-foreground/80">marina joias</p>
+            <p className="text-[10px] uppercase tracking-[0.3em] text-primary-foreground/80">marina aura</p>
             <h2 className="font-display text-3xl text-primary-foreground">Joias com sua história</h2>
           </div>
         </div>
@@ -30,7 +30,7 @@ const SellerStore = () => (
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">URL pública da sua loja</p>
-              <p className="font-mono text-sm">orus.app/loja/marina-joias</p>
+              <p className="font-mono text-sm">orus.app/loja/marina-aura</p>
             </div>
             <Button variant="outline" size="sm"><Share2 className="h-4 w-4" /> Copiar</Button>
           </div>
@@ -49,7 +49,7 @@ const SellerStore = () => (
         </Link>
         <Link to="/sacoleira/catalogo" className="block rounded-xl border border-border bg-card p-5 hover:border-primary/40 transition-all">
           <h4 className="font-display text-lg">Adicionar produtos</h4>
-          <p className="text-xs text-muted-foreground mt-1">Selecione do catálogo Orus</p>
+          <p className="text-xs text-muted-foreground mt-1">Selecione do catálogo Aura</p>
         </Link>
         <Link to="/sacoleira/meus-produtos" className="block rounded-xl border border-border bg-card p-5 hover:border-primary/40 transition-all">
           <h4 className="font-display text-lg">Definir preços</h4>
