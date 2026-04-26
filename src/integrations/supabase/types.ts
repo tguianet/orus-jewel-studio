@@ -58,6 +58,77 @@ export type Database = {
           },
         ]
       }
+      commissions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          level: number
+          order_id: string
+          order_item_id: string | null
+          rate: number
+          reseller_id: string
+          source_reseller_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          level: number
+          order_id: string
+          order_item_id?: string | null
+          rate: number
+          reseller_id: string
+          source_reseller_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          level?: number
+          order_id?: string
+          order_item_id?: string | null
+          rate?: number
+          reseller_id?: string
+          source_reseller_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commissions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_source_reseller_id_fkey"
+            columns: ["source_reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string
@@ -265,6 +336,53 @@ export type Database = {
         }
         Relationships: []
       }
+      resellers: {
+        Row: {
+          created_at: string
+          display_name: string
+          email: string
+          id: string
+          parent_id: string | null
+          phone: string | null
+          status: Database["public"]["Enums"]["seller_store_status"]
+          tier: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string
+          email?: string
+          id?: string
+          parent_id?: string | null
+          phone?: string | null
+          status?: Database["public"]["Enums"]["seller_store_status"]
+          tier?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          email?: string
+          id?: string
+          parent_id?: string | null
+          phone?: string | null
+          status?: Database["public"]["Enums"]["seller_store_status"]
+          tier?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resellers_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       seller_stores: {
         Row: {
           commission_rate: number
@@ -272,6 +390,7 @@ export type Database = {
           created_at: string
           id: string
           owner_user_id: string
+          reseller_id: string | null
           status: Database["public"]["Enums"]["seller_store_status"]
           store_name: string
           store_slug: string
@@ -285,6 +404,7 @@ export type Database = {
           created_at?: string
           id?: string
           owner_user_id: string
+          reseller_id?: string | null
           status?: Database["public"]["Enums"]["seller_store_status"]
           store_name: string
           store_slug: string
@@ -298,6 +418,7 @@ export type Database = {
           created_at?: string
           id?: string
           owner_user_id?: string
+          reseller_id?: string | null
           status?: Database["public"]["Enums"]["seller_store_status"]
           store_name?: string
           store_slug?: string
@@ -305,7 +426,60 @@ export type Database = {
           tier?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "seller_stores_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_products: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          product_id: string
+          resale_price: number
+          seller_store_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          product_id: string
+          resale_price?: number
+          seller_store_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          product_id?: string
+          resale_price?: number
+          seller_store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_products_seller_store_id_fkey"
+            columns: ["seller_store_id"]
+            isOneToOne: false
+            referencedRelation: "seller_stores"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -328,6 +502,57 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          commission_id: string | null
+          created_at: string
+          description: string
+          id: string
+          reseller_id: string
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          commission_id?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          reseller_id: string
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          commission_id?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          reseller_id?: string
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_commission_id_fkey"
+            columns: ["commission_id"]
+            isOneToOne: false
+            referencedRelation: "commissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_transactions_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -346,7 +571,15 @@ export type Database = {
       }
       is_admin: { Args: { _user_id?: string }; Returns: boolean }
       is_approved_store: { Args: { _store_id: string }; Returns: boolean }
+      owns_reseller: {
+        Args: { _reseller_id: string; _user_id?: string }
+        Returns: boolean
+      }
       owns_store: {
+        Args: { _store_id: string; _user_id?: string }
+        Returns: boolean
+      }
+      reseller_can_access_store: {
         Args: { _store_id: string; _user_id?: string }
         Returns: boolean
       }
