@@ -16,6 +16,7 @@ import AdminSellers from "./pages/admin/AdminSellers";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminFinance from "./pages/admin/AdminFinance";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminNetwork from "./pages/admin/AdminNetwork";
 
 import SellerDashboard from "./pages/seller/SellerDashboard";
 import SellerStore from "./pages/seller/SellerStore";
@@ -25,6 +26,7 @@ import SellerProducts from "./pages/seller/SellerProducts";
 import SellerOrders from "./pages/seller/SellerOrders";
 import SellerCustomers from "./pages/seller/SellerCustomers";
 import SellerSettings from "./pages/seller/SellerSettings";
+import SellerNetwork from "./pages/seller/SellerNetwork";
 
 import StoreLayout from "./pages/store/StoreLayout";
 import StoreHome from "./pages/store/StoreHome";
@@ -52,6 +54,7 @@ const App = () => (
             <Route path="/admin/pedidos" element={<AdminOrders />} />
             <Route path="/admin/financeiro" element={<AdminFinance />} />
             <Route path="/admin/configuracoes" element={<AdminSettings />} />
+            <Route path="/admin/rede" element={<AdminNetwork />} />
 
             {/* Seller */}
             <Route path="/sacoleira" element={<SellerDashboard />} />
@@ -62,6 +65,7 @@ const App = () => (
             <Route path="/sacoleira/pedidos" element={<SellerOrders />} />
             <Route path="/sacoleira/clientes" element={<SellerCustomers />} />
             <Route path="/sacoleira/configuracoes" element={<SellerSettings />} />
+            <Route path="/sacoleira/rede" element={<SellerNetwork />} />
 
             {/* Public store */}
             <Route path="/loja/:slug" element={<StoreLayout />}>
