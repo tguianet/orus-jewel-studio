@@ -1,20 +1,31 @@
 import { useParams, useOutletContext, Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { Minus, Plus, ShoppingBag, ArrowLeft } from "lucide-react";
 import { getProductById, getStoreProducts, formatBRL, Sacoleira } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
-import { useState } from "react";
 import { toast } from "sonner";
+import { CloudStoreProduct, loadStoreProducts } from "@/lib/cloudStore";
 
 const StoreProduct = () => {
   const { id } = useParams();
   const { store } = useOutletContext<{ store: Sacoleira }>();
-  const product = getProductById(id);
-  const storeProduct = getStoreProducts(store.id).find((item) => item.id === product.id);
+  const [cloudProducts, setCloudProducts] = useState<CloudStoreProduct[]>([]);
+  const fallbackProduct = getProductById(id);
+  const product = cloudProducts.find((item) => item.id === id) || fallbackProduct;
+  const storeProduct = cloudProducts.find((item) => item.id === product.id) || getStoreProducts(store.id).find((item) => item.id === product.id);
   const resellerPrice = storeProduct?.resellerPrice ?? product.suggestedPrice;
   const { add } = useCart();
   const navigate = useNavigate();
   const [qty, setQty] = useState(1);
+
+  useEffect(() => {
+    let mounted = true;
+    loadStoreProducts(store.id).then((items) => {
+      if (mounted) setCloudProducts(items);
+    });
+    return () => { mounted = false; };
+  }, [store.id]);
 
   if (!product) return <div className="container py-16 text-center text-muted-foreground">Produto não encontrado.</div>;
 
