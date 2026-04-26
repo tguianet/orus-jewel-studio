@@ -1,33 +1,43 @@
 import { SellerLayout } from "@/layouts/SellerLayout";
 import { PageHeader } from "@/components/PageHeader";
-import { Heart } from "lucide-react";
-import { storeOrders, formatBRL } from "@/lib/mockData";
+import { Wallet, Clock, CheckCircle2 } from "lucide-react";
+import { fallbackStore, formatBRL, getWalletTransactions, statusColors } from "@/lib/mockData";
+import { StatCard } from "@/components/StatCard";
 
-const SellerCustomers = () => (
-  <SellerLayout>
-    <PageHeader eyebrow="Relacionamento" title="Clientes" description="Quem confia na sua curadoria." />
+const SellerCustomers = () => {
+  const transactions = getWalletTransactions(fallbackStore.id);
 
-    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {storeOrders.map(c => (
-        <div key={c.id} className="rounded-xl border border-border bg-card p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-11 w-11 rounded-full bg-gradient-gold-soft border border-primary/30 flex items-center justify-center text-primary font-medium">
-              {c.customer.charAt(0)}
-            </div>
-            <div>
-              <p className="font-medium">{c.customer}</p>
-              <p className="text-xs text-muted-foreground">{c.phone}</p>
-            </div>
-            <Heart className="h-4 w-4 text-primary ml-auto" />
-          </div>
-          <div className="flex items-center justify-between text-sm pt-3 border-t border-border">
-            <span className="text-muted-foreground">1 pedido</span>
-            <span className="font-medium text-primary">{formatBRL(c.total)}</span>
-          </div>
+  return (
+    <SellerLayout>
+      <PageHeader eyebrow="Carteira" title="Saldo e comissões" description="Acompanhe seu saldo disponível, pendente e histórico de movimentações." />
+
+      <div className="grid gap-4 sm:grid-cols-3 mb-8">
+        <StatCard label="Saldo disponível" value={formatBRL(fallbackStore.walletAvailable)} icon={Wallet} />
+        <StatCard label="Saldo pendente" value={formatBRL(fallbackStore.walletPending)} icon={Clock} />
+        <StatCard label="Total em carteira" value={formatBRL(fallbackStore.walletAvailable + fallbackStore.walletPending)} icon={CheckCircle2} />
+      </div>
+
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="px-5 py-4 border-b border-border">
+          <h3 className="font-display text-xl">Histórico da carteira</h3>
         </div>
-      ))}
-    </div>
-  </SellerLayout>
-);
+        <div className="divide-y divide-border">
+          {transactions.map((t) => (
+            <div key={t.id} className="px-5 py-4 flex items-center justify-between gap-4">
+              <div>
+                <p className="font-medium">{t.description}</p>
+                <p className="text-xs text-muted-foreground">{new Date(t.date).toLocaleDateString("pt-BR")}</p>
+              </div>
+              <div className="text-right">
+                <p className={t.amount >= 0 ? "font-medium text-primary" : "font-medium text-muted-foreground"}>{formatBRL(t.amount)}</p>
+                <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider border ${statusColors[t.status]}`}>{t.status === "available" ? "Disponível" : t.status === "pending" ? "Pendente" : "Pago"}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </SellerLayout>
+  );
+};
 
 export default SellerCustomers;
