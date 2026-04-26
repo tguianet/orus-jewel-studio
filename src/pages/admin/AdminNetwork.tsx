@@ -11,9 +11,9 @@ const AdminNetwork = () => {
   return (
     <AdminLayout>
       <PageHeader
-        eyebrow="Marketing multinível"
-        title="Rede de indicação"
-        description="Acompanhe indicações por sacoleira e regras de comissão geradas somente por venda de produto."
+        eyebrow="MLM"
+        title="Marketing multinível"
+        description="Acompanhe a árvore de indicação das sacoleiras e as comissões multinível geradas somente por vendas de produto."
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
@@ -26,8 +26,8 @@ const AdminNetwork = () => {
       <div className="grid lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 rounded-xl border border-border bg-card overflow-hidden">
           <div className="px-5 py-4 border-b border-border">
-            <h3 className="font-display text-xl">Árvore da rede</h3>
-            <p className="text-xs text-muted-foreground">Cada linha mostra indicadas diretas e tamanho total da rede.</p>
+            <h3 className="font-display text-xl">Árvore MLM</h3>
+            <p className="text-xs text-muted-foreground">Cada linha mostra patrocinadora, indicadas diretas e alcance da rede multinível.</p>
           </div>
           <div className="divide-y divide-border">
             {sacoleiras.map((s) => {
@@ -51,7 +51,7 @@ const AdminNetwork = () => {
 
         <div className="rounded-xl border border-primary/20 bg-gradient-gold-soft p-6">
           <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Regras</p>
-          <h3 className="font-display text-2xl mb-4">Comissão por venda</h3>
+          <h3 className="font-display text-2xl mb-4">Comissão MLM por venda</h3>
           <div className="space-y-3">
             {commissionRules.map((rule) => (
               <div key={rule.level} className="flex items-center justify-between rounded-lg border border-border bg-card/70 p-3">
@@ -60,7 +60,7 @@ const AdminNetwork = () => {
               </div>
             ))}
           </div>
-          <p className="mt-4 text-xs text-muted-foreground">Comissões não são geradas por cadastro, apenas por pedidos de produto confirmados.</p>
+          <p className="mt-4 text-xs text-muted-foreground">MLM sem comissão por cadastro: a carteira só recebe valores de pedidos de produto confirmados.</p>
         </div>
       </div>
     </AdminLayout>
