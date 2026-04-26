@@ -2,6 +2,7 @@ import { DollarSign, TrendingUp, CreditCard, Clock } from "lucide-react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { commissions, formatBRL, getWalletBreakdown, statusColors, sacoleiras, wholesaleOrders } from "@/lib/mockData";
 
 const AdminFinance = () => {
@@ -29,10 +30,11 @@ const AdminFinance = () => {
             {sacoleiras.map((s) => {
               const breakdown = getWalletBreakdown(s.id);
               return (
-              <div key={s.id} className="px-5 py-4 space-y-3">
+              <Dialog key={s.id}>
+              <div className="px-5 py-4 space-y-3">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                  <p className="font-medium">{s.storeName}</p>
+                  <DialogTrigger className="text-left font-medium underline-offset-4 transition-colors hover:text-gold hover:underline">{s.storeName}</DialogTrigger>
                   <p className="text-xs text-muted-foreground">Disponível {formatBRL(s.walletAvailable)} · Pendente {formatBRL(s.walletPending)}</p>
                   </div>
                   <p className="font-display text-xl text-gold">{formatBRL(s.walletAvailable + s.walletPending)}</p>
@@ -48,6 +50,35 @@ const AdminFinance = () => {
                   </div>
                 </div>
               </div>
+              <DialogContent className="border-border bg-card sm:max-w-xl">
+                <DialogHeader>
+                  <DialogTitle className="font-display text-2xl text-gold">{s.storeName}</DialogTitle>
+                  <DialogDescription>{s.name} · {s.tier} · carteira detalhada</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-lg border border-border bg-background/60 p-4">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Saldo disponível</p>
+                    <p className="mt-1 font-display text-2xl text-primary">{formatBRL(s.walletAvailable)}</p>
+                  </div>
+                  <div className="rounded-lg border border-border bg-background/60 p-4">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Saldo pendente</p>
+                    <p className="mt-1 font-display text-2xl text-warning">{formatBRL(s.walletPending)}</p>
+                  </div>
+                  <div className="rounded-lg border border-primary/20 bg-primary/10 p-4">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Ganhos por vendas</p>
+                    <p className="mt-1 font-display text-2xl text-primary">{formatBRL(breakdown.sales)}</p>
+                  </div>
+                  <div className="rounded-lg border border-gold/25 bg-gold/10 p-4">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Comissões por indicação</p>
+                    <p className="mt-1 font-display text-2xl text-gold">{formatBRL(breakdown.referrals)}</p>
+                  </div>
+                </div>
+                <div className="rounded-lg border border-border bg-background/60 p-4">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Resumo MLM</p>
+                  <p className="mt-2 text-sm text-muted-foreground">{s.directReferrals} indicações diretas · {s.networkSize} pessoas na rede · {s.ordersCount} pedidos vinculados</p>
+                </div>
+              </DialogContent>
+              </Dialog>
             );
             })}
           </div>
