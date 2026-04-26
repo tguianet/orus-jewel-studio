@@ -2,10 +2,12 @@ import { Network, Users } from "lucide-react";
 import { SellerLayout } from "@/layouts/SellerLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
-import { commissionRules, fallbackStore, formatBRL, getCommissionsByReseller, getNetwork } from "@/lib/mockData";
+import { commissionRules, fallbackStore, formatBRL, getCommissionByLevel, getCommissionsByReseller, getNetwork, getNetworkLevels } from "@/lib/mockData";
 
 const SellerNetwork = () => {
   const direct = getNetwork(fallbackStore.id);
+  const levels = getNetworkLevels(fallbackStore.id);
+  const earningsByLevel = getCommissionByLevel(fallbackStore.id);
   const commissions = getCommissionsByReseller(fallbackStore.id);
   const total = commissions.reduce((sum, c) => sum + c.amount, 0);
 
@@ -26,13 +28,23 @@ const SellerNetwork = () => {
             <h3 className="font-display text-xl">Indicadas diretas no MLM</h3>
           </div>
           <div className="divide-y divide-border">
-            {direct.map((s) => (
-              <div key={s.id} className="px-5 py-4 flex items-center justify-between">
-                <div>
-                  <p className="font-medium">{s.name}</p>
-                  <p className="text-xs text-muted-foreground">{s.storeName} · /loja/{s.storeSlug}</p>
+            {levels.map((group) => (
+              <div key={group.level} className="px-5 py-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="font-display text-lg">{group.label}</p>
+                  <span className="text-sm text-primary">{formatBRL(earningsByLevel.find(e => e.level === group.level)?.amount || 0)}</span>
                 </div>
-                <span className="text-sm text-primary">{s.status === "approved" ? "Aprovada" : "Pendente"}</span>
+                <div className="space-y-2">
+                  {group.members.length ? group.members.map((s) => (
+                    <div key={s.id} className="flex items-center justify-between rounded-lg border border-border bg-background/50 px-3 py-2">
+                      <div>
+                        <p className="font-medium">{s.name}</p>
+                        <p className="text-xs text-muted-foreground">{s.storeName} · /loja/{s.storeSlug}</p>
+                      </div>
+                      <span className="text-xs text-muted-foreground">{s.status === "approved" ? "Aprovada" : "Pendente"}</span>
+                    </div>
+                  )) : <p className="text-sm text-muted-foreground">Nenhuma indicada neste nível.</p>}
+                </div>
               </div>
             ))}
           </div>
