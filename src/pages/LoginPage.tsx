@@ -32,7 +32,7 @@ const LoginPage = ({ role }: Props) => {
                 : "Catálogo curado, preço sob seu controle e pedidos que chegam direto no seu WhatsApp."}
             </p>
           </div>
-          <p className="text-xs text-muted-foreground tracking-widest uppercase">Orus · Joias com identidade</p>
+          <p className="text-xs text-muted-foreground tracking-widest uppercase">Aura Store Suite · Joias em rede</p>
         </div>
       </div>
 
@@ -47,7 +47,7 @@ const LoginPage = ({ role }: Props) => {
           <form onSubmit={(e) => { e.preventDefault(); login(role, new FormData(e.currentTarget).get("email")?.toString()); nav(target); }} className="space-y-4">
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" defaultValue={isAdmin ? "admin@orus.com" : "marina@email.com"} className="mt-1.5" />
+              <Input id="email" name="email" type="email" defaultValue={isAdmin ? "admin@aurastore.com" : "marina@email.com"} className="mt-1.5" />
             </div>
             <div>
               <Label htmlFor="pwd">Senha</Label>
@@ -63,7 +63,7 @@ const LoginPage = ({ role }: Props) => {
             {isAdmin ? (
               <>É sacoleira? <Link to="/login-sacoleira" className="text-primary hover:underline">Acesse aqui</Link></>
             ) : (
-              <>Quer ser revendedora Orus? <a className="text-primary hover:underline cursor-pointer">Solicitar cadastro</a></>
+              <>Quer ser revendedora Aura? <a className="text-primary hover:underline cursor-pointer">Solicitar cadastro</a></>
             )}
           </p>
         </div>

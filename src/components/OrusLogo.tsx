@@ -10,12 +10,12 @@ export const OrusLogo = ({ className, showWord = true, size = "md" }: Props) => 
       <div className={cn("relative flex items-center justify-center aspect-square", sizes[size])}>
         <div className="absolute inset-0 rounded-full bg-gradient-gold opacity-90 shadow-gold" />
         <div className="absolute inset-[3px] rounded-full bg-background flex items-center justify-center">
-          <span className="font-display font-semibold text-gold text-sm tracking-tight">O</span>
+          <span className="font-display font-semibold text-gold text-sm tracking-tight">A</span>
         </div>
       </div>
       {showWord && (
         <span className={cn("font-display font-light tracking-[0.3em] text-foreground", text[size])}>
-          ORUS
+          AURA
         </span>
       )}
     </div>

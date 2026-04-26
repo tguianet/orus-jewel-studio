@@ -24,7 +24,7 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
   const handleCreate = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const name = String(form.get("name") || "Nova joia Orus");
+    const name = String(form.get("name") || "Nova joia Aura");
     const category = String(form.get("category") || categories[0]?.name || "Joias");
     const wholesalePrice = Number(form.get("wholesalePrice") || 0);
     const suggestedPrice = Number(form.get("suggestedPrice") || wholesalePrice * 2);
@@ -32,7 +32,7 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
 
     onCreate?.({
       id: `p${Date.now()}`,
-      code: `ORS-${category.charAt(0).toUpperCase()}${Date.now().toString().slice(-3)}`,
+      code: `AUR-${category.charAt(0).toUpperCase()}${Date.now().toString().slice(-3)}`,
       name,
       category,
       description: "Produto cadastrado no protótipo para apresentação do fluxo administrativo.",
