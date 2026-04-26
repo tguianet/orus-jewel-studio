@@ -4,6 +4,7 @@ import { MessageCircle } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { Sacoleira, formatBRL } from "@/lib/mockData";
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesInsert } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,18 +29,20 @@ const StoreCheckout = () => {
     }
 
     const createOrder = async () => {
+      const orderPayload: TablesInsert<"orders"> = {
+        seller_store_id: store.id,
+        customer_name: form.name,
+        customer_phone: form.phone,
+        customer_address: form.address || null,
+        notes: form.notes || null,
+        subtotal: total,
+        total,
+        status: "new",
+      };
+
       const { data: order, error } = await supabase
         .from("orders")
-        .insert({
-          seller_store_id: store.id,
-          customer_name: form.name,
-          customer_phone: form.phone,
-          customer_address: form.address || null,
-          notes: form.notes || null,
-          subtotal: total,
-          total,
-          status: "new",
-        })
+        .insert(orderPayload)
         .select("id")
         .single();
 
