@@ -1,13 +1,23 @@
 import { Link, Outlet, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { ShoppingBag, Search, Heart } from "lucide-react";
 import { getStoreBySlug } from "@/lib/mockData";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
+import { loadPublicStore } from "@/lib/cloudStore";
 
 const StoreLayout = () => {
   const { slug } = useParams();
-  const store = getStoreBySlug(slug);
+  const [store, setStore] = useState(() => getStoreBySlug(slug));
   const { count } = useCart();
+
+  useEffect(() => {
+    let mounted = true;
+    loadPublicStore(slug).then((cloudStore) => {
+      if (mounted && cloudStore) setStore(cloudStore);
+    });
+    return () => { mounted = false; };
+  }, [slug]);
 
   return (
     <div className="min-h-screen flex flex-col">

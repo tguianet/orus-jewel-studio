@@ -216,6 +216,26 @@ export const getOrdersByStore = (storeId?: string) => storeOrders.filter(o => o.
 export const getCommissionsByReseller = (resellerId?: string) => commissions.filter(c => c.resellerId === (resellerId || fallbackStore.id));
 export const getWalletTransactions = (resellerId?: string) => walletTransactions.filter(w => w.resellerId === (resellerId || fallbackStore.id));
 export const getNetwork = (resellerId?: string) => sacoleiras.filter(s => s.parentId === (resellerId || fallbackStore.id));
+export const getNetworkLevels = (resellerId?: string) => {
+  const root = resellerId || fallbackStore.id;
+  const level1 = sacoleiras.filter(s => s.parentId === root);
+  const level2 = sacoleiras.filter(s => level1.some(parent => parent.id === s.parentId));
+  const level3 = sacoleiras.filter(s => level2.some(parent => parent.id === s.parentId));
+  return [
+    { level: 1 as const, label: "Nível 1", members: level1 },
+    { level: 2 as const, label: "Nível 2", members: level2 },
+    { level: 3 as const, label: "Nível 3", members: level3 },
+  ];
+};
+export const getCommissionByLevel = (resellerId?: string) => {
+  const id = resellerId || fallbackStore.id;
+  return commissionRules.map(rule => ({
+    ...rule,
+    amount: commissions
+      .filter(c => c.resellerId === id && c.level === rule.level)
+      .reduce((sum, c) => sum + c.amount, 0),
+  }));
+};
 export const getWalletBreakdown = (resellerId?: string) => {
   const id = resellerId || fallbackStore.id;
   const resellerCommissions = commissions.filter(c => c.resellerId === id);

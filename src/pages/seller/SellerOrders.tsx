@@ -2,7 +2,19 @@ import { SellerLayout } from "@/layouts/SellerLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { storeOrders, formatBRL, statusColors, statusLabels } from "@/lib/mockData";
-import { MessageCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { CheckCircle2, MessageCircle } from "lucide-react";
+import { toast } from "sonner";
+
+const markAsPaid = async (orderId: string) => {
+  if (!/^[0-9a-f-]{36}$/i.test(orderId)) {
+    toast.info("Pedidos mockados não alteram a wallet real.");
+    return;
+  }
+  const { error } = await supabase.rpc("mark_order_paid", { _order_id: orderId });
+  if (error) toast.error("Não foi possível liberar a wallet.");
+  else toast.success("Pedido pago: saldo liberado na wallet.");
+};
 
 const SellerOrders = () => (
   <SellerLayout>
@@ -24,6 +36,7 @@ const SellerOrders = () => (
                 <p className="text-xs text-muted-foreground">Total</p>
                 <p className="font-display text-xl text-gold">{formatBRL(o.total)}</p>
               </div>
+              <Button variant="outline" size="sm" onClick={() => markAsPaid(o.id)}><CheckCircle2 className="h-4 w-4" /> Pago</Button>
               <Button variant="whatsapp" size="sm"><MessageCircle className="h-4 w-4" /> Contatar</Button>
             </div>
           </div>
