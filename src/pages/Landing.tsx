@@ -1,14 +1,14 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Sparkles, Store, Crown, Gem, Smartphone, ShieldCheck } from "lucide-react";
+import { ArrowRight, Sparkles, Store, Crown, Gem, Smartphone, ShieldCheck, Network } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OrusLogo } from "@/components/OrusLogo";
 import heroImg from "@/assets/hero-jewelry.jpg";
 
 const features = [
-  { icon: Store, title: "Loja virtual exclusiva", text: "Cada sacoleira recebe sua própria loja com URL personalizada e identidade visual." },
-  { icon: Gem, title: "Catálogo curado", text: "Selecione do estoque do atacado os produtos que combinam com sua clientela." },
-  { icon: Smartphone, title: "Checkout WhatsApp", text: "Receba pedidos diretamente pelo WhatsApp com mensagem automática formatada." },
-  { icon: ShieldCheck, title: "Multi-tenant seguro", text: "Dados de cada loja totalmente isolados. Sua operação, seus clientes." },
+  { icon: Store, title: "Lojas para sacoleiras", text: "Cada revendedora ganha uma loja própria com URL personalizada, catálogo e identidade visual." },
+  { icon: Network, title: "Marketing multinível", text: "Monte redes de indicação em até 3 níveis, com comissões rastreadas por venda de produto." },
+  { icon: Gem, title: "Catálogo de joias", text: "A sacoleira escolhe produtos do atacado, define preço de revenda e monta sua vitrine." },
+  { icon: ShieldCheck, title: "Multi-tenant seguro", text: "Dados, pedidos e produtos de cada loja ficam isolados por revendedora." },
 ];
 
 const Landing = () => (
@@ -44,16 +44,16 @@ const Landing = () => (
             sabe vender.
           </h1>
           <p className="text-lg text-muted-foreground max-w-lg leading-relaxed">
-            Aura Store Suite conecta seu estoque de atacado a uma rede de sacoleiras com lojas virtuais individuais, elegantes e prontas para revender.
+            Aura Store Suite conecta seu estoque de atacado a uma rede multinível de sacoleiras com lojas virtuais individuais, comissões por venda e carteira própria.
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
             <Link to="/admin"><Button variant="gold" size="xl">Entrar como Admin <ArrowRight className="h-4 w-4" /></Button></Link>
             <Link to="/sacoleira"><Button variant="goldOutline" size="xl">Painel da Sacoleira</Button></Link>
           </div>
           <div className="flex items-center gap-6 pt-4 text-xs text-muted-foreground">
-            <div><span className="font-display text-2xl text-foreground">120+</span><br />sacoleiras ativas</div>
+            <div><span className="font-display text-2xl text-foreground">120+</span><br />sacoleiras na rede</div>
             <div className="h-10 w-px bg-border" />
-            <div><span className="font-display text-2xl text-foreground">R$ 480k</span><br />em revendas</div>
+            <div><span className="font-display text-2xl text-foreground">3 níveis</span><br />de comissão</div>
             <div className="h-10 w-px bg-border" />
             <div><span className="font-display text-2xl text-foreground">4.9★</span><br />satisfação</div>
           </div>
@@ -80,7 +80,7 @@ const Landing = () => (
     <section id="features" className="container py-20 lg:py-28">
       <div className="text-center max-w-2xl mx-auto mb-14">
         <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-3">Plataforma</p>
-        <h2 className="font-display text-4xl sm:text-5xl font-light">Tudo que sua rede de revenda precisa.</h2>
+          <h2 className="font-display text-4xl sm:text-5xl font-light">Revenda de joias com marketing multinível.</h2>
       </div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {features.map((f) => (
@@ -99,9 +99,9 @@ const Landing = () => (
     <section id="how" className="container py-20 border-t border-border/50">
       <div className="grid md:grid-cols-3 gap-8">
         {[
-          { n: "01", t: "Cadastre seu estoque", d: "Você adiciona joias no painel admin com fotos, preço de atacado e estoque." },
-          { n: "02", t: "Aprove sacoleiras", d: "Cada revendedora recebe um painel próprio e uma loja virtual com URL personalizada." },
-          { n: "03", t: "Receba pedidos", d: "As sacoleiras compram do seu atacado e revendem pelo WhatsApp para clientes finais." },
+          { n: "01", t: "Cadastre seu estoque", d: "Você adiciona joias no admin com fotos, preço de atacado e estoque." },
+          { n: "02", t: "Forme a rede multinível", d: "Aprove sacoleiras, vincule patrocinadoras e acompanhe níveis de indicação." },
+          { n: "03", t: "Comissione por venda", d: "Comissões são geradas somente quando pedidos de produto são confirmados." },
         ].map((s) => (
           <div key={s.n} className="relative">
             <span className="font-display text-7xl text-gold opacity-40">{s.n}</span>
@@ -117,7 +117,7 @@ const Landing = () => (
       <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-gold-soft p-10 lg:p-16 text-center">
         <div className="absolute inset-0 bg-gradient-radial-gold opacity-50" />
         <div className="relative">
-          <h2 className="font-display text-4xl sm:text-5xl font-light max-w-2xl mx-auto">Pronta para multiplicar suas vendas com elegância?</h2>
+          <h2 className="font-display text-4xl sm:text-5xl font-light max-w-2xl mx-auto">Pronta para operar sua rede multinível de joias?</h2>
           <div className="flex flex-wrap justify-center gap-3 mt-8">
             <Link to="/admin"><Button variant="gold" size="xl">Acessar Admin</Button></Link>
             <Link to="/loja/marina-aura"><Button variant="outline" size="xl">Ver loja exemplo</Button></Link>
