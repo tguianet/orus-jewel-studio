@@ -21,6 +21,7 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          seller_store_id: string | null
           slug: string
           sort_order: number
           updated_at: string
@@ -31,6 +32,7 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
+          seller_store_id?: string | null
           slug: string
           sort_order?: number
           updated_at?: string
@@ -41,11 +43,20 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          seller_store_id?: string | null
           slug?: string
           sort_order?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "categories_seller_store_id_fkey"
+            columns: ["seller_store_id"]
+            isOneToOne: false
+            referencedRelation: "seller_stores"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       order_items: {
         Row: {
@@ -55,6 +66,7 @@ export type Database = {
           product_id: string | null
           product_name: string
           quantity: number
+          seller_store_id: string | null
           total: number
           unit_price: number
         }
@@ -65,6 +77,7 @@ export type Database = {
           product_id?: string | null
           product_name: string
           quantity: number
+          seller_store_id?: string | null
           total: number
           unit_price: number
         }
@@ -75,6 +88,7 @@ export type Database = {
           product_id?: string | null
           product_name?: string
           quantity?: number
+          seller_store_id?: string | null
           total?: number
           unit_price?: number
         }
@@ -91,6 +105,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_seller_store_id_fkey"
+            columns: ["seller_store_id"]
+            isOneToOne: false
+            referencedRelation: "seller_stores"
             referencedColumns: ["id"]
           },
         ]
@@ -159,6 +180,7 @@ export type Database = {
           image_url: string | null
           min_order: number
           name: string
+          seller_store_id: string | null
           status: Database["public"]["Enums"]["product_status"]
           stock: number
           suggested_price: number
@@ -175,6 +197,7 @@ export type Database = {
           image_url?: string | null
           min_order?: number
           name: string
+          seller_store_id?: string | null
           status?: Database["public"]["Enums"]["product_status"]
           stock?: number
           suggested_price?: number
@@ -191,6 +214,7 @@ export type Database = {
           image_url?: string | null
           min_order?: number
           name?: string
+          seller_store_id?: string | null
           status?: Database["public"]["Enums"]["product_status"]
           stock?: number
           suggested_price?: number
@@ -203,6 +227,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_seller_store_id_fkey"
+            columns: ["seller_store_id"]
+            isOneToOne: false
+            referencedRelation: "seller_stores"
             referencedColumns: ["id"]
           },
         ]
@@ -302,6 +333,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_store: {
+        Args: { _store_id: string; _user_id?: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -310,6 +345,11 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id?: string }; Returns: boolean }
+      is_approved_store: { Args: { _store_id: string }; Returns: boolean }
+      owns_store: {
+        Args: { _store_id: string; _user_id?: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "sacoleira"
