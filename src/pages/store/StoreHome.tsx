@@ -1,12 +1,24 @@
 import { Link, useOutletContext } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { categories, formatBRL, getStoreProducts, Sacoleira } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
 import heroImg from "@/assets/hero-jewelry.jpg";
+import { CloudStoreProduct, loadStoreProducts } from "@/lib/cloudStore";
 
 const StoreHome = () => {
   const { store } = useOutletContext<{ store: Sacoleira }>();
-  const featured = getStoreProducts(store.id).slice(0, 8);
+  const [cloudProducts, setCloudProducts] = useState<CloudStoreProduct[]>([]);
+  const mockProducts = getStoreProducts(store.id).slice(0, 8);
+  const featured = cloudProducts.length ? cloudProducts : mockProducts;
+
+  useEffect(() => {
+    let mounted = true;
+    loadStoreProducts(store.id).then((items) => {
+      if (mounted) setCloudProducts(items.slice(0, 8));
+    });
+    return () => { mounted = false; };
+  }, [store.id]);
 
   return (
     <>
