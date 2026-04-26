@@ -562,6 +562,11 @@ export type Database = {
         Args: { _store_id: string; _user_id?: string }
         Returns: boolean
       }
+      create_mlm_commissions_for_order: {
+        Args: { _order_id: string }
+        Returns: undefined
+      }
+      get_store_reseller_id: { Args: { _store_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
