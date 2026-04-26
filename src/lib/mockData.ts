@@ -216,4 +216,20 @@ export const getOrdersByStore = (storeId?: string) => storeOrders.filter(o => o.
 export const getCommissionsByReseller = (resellerId?: string) => commissions.filter(c => c.resellerId === (resellerId || fallbackStore.id));
 export const getWalletTransactions = (resellerId?: string) => walletTransactions.filter(w => w.resellerId === (resellerId || fallbackStore.id));
 export const getNetwork = (resellerId?: string) => sacoleiras.filter(s => s.parentId === (resellerId || fallbackStore.id));
+export const getWalletBreakdown = (resellerId?: string) => {
+  const id = resellerId || fallbackStore.id;
+  const resellerCommissions = commissions.filter(c => c.resellerId === id);
+  const sales = resellerCommissions
+    .filter(c => c.sourceResellerId === id)
+    .reduce((sum, c) => sum + c.amount, 0);
+  const referrals = resellerCommissions
+    .filter(c => c.sourceResellerId !== id)
+    .reduce((sum, c) => sum + c.amount, 0);
+
+  return {
+    sales,
+    referrals,
+    total: sales + referrals,
+  };
+};
 export const formatBRL = (n: number) => Number.isFinite(n) ? n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "R$ 0,00";
