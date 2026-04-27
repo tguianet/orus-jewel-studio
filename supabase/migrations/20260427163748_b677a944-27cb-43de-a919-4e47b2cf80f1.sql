@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Product images are publicly visible" ON storage.objects;
