@@ -139,6 +139,30 @@ const AdminProducts = () => {
       </div>
     </div>
 
+    <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
+      <Button
+        type="button"
+        variant={selectedCategory === "Todas" ? "gold" : "outline"}
+        size="sm"
+        className="shrink-0 rounded-full"
+        onClick={() => selectCategory("Todas")}
+      >
+        Todas <span className="ml-1 text-xs opacity-70">{items.length}</span>
+      </Button>
+      {categories.map((category) => (
+        <Button
+          key={category.id}
+          type="button"
+          variant={selectedCategory === category.name ? "gold" : "outline"}
+          size="sm"
+          className="shrink-0 rounded-full"
+          onClick={() => selectCategory(category.name)}
+        >
+          {category.name} <span className="ml-1 text-xs opacity-70">{categoryCounts.get(category.name) ?? 0}</span>
+        </Button>
+      ))}
+    </div>
+
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {visibleItems.map(p => (
         <div key={p.id} className="group rounded-xl border border-border bg-card overflow-hidden hover:border-primary/40 transition-all duration-500">
