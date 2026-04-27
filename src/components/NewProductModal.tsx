@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface NewProductModalProps {
-  onCreate?: (product: Product) => void;
+  onCreate?: (product: Product) => void | Promise<void>;
 }
 
 export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
@@ -59,8 +59,8 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
     const code = `AUR-${category.charAt(0).toUpperCase()}${Date.now().toString().slice(-3)}`;
     let productImageUrl = imagePreview;
 
-    try {
-      if (imageFile) {
+    if (imageFile) {
+      try {
         const extension = imageFile.name.split(".").pop()?.toLowerCase() || "jpg";
         const filePath = `${code.toLowerCase()}-${crypto.randomUUID()}.${extension}`;
         const { error: uploadError } = await supabase.storage
@@ -71,8 +71,14 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
 
         const { data } = supabase.storage.from("product-images").getPublicUrl(filePath);
         productImageUrl = data.publicUrl;
+      } catch (error) {
+        toast.error("Não foi possível enviar a imagem. Tente outra imagem ou salve sem upload.");
+        setSaving(false);
+        return;
       }
+    }
 
+    try {
       const { data: savedProduct, error: productError } = await supabase
         .from("products")
         .insert({
@@ -95,7 +101,7 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
 
       if (productError) throw productError;
 
-      onCreate?.({
+      const createdProduct: Product = {
         id: savedProduct.id,
         code: savedProduct.code,
         name: savedProduct.name,
@@ -108,16 +114,22 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
         minOrder: savedProduct.min_order ?? 1,
         image: savedProduct.image_url || productImageUrl,
         active: true,
-      });
+      };
+
+      try {
+        await onCreate?.(createdProduct);
+      } catch (refreshError) {
+        toast.warning("Produto salvo, mas a lista não atualizou automaticamente. Recarregue a página.");
+      }
 
       event.currentTarget.reset();
       setImagePreview(fallbackProduct.image);
       setImageFile(null);
       setImageError("");
       setOpen(false);
-      toast.success("Produto salvo com imagem no storage.");
+      toast.success("Produto salvo com sucesso.");
     } catch (error) {
-      toast.error("Não foi possível salvar no storage. Verifique login e permissões.");
+      toast.error("Não foi possível salvar o produto. Verifique os campos e tente novamente.");
     } finally {
       setSaving(false);
     }
