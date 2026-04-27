@@ -6,28 +6,28 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 
-import Landing from "./pages/Landing";
-import LoginPage from "./pages/LoginPage";
-import NotFound from "./pages/NotFound";
+const Landing = lazy(() => import("./pages/Landing"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminProducts from "./pages/admin/AdminProducts";
-import AdminCategories from "./pages/admin/AdminCategories";
-import AdminSellers from "./pages/admin/AdminSellers";
-import AdminOrders from "./pages/admin/AdminOrders";
-import AdminFinance from "./pages/admin/AdminFinance";
-import AdminSettings from "./pages/admin/AdminSettings";
-import AdminNetwork from "./pages/admin/AdminNetwork";
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
+const AdminCategories = lazy(() => import("./pages/admin/AdminCategories"));
+const AdminSellers = lazy(() => import("./pages/admin/AdminSellers"));
+const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
+const AdminFinance = lazy(() => import("./pages/admin/AdminFinance"));
+const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
+const AdminNetwork = lazy(() => import("./pages/admin/AdminNetwork"));
 
-import SellerDashboard from "./pages/seller/SellerDashboard";
-import SellerStore from "./pages/seller/SellerStore";
-import SellerCustomization from "./pages/seller/SellerCustomization";
-import SellerCatalog from "./pages/seller/SellerCatalog";
-import SellerProducts from "./pages/seller/SellerProducts";
-import SellerOrders from "./pages/seller/SellerOrders";
-import SellerCustomers from "./pages/seller/SellerCustomers";
-import SellerSettings from "./pages/seller/SellerSettings";
-import SellerNetwork from "./pages/seller/SellerNetwork";
+const SellerDashboard = lazy(() => import("./pages/seller/SellerDashboard"));
+const SellerStore = lazy(() => import("./pages/seller/SellerStore"));
+const SellerCustomization = lazy(() => import("./pages/seller/SellerCustomization"));
+const SellerCatalog = lazy(() => import("./pages/seller/SellerCatalog"));
+const SellerProducts = lazy(() => import("./pages/seller/SellerProducts"));
+const SellerOrders = lazy(() => import("./pages/seller/SellerOrders"));
+const SellerCustomers = lazy(() => import("./pages/seller/SellerCustomers"));
+const SellerSettings = lazy(() => import("./pages/seller/SellerSettings"));
+const SellerNetwork = lazy(() => import("./pages/seller/SellerNetwork"));
 
 const StoreLayout = lazy(() => import("./pages/store/StoreLayout"));
 const StoreHome = lazy(() => import("./pages/store/StoreHome"));
