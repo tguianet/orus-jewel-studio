@@ -1,5 +1,5 @@
 import { Search, MoreVertical, Tags } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -12,12 +12,21 @@ import { useSearchParams } from "react-router-dom";
 
 type SortOption = "default" | "price-asc" | "price-desc" | "stock-asc" | "stock-desc";
 
+const getCategoryFromParams = (searchParams: URLSearchParams) => {
+  const category = searchParams.get("categoria");
+  return category && categories.some((item) => item.name === category) ? category : "Todas";
+};
+
 const AdminProducts = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [items, setItems] = useState<Product[]>(products);
   const [categoryOpen, setCategoryOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get("categoria") || "Todas");
+  const [selectedCategory, setSelectedCategory] = useState<string>(() => getCategoryFromParams(searchParams));
   const [sortBy, setSortBy] = useState<SortOption>("default");
+
+  useEffect(() => {
+    setSelectedCategory(getCategoryFromParams(searchParams));
+  }, [searchParams]);
 
   const visibleItems = useMemo(() => {
     const filtered = selectedCategory === "Todas"
@@ -35,7 +44,10 @@ const AdminProducts = () => {
 
   const selectCategory = (categoryName: string) => {
     setSelectedCategory(categoryName);
-    setSearchParams(categoryName === "Todas" ? {} : { categoria: categoryName });
+    const nextParams = new URLSearchParams(searchParams);
+    if (categoryName === "Todas") nextParams.delete("categoria");
+    else nextParams.set("categoria", categoryName);
+    setSearchParams(nextParams);
     setCategoryOpen(false);
   };
 
