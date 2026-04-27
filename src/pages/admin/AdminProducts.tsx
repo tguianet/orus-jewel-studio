@@ -31,7 +31,7 @@ const AdminProducts = () => {
   const loadProducts = useCallback(async () => {
     const { data, error } = await supabase
       .from("products")
-      .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,category_name")
+      .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,category_name,status")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -59,6 +59,7 @@ const AdminProducts = () => {
     setSelectedCategory(getCategoryFromParams(searchParams));
   }, [searchParams]);
 
+  useEffect(() => {
     loadProducts();
   }, [loadProducts]);
 
@@ -83,10 +84,11 @@ const AdminProducts = () => {
 
   const categoryCounts = useMemo(() => {
     const counts = new Map<string, number>();
-    categories.forEach((category) => counts.set(category.name, 0));
     items.forEach((product) => counts.set(product.category, (counts.get(product.category) ?? 0) + 1));
     return counts;
   }, [items]);
+
+  const productCategories = useMemo(() => Array.from(categoryCounts.keys()).sort((a, b) => a.localeCompare(b, "pt-BR")), [categoryCounts]);
 
   const selectCategory = (categoryName: string) => {
     setHighlightedCategory(categoryName);
