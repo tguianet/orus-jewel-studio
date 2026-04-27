@@ -1,11 +1,11 @@
 import { Check, Search, MoreVertical, Tags } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NewProductModal } from "@/components/NewProductModal";
-import { products, formatBRL, Product, categories } from "@/lib/mockData";
+import { formatBRL, Product } from "@/lib/mockData";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,54 +16,51 @@ type SortOption = "default" | "price-asc" | "price-desc" | "stock-asc" | "stock-
 
 const getCategoryFromParams = (searchParams: URLSearchParams) => {
   const category = searchParams.get("categoria");
-  return category && categories.some((item) => item.name === category) ? category : "Todas";
+  return category || "Todas";
 };
 
 const AdminProducts = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [items, setItems] = useState<Product[]>(products);
+  const [items, setItems] = useState<Product[]>([]);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>(() => getCategoryFromParams(searchParams));
   const [highlightedCategory, setHighlightedCategory] = useState<string>(() => getCategoryFromParams(searchParams));
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("default");
 
+  const loadProducts = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("products")
+      .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,category_name")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      toast.error("Não foi possível carregar os produtos salvos.");
+      return;
+    }
+
+    setItems((data ?? []).map((product) => ({
+      id: product.id,
+      code: product.code,
+      name: product.name,
+      category: product.category_name || "Sem categoria",
+      description: product.description,
+      costPrice: Number(product.cost_price ?? 0),
+      wholesalePrice: Number(product.wholesale_price ?? 0),
+      suggestedPrice: Number(product.suggested_price ?? 0),
+      stock: product.stock ?? 0,
+      minOrder: product.min_order ?? 1,
+      image: product.image_url || "/placeholder.svg",
+      active: product.status === "active",
+    })));
+  }, []);
+
   useEffect(() => {
     setSelectedCategory(getCategoryFromParams(searchParams));
   }, [searchParams]);
 
-  useEffect(() => {
-    const loadProducts = async () => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,category_name,categories(name)")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        toast.error("Não foi possível carregar os produtos salvos.");
-        return;
-      }
-
-      const cloudProducts = (data ?? []).map((product) => ({
-        id: product.id,
-        code: product.code,
-        name: product.name,
-        category: product.category_name || product.categories?.name || "Sem categoria",
-        description: product.description,
-        costPrice: Number(product.cost_price ?? 0),
-        wholesalePrice: Number(product.wholesale_price ?? 0),
-        suggestedPrice: Number(product.suggested_price ?? 0),
-        stock: product.stock ?? 0,
-        minOrder: product.min_order ?? 1,
-        image: product.image_url || products[0].image,
-        active: true,
-      }));
-
-      setItems([...cloudProducts, ...products.filter((mock) => !cloudProducts.some((product) => product.code === mock.code))]);
-    };
-
     loadProducts();
-  }, []);
+  }, [loadProducts]);
 
   const visibleItems = useMemo(() => {
     const term = search.trim().toLowerCase();
