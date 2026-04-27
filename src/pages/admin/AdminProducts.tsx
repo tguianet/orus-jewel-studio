@@ -1,14 +1,27 @@
-import { Search, MoreVertical } from "lucide-react";
-import { useState } from "react";
+import { Search, MoreVertical, Tags } from "lucide-react";
+import { useMemo, useState } from "react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NewProductModal } from "@/components/NewProductModal";
-import { products, formatBRL, Product } from "@/lib/mockData";
+import { products, formatBRL, Product, categories } from "@/lib/mockData";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const AdminProducts = () => {
   const [items, setItems] = useState<Product[]>(products);
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>("Todas");
+
+  const visibleItems = useMemo(() => {
+    if (selectedCategory === "Todas") return items;
+    return items.filter((product) => product.category === selectedCategory);
+  }, [items, selectedCategory]);
+
+  const selectCategory = (categoryName: string) => {
+    setSelectedCategory(categoryName);
+    setCategoryOpen(false);
+  };
 
   return (
     <AdminLayout>
@@ -25,11 +38,37 @@ const AdminProducts = () => {
         <Input placeholder="Buscar por nome ou código..." className="pl-9" />
       </div>
       <Button variant="outline">Filtrar</Button>
-      <Button variant="outline">Categoria</Button>
+      <Dialog open={categoryOpen} onOpenChange={setCategoryOpen}>
+        <DialogTrigger asChild>
+          <Button variant="outline"><Tags className="h-4 w-4" /> Categoria</Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Selecionar categoria</DialogTitle>
+            <DialogDescription>Escolha uma categoria para abrir os produtos correspondentes.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Button variant={selectedCategory === "Todas" ? "gold" : "outline"} className="justify-start" onClick={() => selectCategory("Todas")}>
+              Todas as categorias
+            </Button>
+            {categories.map((category) => (
+              <Button key={category.id} variant={selectedCategory === category.name ? "gold" : "outline"} className="justify-between" onClick={() => selectCategory(category.name)}>
+                <span>{category.name}</span>
+                <span className="text-xs text-muted-foreground">{items.filter((product) => product.category === category.name).length}</span>
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+
+    <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
+      <p className="text-sm text-muted-foreground">Categoria atual: <span className="font-medium text-foreground">{selectedCategory}</span></p>
+      <p className="text-sm text-primary">{visibleItems.length} produto(s)</p>
     </div>
 
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {items.map(p => (
+      {visibleItems.map(p => (
         <div key={p.id} className="group rounded-xl border border-border bg-card overflow-hidden hover:border-primary/40 transition-all duration-500">
           <div className="aspect-square overflow-hidden relative">
             <img src={p.image} alt={p.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
@@ -55,6 +94,11 @@ const AdminProducts = () => {
           </div>
         </div>
       ))}
+      {visibleItems.length === 0 && (
+        <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground sm:col-span-2 lg:col-span-3 xl:col-span-4">
+          Nenhum produto encontrado nessa categoria.
+        </div>
+      )}
     </div>
   </AdminLayout>
   );
