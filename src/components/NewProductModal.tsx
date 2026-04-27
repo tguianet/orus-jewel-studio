@@ -79,6 +79,7 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
           code,
           name,
           category_id: null,
+          category_name: category,
           seller_store_id: null,
           description: "Produto cadastrado pelo painel Aura Store Suite.",
           cost_price: Math.round(wholesalePrice * 0.58),
@@ -88,8 +89,8 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
           min_order: 2,
           image_url: productImageUrl,
           status: "active",
-        })
-        .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url")
+        } as never)
+        .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,category_name")
         .single();
 
       if (productError) throw productError;
@@ -98,7 +99,7 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
         id: savedProduct.id,
         code: savedProduct.code,
         name: savedProduct.name,
-        category,
+        category: savedProduct.category_name || category,
         description: savedProduct.description,
         costPrice: Number(savedProduct.cost_price ?? 0),
         wholesalePrice: Number(savedProduct.wholesale_price ?? 0),
