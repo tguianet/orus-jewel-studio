@@ -1,5 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { forwardRef, lazy, Suspense } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -36,8 +36,9 @@ const RouteFallback = () => (
   <div className="min-h-screen bg-background text-foreground" aria-label="Carregando página" />
 );
 
-const App = () => (
-  <TooltipProvider>
+const App = forwardRef<HTMLDivElement>((_, ref) => (
+  <div ref={ref} className="min-h-screen bg-background text-foreground">
+    <TooltipProvider>
     <Toaster />
     <Sonner position="top-center" />
     <AuthProvider>
@@ -87,7 +88,10 @@ const App = () => (
         </BrowserRouter>
       </CartProvider>
     </AuthProvider>
-  </TooltipProvider>
-);
+    </TooltipProvider>
+  </div>
+));
+
+App.displayName = "App";
 
 export default App;
