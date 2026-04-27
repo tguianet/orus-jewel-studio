@@ -22,6 +22,7 @@ const AdminProducts = () => {
   const [items, setItems] = useState<Product[]>(products);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>(() => getCategoryFromParams(searchParams));
+  const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("default");
 
   useEffect(() => {
@@ -29,9 +30,14 @@ const AdminProducts = () => {
   }, [searchParams]);
 
   const visibleItems = useMemo(() => {
-    const filtered = selectedCategory === "Todas"
-      ? [...items]
-      : items.filter((product) => product.category === selectedCategory);
+    const term = search.trim().toLowerCase();
+    const filtered = items.filter((product) => {
+      const matchesCategory = selectedCategory === "Todas" || product.category === selectedCategory;
+      const matchesSearch = !term
+        || product.name.toLowerCase().includes(term)
+        || product.code.toLowerCase().includes(term);
+      return matchesCategory && matchesSearch;
+    });
 
     return filtered.sort((a, b) => {
       if (sortBy === "price-asc") return a.wholesalePrice - b.wholesalePrice;
@@ -40,7 +46,7 @@ const AdminProducts = () => {
       if (sortBy === "stock-desc") return b.stock - a.stock;
       return 0;
     });
-  }, [items, selectedCategory, sortBy]);
+  }, [items, selectedCategory, search, sortBy]);
 
   const selectCategory = (categoryName: string) => {
     setSelectedCategory(categoryName);
@@ -63,7 +69,12 @@ const AdminProducts = () => {
     <div className="mb-5 flex flex-col sm:flex-row gap-3">
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Buscar por nome ou código..." className="pl-9" />
+        <Input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Buscar por nome ou código..."
+          className="pl-9"
+        />
       </div>
       <Button variant="outline">Filtrar</Button>
       <Dialog open={categoryOpen} onOpenChange={setCategoryOpen}>
@@ -91,7 +102,7 @@ const AdminProducts = () => {
     </div>
 
     <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
-      <p className="text-sm text-muted-foreground">Categoria atual: <span className="font-medium text-foreground">{selectedCategory}</span></p>
+      <p className="text-sm text-muted-foreground">Categoria atual: <span className="font-medium text-foreground">{selectedCategory}</span>{search.trim() && <> · Busca: <span className="font-medium text-foreground">{search.trim()}</span></>}</p>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
           <SelectTrigger className="w-full sm:w-56">
