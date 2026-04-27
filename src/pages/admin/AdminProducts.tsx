@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NewProductModal } from "@/components/NewProductModal";
 import { products, formatBRL, Product, categories } from "@/lib/mockData";
+import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 
 type SortOption = "default" | "price-asc" | "price-desc" | "stock-asc" | "stock-desc";
 
@@ -29,6 +31,39 @@ const AdminProducts = () => {
   useEffect(() => {
     setSelectedCategory(getCategoryFromParams(searchParams));
   }, [searchParams]);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,category_name,categories(name)")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        toast.error("Não foi possível carregar os produtos salvos.");
+        return;
+      }
+
+      const cloudProducts = (data ?? []).map((product) => ({
+        id: product.id,
+        code: product.code,
+        name: product.name,
+        category: product.category_name || product.categories?.name || "Sem categoria",
+        description: product.description,
+        costPrice: Number(product.cost_price ?? 0),
+        wholesalePrice: Number(product.wholesale_price ?? 0),
+        suggestedPrice: Number(product.suggested_price ?? 0),
+        stock: product.stock ?? 0,
+        minOrder: product.min_order ?? 1,
+        image: product.image_url || products[0].image,
+        active: true,
+      }));
+
+      setItems([...cloudProducts, ...products.filter((mock) => !cloudProducts.some((product) => product.code === mock.code))]);
+    };
+
+    loadProducts();
+  }, []);
 
   const visibleItems = useMemo(() => {
     const term = search.trim().toLowerCase();
