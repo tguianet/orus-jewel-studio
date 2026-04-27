@@ -11,6 +11,12 @@ interface NewProductModalProps {
   onCreate?: (product: Product) => void | Promise<void>;
 }
 
+const getErrorMessage = (error: unknown) => {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "object" && error && "message" in error) return String(error.message);
+  return "Erro desconhecido.";
+};
+
 export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
   const [open, setOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>(fallbackProduct.image);
@@ -72,7 +78,10 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
         const { data } = supabase.storage.from("product-images").getPublicUrl(filePath);
         productImageUrl = data.publicUrl;
       } catch (error) {
-        toast.error("Não foi possível enviar a imagem. Tente outra imagem ou salve sem upload.");
+        setImageError("Falha no upload da imagem. Tente outro arquivo ou salve sem imagem.");
+        toast.error("Não foi possível enviar a imagem.", {
+          description: getErrorMessage(error),
+        });
         setSaving(false);
         return;
       }
@@ -129,7 +138,9 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
       setOpen(false);
       toast.success("Produto salvo com sucesso.");
     } catch (error) {
-      toast.error("Não foi possível salvar o produto. Verifique os campos e tente novamente.");
+      toast.error("Não foi possível salvar o produto.", {
+        description: getErrorMessage(error),
+      });
     } finally {
       setSaving(false);
     }
