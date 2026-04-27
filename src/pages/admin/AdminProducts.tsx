@@ -7,19 +7,35 @@ import { Input } from "@/components/ui/input";
 import { NewProductModal } from "@/components/NewProductModal";
 import { products, formatBRL, Product, categories } from "@/lib/mockData";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useSearchParams } from "react-router-dom";
+
+type SortOption = "default" | "price-asc" | "price-desc" | "stock-asc" | "stock-desc";
 
 const AdminProducts = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [items, setItems] = useState<Product[]>(products);
   const [categoryOpen, setCategoryOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>("Todas");
+  const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get("categoria") || "Todas");
+  const [sortBy, setSortBy] = useState<SortOption>("default");
 
   const visibleItems = useMemo(() => {
-    if (selectedCategory === "Todas") return items;
-    return items.filter((product) => product.category === selectedCategory);
-  }, [items, selectedCategory]);
+    const filtered = selectedCategory === "Todas"
+      ? [...items]
+      : items.filter((product) => product.category === selectedCategory);
+
+    return filtered.sort((a, b) => {
+      if (sortBy === "price-asc") return a.wholesalePrice - b.wholesalePrice;
+      if (sortBy === "price-desc") return b.wholesalePrice - a.wholesalePrice;
+      if (sortBy === "stock-asc") return a.stock - b.stock;
+      if (sortBy === "stock-desc") return b.stock - a.stock;
+      return 0;
+    });
+  }, [items, selectedCategory, sortBy]);
 
   const selectCategory = (categoryName: string) => {
     setSelectedCategory(categoryName);
+    setSearchParams(categoryName === "Todas" ? {} : { categoria: categoryName });
     setCategoryOpen(false);
   };
 
@@ -64,7 +80,21 @@ const AdminProducts = () => {
 
     <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
       <p className="text-sm text-muted-foreground">Categoria atual: <span className="font-medium text-foreground">{selectedCategory}</span></p>
-      <p className="text-sm text-primary">{visibleItems.length} produto(s)</p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+          <SelectTrigger className="w-full sm:w-56">
+            <SelectValue placeholder="Ordenar" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="default">Ordem padrão</SelectItem>
+            <SelectItem value="price-asc">Menor preço</SelectItem>
+            <SelectItem value="price-desc">Maior preço</SelectItem>
+            <SelectItem value="stock-asc">Menor estoque</SelectItem>
+            <SelectItem value="stock-desc">Maior estoque</SelectItem>
+          </SelectContent>
+        </Select>
+        <p className="text-sm text-primary">{visibleItems.length} produto(s)</p>
+      </div>
     </div>
 
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
