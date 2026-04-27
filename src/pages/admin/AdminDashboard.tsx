@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { DollarSign, Users, ShoppingBag, AlertTriangle, TrendingUp, Crown } from "lucide-react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
@@ -6,10 +7,153 @@ import { wholesaleOrders, sacoleiras, products, formatBRL, statusColors, statusL
 import { Button } from "@/components/ui/button";
 import { NewProductModal } from "@/components/NewProductModal";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+
+type DashboardOrder = {
+  id: string;
+  sacoleiraName: string;
+  items: number;
+  total: number;
+  status: string;
+  date: string;
+};
+
+type DashboardSeller = {
+  id: string;
+  storeName: string;
+  ordersCount: number;
+  totalSpent: number;
+};
+
+type LowStockProduct = {
+  id: string;
+  name: string;
+  code: string;
+  category: string;
+  stock: number;
+  wholesalePrice: number;
+  image: string;
+};
+
+const fallbackRecent: DashboardOrder[] = wholesaleOrders.slice(0, 5).map((order) => ({
+  id: order.id,
+  sacoleiraName: order.sacoleiraName,
+  items: order.items,
+  total: order.total,
+  status: order.status,
+  date: order.date,
+}));
+
+const fallbackTopSellers: DashboardSeller[] = sacoleiras
+  .filter((seller) => seller.status === "approved")
+  .sort((a, b) => b.totalSpent - a.totalSpent)
+  .map((seller) => ({
+    id: seller.id,
+    storeName: seller.storeName,
+    ordersCount: seller.ordersCount,
+    totalSpent: seller.totalSpent,
+  }));
+
+const fallbackLowStock: LowStockProduct[] = products
+  .filter((product) => product.stock < 10)
+  .map((product) => ({
+    id: product.id,
+    name: product.name,
+    code: product.code,
+    category: product.category,
+    stock: product.stock,
+    wholesalePrice: product.wholesalePrice,
+    image: product.image,
+  }));
 
 const AdminDashboard = () => {
-  const lowStock = products.filter(p => p.stock < 10);
-  const recent = wholesaleOrders.slice(0, 5);
+  const [recent, setRecent] = useState<DashboardOrder[]>(fallbackRecent);
+  const [topSellers, setTopSellers] = useState<DashboardSeller[]>(fallbackTopSellers);
+  const [lowStock, setLowStock] = useState<LowStockProduct[]>(fallbackLowStock);
+  const [monthlyRevenue, setMonthlyRevenue] = useState(() => wholesaleOrders.reduce((sum, order) => sum + order.total, 0));
+  const [activeSellers, setActiveSellers] = useState(() => fallbackTopSellers.length);
+  const [pendingOrders, setPendingOrders] = useState(() => wholesaleOrders.filter((order) => ["aguardando", "novo"].includes(order.status)).length);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadDashboard = async () => {
+      const monthStart = new Date();
+      monthStart.setDate(1);
+      monthStart.setHours(0, 0, 0, 0);
+
+      const [{ data: orders }, { data: stores }, { data: productRows }] = await Promise.all([
+        supabase
+          .from("orders")
+          .select("id,total,status,created_at,seller_store_id")
+          .gte("created_at", monthStart.toISOString())
+          .order("created_at", { ascending: false })
+          .limit(50),
+        supabase
+          .from("seller_stores")
+          .select("id,store_name,status")
+          .eq("status", "approved"),
+        supabase
+          .from("products")
+          .select("id,name,code,stock,wholesale_price,image_url,categories(name)")
+          .lt("stock", 10)
+          .order("stock", { ascending: true })
+          .limit(8),
+      ]);
+
+      if (!mounted || !orders || !stores || !productRows) return;
+
+      const storeNameById = new Map(stores.map((store) => [store.id, store.store_name]));
+      const itemCounts = await Promise.all(
+        orders.slice(0, 5).map(async (order) => {
+          const { count } = await supabase
+            .from("order_items")
+            .select("id", { count: "exact", head: true })
+            .eq("order_id", order.id);
+          return [order.id, count ?? 0] as const;
+        })
+      );
+      if (!mounted) return;
+
+      const countByOrder = new Map(itemCounts);
+      const sellerTotals = stores.map((store) => {
+        const storeOrders = orders.filter((order) => order.seller_store_id === store.id);
+        return {
+          id: store.id,
+          storeName: store.store_name,
+          ordersCount: storeOrders.length,
+          totalSpent: storeOrders.reduce((sum, order) => sum + Number(order.total ?? 0), 0),
+        };
+      }).sort((a, b) => b.totalSpent - a.totalSpent);
+
+      setRecent(orders.slice(0, 5).map((order) => ({
+        id: order.id,
+        sacoleiraName: storeNameById.get(order.seller_store_id) ?? "Loja Aura",
+        items: countByOrder.get(order.id) ?? 0,
+        total: Number(order.total ?? 0),
+        status: String(order.status),
+        date: order.created_at,
+      })));
+      setTopSellers(sellerTotals.length ? sellerTotals : fallbackTopSellers);
+      setLowStock(productRows.map((product) => ({
+        id: product.id,
+        name: product.name,
+        code: product.code,
+        category: (product.categories as { name?: string } | null)?.name ?? "Sem categoria",
+        stock: product.stock,
+        wholesalePrice: Number(product.wholesale_price ?? 0),
+        image: product.image_url || "/placeholder.svg",
+      })));
+      setMonthlyRevenue(orders.reduce((sum, order) => sum + Number(order.total ?? 0), 0));
+      setActiveSellers(stores.length);
+      setPendingOrders(orders.filter((order) => ["new", "pending", "aguardando"].includes(String(order.status))).length);
+    };
+
+    loadDashboard().catch(() => undefined);
+    return () => { mounted = false; };
+  }, []);
+
+  const revenueTrend = useMemo(() => monthlyRevenue > 0 ? "Atualizado" : undefined, [monthlyRevenue]);
 
   return (
     <AdminLayout>
@@ -21,9 +165,9 @@ const AdminDashboard = () => {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-        <StatCard label="Faturamento (mês)" value={formatBRL(24890)} icon={DollarSign} trend="+12,4%" hint="vs mês anterior" />
-        <StatCard label="Sacoleiras ativas" value="42" icon={Users} trend="+3" hint="esta semana" />
-        <StatCard label="Pedidos pendentes" value="7" icon={ShoppingBag} hint="aguardando ação" />
+        <StatCard label="Faturamento (mês)" value={formatBRL(monthlyRevenue)} icon={DollarSign} trend={revenueTrend} hint="pedidos do mês" />
+        <StatCard label="Sacoleiras ativas" value={String(activeSellers)} icon={Users} hint="lojas aprovadas" />
+        <StatCard label="Pedidos pendentes" value={String(pendingOrders)} icon={ShoppingBag} hint="aguardando ação" />
         <StatCard label="Estoque baixo" value={String(lowStock.length)} icon={AlertTriangle} hint="produtos a repor" />
       </div>
 
@@ -60,7 +204,7 @@ const AdminDashboard = () => {
             <p className="text-xs text-muted-foreground">Mais ativas neste mês</p>
           </div>
           <div className="p-3 space-y-1">
-            {sacoleiras.filter(s => s.status === "approved").sort((a,b) => b.totalSpent - a.totalSpent).map((s, i) => (
+            {topSellers.map((s, i) => (
               <div key={s.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-secondary/40 transition-colors">
                 <div className="h-9 w-9 rounded-full bg-gradient-gold-soft border border-primary/30 flex items-center justify-center text-primary font-medium text-sm">{i + 1}</div>
                 <div className="flex-1 min-w-0">
