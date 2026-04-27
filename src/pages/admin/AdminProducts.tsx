@@ -1,4 +1,4 @@
-import { Search, MoreVertical, Tags } from "lucide-react";
+import { Check, Search, MoreVertical, Tags } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
@@ -22,6 +22,7 @@ const AdminProducts = () => {
   const [items, setItems] = useState<Product[]>(products);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>(() => getCategoryFromParams(searchParams));
+  const [highlightedCategory, setHighlightedCategory] = useState<string>(() => getCategoryFromParams(searchParams));
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("default");
 
@@ -48,13 +49,21 @@ const AdminProducts = () => {
     });
   }, [items, selectedCategory, search, sortBy]);
 
+  const categoryCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    categories.forEach((category) => counts.set(category.name, 0));
+    items.forEach((product) => counts.set(product.category, (counts.get(product.category) ?? 0) + 1));
+    return counts;
+  }, [items]);
+
   const selectCategory = (categoryName: string) => {
+    setHighlightedCategory(categoryName);
     setSelectedCategory(categoryName);
     const nextParams = new URLSearchParams(searchParams);
     if (categoryName === "Todas") nextParams.delete("categoria");
     else nextParams.set("categoria", categoryName);
     setSearchParams(nextParams);
-    setCategoryOpen(false);
+    window.setTimeout(() => setCategoryOpen(false), 450);
   };
 
   return (
@@ -77,7 +86,10 @@ const AdminProducts = () => {
         />
       </div>
       <Button variant="outline">Filtrar</Button>
-      <Dialog open={categoryOpen} onOpenChange={setCategoryOpen}>
+      <Dialog open={categoryOpen} onOpenChange={(nextOpen) => {
+        setCategoryOpen(nextOpen);
+        if (nextOpen) setHighlightedCategory(selectedCategory);
+      }}>
         <DialogTrigger asChild>
           <Button variant="outline"><Tags className="h-4 w-4" /> Categoria</Button>
         </DialogTrigger>
@@ -86,14 +98,21 @@ const AdminProducts = () => {
             <DialogTitle>Selecionar categoria</DialogTitle>
             <DialogDescription>Escolha uma categoria para abrir os produtos correspondentes.</DialogDescription>
           </DialogHeader>
+          <div className="rounded-lg border border-border bg-secondary/30 px-4 py-3">
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Produtos / Categorias / <span className="text-primary">{highlightedCategory}</span></p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {highlightedCategory === "Todas" ? items.length : categoryCounts.get(highlightedCategory) ?? 0} produto(s) nesta seleção
+            </p>
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Button variant={selectedCategory === "Todas" ? "gold" : "outline"} className="justify-start" onClick={() => selectCategory("Todas")}>
-              Todas as categorias
+            <Button variant={highlightedCategory === "Todas" ? "gold" : "outline"} className="justify-between" onClick={() => selectCategory("Todas")}>
+              <span className="flex items-center gap-2">{highlightedCategory === "Todas" && <Check className="h-4 w-4" />} Todas as categorias</span>
+              <span className="text-xs text-muted-foreground">{items.length}</span>
             </Button>
             {categories.map((category) => (
-              <Button key={category.id} variant={selectedCategory === category.name ? "gold" : "outline"} className="justify-between" onClick={() => selectCategory(category.name)}>
-                <span>{category.name}</span>
-                <span className="text-xs text-muted-foreground">{items.filter((product) => product.category === category.name).length}</span>
+              <Button key={category.id} variant={highlightedCategory === category.name ? "gold" : "outline"} className="justify-between" onClick={() => selectCategory(category.name)}>
+                <span className="flex items-center gap-2">{highlightedCategory === category.name && <Check className="h-4 w-4" />} {category.name}</span>
+                <span className="text-xs text-muted-foreground">{categoryCounts.get(category.name) ?? 0}</span>
               </Button>
             ))}
           </div>
