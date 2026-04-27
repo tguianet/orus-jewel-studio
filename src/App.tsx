@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -28,11 +29,11 @@ import SellerCustomers from "./pages/seller/SellerCustomers";
 import SellerSettings from "./pages/seller/SellerSettings";
 import SellerNetwork from "./pages/seller/SellerNetwork";
 
-import StoreLayout from "./pages/store/StoreLayout";
-import StoreHome from "./pages/store/StoreHome";
-import StoreProduct from "./pages/store/StoreProduct";
-import StoreCart from "./pages/store/StoreCart";
-import StoreCheckout from "./pages/store/StoreCheckout";
+const StoreLayout = lazy(() => import("./pages/store/StoreLayout"));
+const StoreHome = lazy(() => import("./pages/store/StoreHome"));
+const StoreProduct = lazy(() => import("./pages/store/StoreProduct"));
+const StoreCart = lazy(() => import("./pages/store/StoreCart"));
+const StoreCheckout = lazy(() => import("./pages/store/StoreCheckout"));
 
 const App = () => (
   <TooltipProvider>
@@ -41,6 +42,7 @@ const App = () => (
     <AuthProvider>
       <CartProvider>
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <Suspense fallback={null}>
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/login-admin" element={<LoginPage role="admin" />} />
@@ -80,6 +82,7 @@ const App = () => (
 
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </BrowserRouter>
       </CartProvider>
     </AuthProvider>
