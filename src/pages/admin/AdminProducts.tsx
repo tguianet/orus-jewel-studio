@@ -1,11 +1,11 @@
 import { Check, Search, MoreVertical, Tags } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NewProductModal } from "@/components/NewProductModal";
-import { products, formatBRL, Product, categories } from "@/lib/mockData";
+import { formatBRL, Product } from "@/lib/mockData";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,54 +16,52 @@ type SortOption = "default" | "price-asc" | "price-desc" | "stock-asc" | "stock-
 
 const getCategoryFromParams = (searchParams: URLSearchParams) => {
   const category = searchParams.get("categoria");
-  return category && categories.some((item) => item.name === category) ? category : "Todas";
+  return category || "Todas";
 };
 
 const AdminProducts = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [items, setItems] = useState<Product[]>(products);
+  const [items, setItems] = useState<Product[]>([]);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>(() => getCategoryFromParams(searchParams));
   const [highlightedCategory, setHighlightedCategory] = useState<string>(() => getCategoryFromParams(searchParams));
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("default");
 
+  const loadProducts = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("products")
+      .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,category_name,status")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      toast.error("Não foi possível carregar os produtos salvos.");
+      return;
+    }
+
+    setItems((data ?? []).map((product) => ({
+      id: product.id,
+      code: product.code,
+      name: product.name,
+      category: product.category_name || "Sem categoria",
+      description: product.description,
+      costPrice: Number(product.cost_price ?? 0),
+      wholesalePrice: Number(product.wholesale_price ?? 0),
+      suggestedPrice: Number(product.suggested_price ?? 0),
+      stock: product.stock ?? 0,
+      minOrder: product.min_order ?? 1,
+      image: product.image_url || "/placeholder.svg",
+      active: product.status === "active",
+    })));
+  }, []);
+
   useEffect(() => {
     setSelectedCategory(getCategoryFromParams(searchParams));
   }, [searchParams]);
 
   useEffect(() => {
-    const loadProducts = async () => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,category_name,categories(name)")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        toast.error("Não foi possível carregar os produtos salvos.");
-        return;
-      }
-
-      const cloudProducts = (data ?? []).map((product) => ({
-        id: product.id,
-        code: product.code,
-        name: product.name,
-        category: product.category_name || product.categories?.name || "Sem categoria",
-        description: product.description,
-        costPrice: Number(product.cost_price ?? 0),
-        wholesalePrice: Number(product.wholesale_price ?? 0),
-        suggestedPrice: Number(product.suggested_price ?? 0),
-        stock: product.stock ?? 0,
-        minOrder: product.min_order ?? 1,
-        image: product.image_url || products[0].image,
-        active: true,
-      }));
-
-      setItems([...cloudProducts, ...products.filter((mock) => !cloudProducts.some((product) => product.code === mock.code))]);
-    };
-
     loadProducts();
-  }, []);
+  }, [loadProducts]);
 
   const visibleItems = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -86,10 +84,11 @@ const AdminProducts = () => {
 
   const categoryCounts = useMemo(() => {
     const counts = new Map<string, number>();
-    categories.forEach((category) => counts.set(category.name, 0));
     items.forEach((product) => counts.set(product.category, (counts.get(product.category) ?? 0) + 1));
     return counts;
   }, [items]);
+
+  const productCategories = useMemo(() => Array.from(categoryCounts.keys()).sort((a, b) => a.localeCompare(b, "pt-BR")), [categoryCounts]);
 
   const selectCategory = (categoryName: string) => {
     setHighlightedCategory(categoryName);
@@ -107,7 +106,7 @@ const AdminProducts = () => {
         eyebrow="Catálogo do atacado"
         title="Produtos"
         description="Gerencie o estoque que ficará disponível para suas sacoleiras revenderem."
-        actions={<NewProductModal onCreate={(product) => setItems(current => [product, ...current])} />}
+        actions={<NewProductModal onCreate={loadProducts} />}
       />
 
     <div className="mb-5 flex flex-col sm:flex-row gap-3">
@@ -144,10 +143,10 @@ const AdminProducts = () => {
               <span className="flex items-center gap-2">{highlightedCategory === "Todas" && <Check className="h-4 w-4" />} Todas as categorias</span>
               <span className="text-xs text-muted-foreground">{items.length}</span>
             </Button>
-            {categories.map((category) => (
-              <Button key={category.id} variant={highlightedCategory === category.name ? "gold" : "outline"} className="justify-between" onClick={() => selectCategory(category.name)}>
-                <span className="flex items-center gap-2">{highlightedCategory === category.name && <Check className="h-4 w-4" />} {category.name}</span>
-                <span className="text-xs text-muted-foreground">{categoryCounts.get(category.name) ?? 0}</span>
+            {productCategories.map((category) => (
+              <Button key={category} variant={highlightedCategory === category ? "gold" : "outline"} className="justify-between" onClick={() => selectCategory(category)}>
+                <span className="flex items-center gap-2">{highlightedCategory === category && <Check className="h-4 w-4" />} {category}</span>
+                <span className="text-xs text-muted-foreground">{categoryCounts.get(category) ?? 0}</span>
               </Button>
             ))}
           </div>
@@ -184,16 +183,16 @@ const AdminProducts = () => {
       >
         Todas <span className="ml-1 text-xs opacity-70">{items.length}</span>
       </Button>
-      {categories.map((category) => (
+      {productCategories.map((category) => (
         <Button
-          key={category.id}
+          key={category}
           type="button"
-          variant={selectedCategory === category.name ? "gold" : "outline"}
+          variant={selectedCategory === category ? "gold" : "outline"}
           size="sm"
           className="shrink-0 rounded-full"
-          onClick={() => selectCategory(category.name)}
+          onClick={() => selectCategory(category)}
         >
-          {category.name} <span className="ml-1 text-xs opacity-70">{categoryCounts.get(category.name) ?? 0}</span>
+          {category} <span className="ml-1 text-xs opacity-70">{categoryCounts.get(category) ?? 0}</span>
         </Button>
       ))}
     </div>
