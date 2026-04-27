@@ -106,7 +106,7 @@ const AdminProducts = () => {
         eyebrow="Catálogo do atacado"
         title="Produtos"
         description="Gerencie o estoque que ficará disponível para suas sacoleiras revenderem."
-        actions={<NewProductModal onCreate={(product) => setItems(current => [product, ...current])} />}
+        actions={<NewProductModal onCreate={loadProducts} />}
       />
 
     <div className="mb-5 flex flex-col sm:flex-row gap-3">
@@ -143,10 +143,10 @@ const AdminProducts = () => {
               <span className="flex items-center gap-2">{highlightedCategory === "Todas" && <Check className="h-4 w-4" />} Todas as categorias</span>
               <span className="text-xs text-muted-foreground">{items.length}</span>
             </Button>
-            {categories.map((category) => (
-              <Button key={category.id} variant={highlightedCategory === category.name ? "gold" : "outline"} className="justify-between" onClick={() => selectCategory(category.name)}>
-                <span className="flex items-center gap-2">{highlightedCategory === category.name && <Check className="h-4 w-4" />} {category.name}</span>
-                <span className="text-xs text-muted-foreground">{categoryCounts.get(category.name) ?? 0}</span>
+            {productCategories.map((category) => (
+              <Button key={category} variant={highlightedCategory === category ? "gold" : "outline"} className="justify-between" onClick={() => selectCategory(category)}>
+                <span className="flex items-center gap-2">{highlightedCategory === category && <Check className="h-4 w-4" />} {category}</span>
+                <span className="text-xs text-muted-foreground">{categoryCounts.get(category) ?? 0}</span>
               </Button>
             ))}
           </div>
@@ -183,16 +183,16 @@ const AdminProducts = () => {
       >
         Todas <span className="ml-1 text-xs opacity-70">{items.length}</span>
       </Button>
-      {categories.map((category) => (
+      {productCategories.map((category) => (
         <Button
-          key={category.id}
+          key={category}
           type="button"
-          variant={selectedCategory === category.name ? "gold" : "outline"}
+          variant={selectedCategory === category ? "gold" : "outline"}
           size="sm"
           className="shrink-0 rounded-full"
-          onClick={() => selectCategory(category.name)}
+          onClick={() => selectCategory(category)}
         >
-          {category.name} <span className="ml-1 text-xs opacity-70">{categoryCounts.get(category.name) ?? 0}</span>
+          {category} <span className="ml-1 text-xs opacity-70">{categoryCounts.get(category) ?? 0}</span>
         </Button>
       ))}
     </div>
