@@ -1,5 +1,6 @@
 import { FormEvent, useState } from "react";
-import { Plus, Edit2 } from "lucide-react";
+import { Plus, Edit2, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -87,6 +88,11 @@ const AdminCategories = () => {
                 <Edit2 className="h-4 w-4" />
               </Button>
             </div>
+            <Link to={`/admin/produtos?categoria=${encodeURIComponent(c.name)}`}>
+              <Button variant="goldOutline" className="mt-4 w-full justify-between">
+                Ver categoria <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
           </div>
         ))}
       </div>
