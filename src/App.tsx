@@ -1,5 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { forwardRef, lazy, Suspense } from "react";
+import { lazy, Suspense } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -35,15 +35,18 @@ const StoreProduct = lazy(() => import("./pages/store/StoreProduct"));
 const StoreCart = lazy(() => import("./pages/store/StoreCart"));
 const StoreCheckout = lazy(() => import("./pages/store/StoreCheckout"));
 
-const App = forwardRef<HTMLDivElement>((_, ref) => (
-  <div ref={ref} className="contents">
-    <TooltipProvider>
+const RouteFallback = () => (
+  <div className="min-h-screen bg-background text-foreground" />
+);
+
+const App = () => (
+  <TooltipProvider>
     <Toaster />
     <Sonner position="top-center" />
     <AuthProvider>
       <CartProvider>
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <Suspense fallback={null}>
+          <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/login-admin" element={<LoginPage role="admin" />} />
@@ -87,10 +90,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
         </BrowserRouter>
       </CartProvider>
     </AuthProvider>
-    </TooltipProvider>
-  </div>
-));
-
-App.displayName = "App";
+  </TooltipProvider>
+);
 
 export default App;
