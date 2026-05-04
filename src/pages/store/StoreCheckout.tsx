@@ -83,8 +83,17 @@ const StoreCheckout = () => {
     ].filter(Boolean).join("\n");
 
     const phone = store.phone.replace(/\D/g, "");
-    const url = `https://wa.me/55${phone}?text=${encodeURIComponent(lines)}`;
-    window.open(url, "_blank");
+    const fullPhone = phone.startsWith("55") ? phone : `55${phone}`;
+    const message = encodeURIComponent(lines);
+    const waUrl = `https://wa.me/${fullPhone}?text=${message}`;
+    const webUrl = `https://web.whatsapp.com/send?phone=${fullPhone}&text=${message}`;
+
+    const win = window.open(waUrl, "_blank");
+    setTimeout(() => {
+      if (!win || win.closed || typeof win.closed === "undefined") {
+        window.open(webUrl, "_blank");
+      }
+    }, 800);
     clear();
     setTimeout(() => nav(`/loja/${store.storeSlug}`), 1200);
   };
