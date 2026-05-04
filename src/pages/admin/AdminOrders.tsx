@@ -18,8 +18,17 @@ const AdminOrders = () => {
   useEffect(() => { refresh(); }, []);
 
   const change = async (id: string, status: string) => {
-    try { await updateOrderStatus(id, status); toast.success(status === "paid" ? "Pedido pago: comissões liberadas." : "Status atualizado"); refresh(); }
-    catch (e: any) { toast.error("Falhou", { description: e.message }); }
+    try {
+      if (status === "paid") {
+        const { error } = await supabase.rpc("mark_order_paid", { _order_id: id });
+        if (error) throw error;
+        toast.success("Pedido pago: comissões MLM geradas e liberadas.");
+      } else {
+        await updateOrderStatus(id, status);
+        toast.success("Status atualizado");
+      }
+      refresh();
+    } catch (e: any) { toast.error("Falhou", { description: e.message }); }
   };
 
   return (
