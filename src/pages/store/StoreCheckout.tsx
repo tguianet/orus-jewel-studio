@@ -17,7 +17,7 @@ const StoreCheckout = () => {
   const nav = useNavigate();
   const [form, setForm] = useState({ name: "", phone: "", address: "", notes: "" });
 
-  const sendWhats = (e: React.FormEvent) => {
+  const submitOrder = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.phone) {
       toast.error("Preencha nome e WhatsApp");
