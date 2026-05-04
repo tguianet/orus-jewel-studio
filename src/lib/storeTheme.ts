@@ -59,7 +59,12 @@ export const saveStoreCustomization = async (
   storeId: string,
   patch: { storeName?: string; storeSlug?: string; contactPhone?: string; theme: StoreTheme }
 ) => {
-  const update: Record<string, unknown> = { theme: patch.theme };
+  const update: {
+    theme: StoreTheme;
+    store_name?: string;
+    store_slug?: string;
+    contact_phone?: string;
+  } = { theme: patch.theme };
   if (patch.storeName !== undefined) update.store_name = patch.storeName;
   if (patch.storeSlug !== undefined) update.store_slug = patch.storeSlug;
   if (patch.contactPhone !== undefined) update.contact_phone = patch.contactPhone;
