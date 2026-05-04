@@ -204,7 +204,7 @@ export const loadAllOrders = async () => {
 };
 
 export const updateOrderStatus = async (orderId: string, status: string) => {
-  const { error } = await supabase.from("orders").update({ status }).eq("id", orderId);
+  const { error } = await supabase.from("orders").update({ status: status as any }).eq("id", orderId);
   if (error) throw error;
 };
 
