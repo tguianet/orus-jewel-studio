@@ -19,7 +19,7 @@ export const ProtectedRoute = ({ role, children }: { role: AppRole; children: Re
     return <Navigate to={target} state={{ from: location.pathname }} replace />;
   }
 
-  if (profile.role !== role) {
+  if (profile.role !== role && !profile.roles?.includes(role)) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background text-center p-6">
         <h1 className="font-display text-3xl text-gold">Acesso negado</h1>
