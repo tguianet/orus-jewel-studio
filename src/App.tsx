@@ -30,6 +30,10 @@ import StoreHome from "./pages/store/StoreHome";
 import StoreProduct from "./pages/store/StoreProduct";
 import StoreCart from "./pages/store/StoreCart";
 import StoreCheckout from "./pages/store/StoreCheckout";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+
+const Admin = ({ children }: { children: JSX.Element }) => <ProtectedRoute role="admin">{children}</ProtectedRoute>;
+const Seller = ({ children }: { children: JSX.Element }) => <ProtectedRoute role="sacoleira">{children}</ProtectedRoute>;
 
 const App = forwardRef<HTMLDivElement>((_, ref) => (
   <div ref={ref} className="min-h-screen bg-background text-foreground">
@@ -45,25 +49,25 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
             <Route path="/login-sacoleira" element={<LoginPage role="sacoleira" />} />
 
             {/* Admin */}
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/produtos" element={<AdminProducts />} />
-            <Route path="/admin/categorias" element={<AdminCategories />} />
-            <Route path="/admin/sacoleiras" element={<AdminSellers />} />
-            <Route path="/admin/pedidos" element={<AdminOrders />} />
-            <Route path="/admin/financeiro" element={<AdminFinance />} />
-            <Route path="/admin/configuracoes" element={<AdminSettings />} />
-            <Route path="/admin/rede" element={<AdminNetwork />} />
+            <Route path="/admin" element={<Admin><AdminDashboard /></Admin>} />
+            <Route path="/admin/produtos" element={<Admin><AdminProducts /></Admin>} />
+            <Route path="/admin/categorias" element={<Admin><AdminCategories /></Admin>} />
+            <Route path="/admin/sacoleiras" element={<Admin><AdminSellers /></Admin>} />
+            <Route path="/admin/pedidos" element={<Admin><AdminOrders /></Admin>} />
+            <Route path="/admin/financeiro" element={<Admin><AdminFinance /></Admin>} />
+            <Route path="/admin/configuracoes" element={<Admin><AdminSettings /></Admin>} />
+            <Route path="/admin/rede" element={<Admin><AdminNetwork /></Admin>} />
 
             {/* Seller */}
-            <Route path="/sacoleira" element={<SellerDashboard />} />
-            <Route path="/sacoleira/loja" element={<SellerStore />} />
-            <Route path="/sacoleira/personalizacao" element={<SellerCustomization />} />
-            <Route path="/sacoleira/catalogo" element={<SellerCatalog />} />
-            <Route path="/sacoleira/meus-produtos" element={<SellerProducts />} />
-            <Route path="/sacoleira/pedidos" element={<SellerOrders />} />
-            <Route path="/sacoleira/clientes" element={<SellerCustomers />} />
-            <Route path="/sacoleira/configuracoes" element={<SellerSettings />} />
-            <Route path="/sacoleira/rede" element={<SellerNetwork />} />
+            <Route path="/sacoleira" element={<Seller><SellerDashboard /></Seller>} />
+            <Route path="/sacoleira/loja" element={<Seller><SellerStore /></Seller>} />
+            <Route path="/sacoleira/personalizacao" element={<Seller><SellerCustomization /></Seller>} />
+            <Route path="/sacoleira/catalogo" element={<Seller><SellerCatalog /></Seller>} />
+            <Route path="/sacoleira/meus-produtos" element={<Seller><SellerProducts /></Seller>} />
+            <Route path="/sacoleira/pedidos" element={<Seller><SellerOrders /></Seller>} />
+            <Route path="/sacoleira/clientes" element={<Seller><SellerCustomers /></Seller>} />
+            <Route path="/sacoleira/configuracoes" element={<Seller><SellerSettings /></Seller>} />
+            <Route path="/sacoleira/rede" element={<Seller><SellerNetwork /></Seller>} />
 
             {/* Public store */}
             <Route path="/loja/:slug" element={<StoreLayout />}>
