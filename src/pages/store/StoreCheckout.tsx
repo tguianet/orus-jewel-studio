@@ -64,7 +64,7 @@ const StoreCheckout = () => {
 
     toast.promise(createOrder(), {
       loading: "Registrando pedido...",
-      success: "Pedido registrado com sucesso. Finalize pelo WhatsApp.",
+      success: "Pedido criado com sucesso. Continue no WhatsApp para finalizar.",
       error: "Não foi possível registrar o pedido real.",
     });
 
