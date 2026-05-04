@@ -64,10 +64,27 @@ const StoreCheckout = () => {
 
     toast.promise(createOrder(), {
       loading: "Registrando pedido...",
-      success: "Pedido registrado com sucesso!",
+      success: "Pedido registrado! Abrindo WhatsApp...",
       error: "Não foi possível registrar o pedido.",
     });
 
+    const lines = [
+      `*Novo pedido — ${store.storeName}*`,
+      "",
+      `*Cliente:* ${form.name}`,
+      `*WhatsApp:* ${form.phone}`,
+      form.address ? `*Endereço:* ${form.address}` : "",
+      form.notes ? `*Obs:* ${form.notes}` : "",
+      "",
+      "*Itens:*",
+      ...items.map(i => `• ${i.qty}x ${i.product.name} — ${formatBRL(i.price * i.qty)}`),
+      "",
+      `*Total:* ${formatBRL(total)}`,
+    ].filter(Boolean).join("\n");
+
+    const phone = store.phone.replace(/\D/g, "");
+    const url = `https://wa.me/55${phone}?text=${encodeURIComponent(lines)}`;
+    window.open(url, "_blank");
     clear();
     setTimeout(() => nav(`/loja/${store.storeSlug}`), 1200);
   };
@@ -76,7 +93,7 @@ const StoreCheckout = () => {
     <div className="container py-8 grid lg:grid-cols-3 gap-8 max-w-5xl">
       <form onSubmit={submitOrder} className="lg:col-span-2 space-y-4">
         <h1 className="font-display text-3xl mb-2">Finalizar pedido</h1>
-        <p className="text-sm text-muted-foreground mb-6">Preencha seus dados para registrar seu pedido.</p>
+        <p className="text-sm text-muted-foreground mb-6">Preencha seus dados e finalize pelo WhatsApp.</p>
 
         <div className="rounded-xl border border-border bg-card p-6 space-y-4">
           <div><Label>Nome completo *</Label><Input value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="mt-1.5" /></div>
@@ -85,10 +102,10 @@ const StoreCheckout = () => {
           <div><Label>Observações do pedido</Label><Textarea rows={2} value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} className="mt-1.5" /></div>
         </div>
 
-        <Button type="submit" size="lg" className="w-full">
-          Enviar pedido
+        <Button type="submit" variant="whatsapp" size="lg" className="w-full">
+          <MessageCircle className="h-5 w-5" /> Enviar pelo WhatsApp
         </Button>
-        <p className="text-xs text-center text-muted-foreground">Seu pedido será enviado direto para {store.storeName}.</p>
+        <p className="text-xs text-center text-muted-foreground">Você será redirecionada para o WhatsApp de {store.storeName}.</p>
       </form>
 
       <div className="rounded-xl border border-border bg-card p-6 h-fit">
