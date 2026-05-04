@@ -1,125 +1,62 @@
-import { useMemo, useState } from "react";
-import { Download, Filter, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
-import { Button } from "@/components/ui/button";
-import { wholesaleOrders, formatBRL, statusColors, statusLabels } from "@/lib/mockData";
-import { Input } from "@/components/ui/input";
+import { loadAllOrders, updateOrderStatus } from "@/lib/cloudStore";
+import { formatBRL, statusColors } from "@/lib/mockData";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
+
+const STATUSES = ["new", "paid", "shipped", "delivered", "cancelled"];
 
 const AdminOrders = () => {
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("todos");
+  const [rows, setRows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredOrders = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    return wholesaleOrders.filter((order) => {
-      const matchesSearch = !term
-        || order.id.toLowerCase().includes(term)
-        || order.sacoleiraName.toLowerCase().includes(term);
-      const matchesStatus = status === "todos" || order.status === status;
-      return matchesSearch && matchesStatus;
-    });
-  }, [search, status]);
+  const refresh = () => loadAllOrders().then((d) => { setRows(d); setLoading(false); });
+  useEffect(() => { refresh(); }, []);
 
-  const clearFilters = () => {
-    setSearch("");
-    setStatus("todos");
+  const change = async (id: string, status: string) => {
+    try { await updateOrderStatus(id, status); toast.success(status === "paid" ? "Pedido pago: comissões liberadas." : "Status atualizado"); refresh(); }
+    catch (e: any) { toast.error("Falhou", { description: e.message }); }
   };
 
   return (
     <AdminLayout>
-      <PageHeader
-        eyebrow="Atacado"
-        title="Pedidos"
-        description="Pedidos feitos pelas sacoleiras na sua loja de atacado."
-        actions={<>
-          <Button variant="outline" onClick={() => setFiltersOpen((current) => !current)}>
-            <Filter className="h-4 w-4" /> Filtrar
-          </Button>
-          <Button variant="goldOutline"><Download className="h-4 w-4" /> Exportar</Button>
-        </>}
-      />
-
-      {filtersOpen && (
-        <div className="mb-5 rounded-xl border border-border bg-card p-4">
-          <div className="grid gap-3 md:grid-cols-[1fr_220px_auto] md:items-end">
-            <div className="space-y-2">
-              <label htmlFor="order-search" className="text-sm font-medium">Buscar pedido ou sacoleira</label>
-              <Input
-                id="order-search"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Ex: PED-1042 ou Marina"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Status</label>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos os status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos</SelectItem>
-                  <SelectItem value="aguardando">Aguardando pagamento</SelectItem>
-                  <SelectItem value="pago">Pago</SelectItem>
-                  <SelectItem value="separado">Separado</SelectItem>
-                  <SelectItem value="enviado">Enviado</SelectItem>
-                  <SelectItem value="entregue">Entregue</SelectItem>
-                  <SelectItem value="cancelado">Cancelado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button variant="ghost" onClick={clearFilters} className="justify-start md:justify-center">
-              <X className="h-4 w-4" /> Limpar
-            </Button>
-          </div>
-          <p className="mt-3 text-xs text-muted-foreground">{filteredOrders.length} pedido(s) encontrado(s)</p>
-        </div>
-      )}
-
-    <div className="rounded-xl border border-border bg-card overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border bg-secondary/40 text-left">
-              <th className="px-5 py-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Pedido</th>
-              <th className="px-5 py-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Sacoleira</th>
-              <th className="px-5 py-3 text-xs uppercase tracking-wider text-muted-foreground font-medium hidden sm:table-cell">Data</th>
-              <th className="px-5 py-3 text-xs uppercase tracking-wider text-muted-foreground font-medium hidden md:table-cell">Itens</th>
+      <PageHeader eyebrow="Pedidos" title="Todos os pedidos" description="Acompanhe e mude o status. Pagamento gera comissões MLM." />
+      {loading ? <div className="flex items-center justify-center h-40 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin mr-2"/> Carregando...</div> : (
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead><tr className="border-b border-border bg-secondary/40 text-left">
+              <th className="px-5 py-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Cliente</th>
+              <th className="px-5 py-3 text-xs uppercase tracking-wider text-muted-foreground font-medium hidden sm:table-cell">Loja</th>
+              <th className="px-5 py-3 text-xs uppercase tracking-wider text-muted-foreground font-medium hidden md:table-cell">Data</th>
               <th className="px-5 py-3 text-xs uppercase tracking-wider text-muted-foreground font-medium text-right">Total</th>
               <th className="px-5 py-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {filteredOrders.map(o => (
-              <tr key={o.id} className="hover:bg-secondary/30 transition-colors cursor-pointer">
-                <td className="px-5 py-4 font-medium">{o.id}</td>
-                <td className="px-5 py-4">{o.sacoleiraName}</td>
-                <td className="px-5 py-4 text-muted-foreground hidden sm:table-cell">{new Date(o.date).toLocaleDateString("pt-BR")}</td>
-                <td className="px-5 py-4 text-muted-foreground hidden md:table-cell">{o.items}</td>
-                <td className="px-5 py-4 text-right">
-                  <p className="font-medium">{formatBRL(o.total)}</p>
-                  {o.discount > 0 && <p className="text-xs text-muted-foreground">−{formatBRL(o.discount)}</p>}
-                </td>
-                <td className="px-5 py-4">
-                  <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider border ${statusColors[o.status]}`}>{statusLabels[o.status]}</span>
-                </td>
-              </tr>
-            ))}
-            {filteredOrders.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-5 py-10 text-center text-sm text-muted-foreground">
-                  Nenhum pedido encontrado com os filtros atuais.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+            </tr></thead>
+            <tbody className="divide-y divide-border">
+              {rows.map((o: any) => (
+                <tr key={o.id} className="hover:bg-secondary/30">
+                  <td className="px-5 py-4"><p className="font-medium">{o.customer_name}</p><p className="text-xs text-muted-foreground">{o.customer_phone}</p></td>
+                  <td className="px-5 py-4 hidden sm:table-cell text-muted-foreground">{o.seller_stores?.store_name || "—"}</td>
+                  <td className="px-5 py-4 hidden md:table-cell text-muted-foreground">{new Date(o.created_at).toLocaleDateString("pt-BR")}</td>
+                  <td className="px-5 py-4 text-right font-medium">{formatBRL(Number(o.total||0))}</td>
+                  <td className="px-5 py-4">
+                    <Select value={o.status} onValueChange={(v) => change(o.id, v)}>
+                      <SelectTrigger className={`w-36 h-8 text-xs ${statusColors[o.status] || ""}`}><SelectValue/></SelectTrigger>
+                      <SelectContent>{STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </td>
+                </tr>
+              ))}
+              {rows.length === 0 && <tr><td colSpan={5} className="px-5 py-10 text-center text-sm text-muted-foreground">Nenhum pedido ainda.</td></tr>}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  </AdminLayout>
+      )}
+    </AdminLayout>
   );
 };
 
