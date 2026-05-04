@@ -26,14 +26,11 @@ export const defaultTheme: StoreTheme = {
   secondaryColor: "#f5e6c8",
 };
 
-export const loadCurrentSellerStore = async (): Promise<StoreCustomization | null> => {
-  const { data, error } = await supabase
-    .from("seller_stores")
-    .select("id, store_name, store_slug, contact_phone, theme")
-    .eq("status", "approved")
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+export const loadCurrentSellerStore = async (storeId?: string): Promise<StoreCustomization | null> => {
+  let q = supabase.from("seller_stores").select("id, store_name, store_slug, contact_phone, theme");
+  if (storeId) q = q.eq("id", storeId);
+  else q = q.eq("status", "approved").order("created_at", { ascending: true }).limit(1);
+  const { data, error } = await q.maybeSingle();
   if (error || !data) return null;
   return {
     id: data.id,

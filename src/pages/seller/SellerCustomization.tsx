@@ -26,7 +26,10 @@ const palettes = [
   { name: "Preto & nude", primary: "#c8b59c", secondary: "#e8dcc8" },
 ];
 
+import { useAuth } from "@/contexts/AuthContext";
+
 const SellerCustomization = () => {
+  const { profile } = useAuth();
   const [store, setStore] = useState<StoreCustomization | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -41,7 +44,7 @@ const SellerCustomization = () => {
   const logoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    loadCurrentSellerStore().then((s) => {
+    loadCurrentSellerStore(profile?.storeId || undefined).then((s) => {
       if (s) {
         setStore(s);
         setName(s.storeName);
@@ -51,7 +54,7 @@ const SellerCustomization = () => {
       }
       setLoading(false);
     });
-  }, []);
+  }, [profile?.storeId]);
 
   const handleUpload = async (kind: "banner" | "logo", file?: File | null) => {
     if (!file || !store) return;

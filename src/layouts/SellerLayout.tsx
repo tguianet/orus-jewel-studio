@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { LayoutDashboard, Store, Palette, BookOpen, Sparkles, ShoppingBag, Network, Wallet, Settings } from "lucide-react";
 import { AppShell, NavItem } from "@/components/AppShell";
+import { useAuth } from "@/contexts/AuthContext";
 
 const nav: NavItem[] = [
   { label: "Dashboard", to: "/sacoleira", icon: LayoutDashboard },
@@ -14,6 +15,11 @@ const nav: NavItem[] = [
   { label: "Configurações", to: "/sacoleira/configuracoes", icon: Settings },
 ];
 
-export const SellerLayout = ({ children }: { children: ReactNode }) => (
-  <AppShell nav={nav} scopeLabel="Marina Aura" userName="Marina Costa">{children}</AppShell>
-);
+export const SellerLayout = ({ children }: { children: ReactNode }) => {
+  const { profile } = useAuth();
+  return (
+    <AppShell nav={nav} scopeLabel={profile?.storeSlug ? `loja/${profile.storeSlug}` : "Minha loja"} userName={profile?.displayName || "Sacoleira"}>
+      {children}
+    </AppShell>
+  );
+};

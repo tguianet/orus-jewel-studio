@@ -1,48 +1,101 @@
-import { createContext, ReactNode, useContext, useMemo, useState } from "react";
-import { sacoleiras } from "@/lib/mockData";
+import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import { Session, User } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 
-export type MockRole = "admin" | "sacoleira";
+export type AppRole = "admin" | "sacoleira";
 
-export type MockUser = {
-  id: string;
-  role: MockRole;
-  name: string;
+export type AuthProfile = {
+  user: User;
+  session: Session;
+  role: AppRole | null;
+  resellerId: string | null;
+  storeId: string | null;
+  storeSlug: string | null;
+  displayName: string;
   email: string;
-  storeSlug?: string;
 };
 
 type AuthContextValue = {
-  user: MockUser | null;
-  login: (role: MockRole, email?: string) => MockUser;
-  logout: () => void;
+  loading: boolean;
+  profile: AuthProfile | null;
+  signIn: (email: string, password: string) => Promise<{ error?: string }>;
+  signUp: (data: { email: string; password: string; displayName: string; phone?: string; parentResellerId?: string }) => Promise<{ error?: string }>;
+  signOut: () => Promise<void>;
+  refresh: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const loadExtras = async (user: User): Promise<Omit<AuthProfile, "user" | "session">> => {
+  const [{ data: roleRow }, { data: reseller }, { data: store }, { data: prof }] = await Promise.all([
+    supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle(),
+    supabase.from("resellers").select("id").eq("user_id", user.id).maybeSingle(),
+    supabase.from("seller_stores").select("id, store_slug").eq("owner_user_id", user.id).maybeSingle(),
+    supabase.from("profiles").select("display_name").eq("user_id", user.id).maybeSingle(),
+  ]);
+  return {
+    role: (roleRow?.role as AppRole) ?? null,
+    resellerId: reseller?.id ?? null,
+    storeId: store?.id ?? null,
+    storeSlug: store?.store_slug ?? null,
+    displayName: prof?.display_name || user.email?.split("@")[0] || "",
+    email: user.email || "",
+  };
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<MockUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<AuthProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const hydrate = async (s: Session | null) => {
+    if (!s?.user) { setProfile(null); return; }
+    const extras = await loadExtras(s.user);
+    setProfile({ user: s.user, session: s, ...extras });
+  };
+
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s);
+      // defer extra calls to avoid deadlocks
+      setTimeout(() => { void hydrate(s); }, 0);
+    });
+    supabase.auth.getSession().then(async ({ data }) => {
+      setSession(data.session);
+      await hydrate(data.session);
+      setLoading(false);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   const value = useMemo<AuthContextValue>(() => ({
-    user,
-    login: (role, email) => {
-      const seller = sacoleiras[0];
-      const nextUser: MockUser = role === "admin"
-        ? { id: "admin-demo", role: "admin", name: "Aura Store Suite", email: email || "admin@aurastore.com" }
-        : { id: seller?.id || "seller-demo", role: "sacoleira", name: seller?.name || "Marina Costa", email: email || seller?.email || "marina@email.com", storeSlug: seller?.storeSlug || "marina-aura" };
-
-      setUser(nextUser);
-      return nextUser;
+    loading,
+    profile,
+    signIn: async (email, password) => {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      return error ? { error: error.message } : {};
     },
-    logout: () => setUser(null),
-  }), [user]);
+    signUp: async ({ email, password, displayName, phone, parentResellerId }) => {
+      const redirectUrl = `${window.location.origin}/sacoleira`;
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: { display_name: displayName, phone, role: "sacoleira", parent_reseller_id: parentResellerId || null },
+        },
+      });
+      return error ? { error: error.message } : {};
+    },
+    signOut: async () => { await supabase.auth.signOut(); },
+    refresh: async () => { await hydrate(session); },
+  }), [loading, profile, session]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used inside AuthProvider");
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+  return ctx;
 };
-
-export const useOptionalAuth = () => useContext(AuthContext);

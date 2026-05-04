@@ -196,6 +196,7 @@ export type Database = {
           discount: number
           id: string
           notes: string | null
+          origin: Database["public"]["Enums"]["order_origin"]
           seller_store_id: string
           status: Database["public"]["Enums"]["order_status"]
           subtotal: number
@@ -210,6 +211,7 @@ export type Database = {
           discount?: number
           id?: string
           notes?: string | null
+          origin?: Database["public"]["Enums"]["order_origin"]
           seller_store_id: string
           status?: Database["public"]["Enums"]["order_status"]
           subtotal?: number
@@ -224,6 +226,7 @@ export type Database = {
           discount?: number
           id?: string
           notes?: string | null
+          origin?: Database["public"]["Enums"]["order_origin"]
           seller_store_id?: string
           status?: Database["public"]["Enums"]["order_status"]
           subtotal?: number
@@ -558,7 +561,24 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      reseller_wallet_summary: {
+        Row: {
+          available: number | null
+          paid: number | null
+          pending: number | null
+          reseller_id: string | null
+          total_balance: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       can_access_store: {
@@ -595,6 +615,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "sacoleira"
+      order_origin: "loja_online" | "whatsapp" | "manual"
       order_status:
         | "new"
         | "confirmed"
@@ -733,6 +754,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "sacoleira"],
+      order_origin: ["loja_online", "whatsapp", "manual"],
       order_status: [
         "new",
         "confirmed",

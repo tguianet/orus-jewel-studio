@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { LayoutDashboard, Package, Tags, Users, ShoppingBag, Wallet, Settings, Network } from "lucide-react";
 import { AppShell, NavItem } from "@/components/AppShell";
+import { useAuth } from "@/contexts/AuthContext";
 
 const nav: NavItem[] = [
   { label: "Dashboard", to: "/admin", icon: LayoutDashboard },
@@ -13,6 +14,11 @@ const nav: NavItem[] = [
   { label: "Configurações", to: "/admin/configuracoes", icon: Settings },
 ];
 
-export const AdminLayout = ({ children }: { children: ReactNode }) => (
-  <AppShell nav={nav} scopeLabel="Painel Admin" userName="Aura Store Suite">{children}</AppShell>
-);
+export const AdminLayout = ({ children }: { children: ReactNode }) => {
+  const { profile } = useAuth();
+  return (
+    <AppShell nav={nav} scopeLabel="Painel Admin" userName={profile?.displayName || "Aura Store Suite"}>
+      {children}
+    </AppShell>
+  );
+};
