@@ -1,6 +1,6 @@
 import { useOutletContext, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { MessageCircle } from "lucide-react";
+
 import { useCart } from "@/contexts/CartContext";
 import { Sacoleira, formatBRL } from "@/lib/mockData";
 import { supabase } from "@/integrations/supabase/client";
