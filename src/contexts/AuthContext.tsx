@@ -8,6 +8,7 @@ export type AuthProfile = {
   user: User;
   session: Session;
   role: AppRole | null;
+  roles: AppRole[];
   resellerId: string | null;
   storeId: string | null;
   storeSlug: string | null;
