@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { loadAllOrders, updateOrderStatus } from "@/lib/cloudStore";
 import { formatBRL, statusColors } from "@/lib/mockData";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const STATUSES = ["new", "paid", "shipped", "delivered", "cancelled"];
@@ -17,8 +18,17 @@ const AdminOrders = () => {
   useEffect(() => { refresh(); }, []);
 
   const change = async (id: string, status: string) => {
-    try { await updateOrderStatus(id, status); toast.success(status === "paid" ? "Pedido pago: comissões liberadas." : "Status atualizado"); refresh(); }
-    catch (e: any) { toast.error("Falhou", { description: e.message }); }
+    try {
+      if (status === "paid") {
+        const { error } = await supabase.rpc("mark_order_paid", { _order_id: id });
+        if (error) throw error;
+        toast.success("Pedido pago: comissões MLM geradas e liberadas.");
+      } else {
+        await updateOrderStatus(id, status);
+        toast.success("Status atualizado");
+      }
+      refresh();
+    } catch (e: any) { toast.error("Falhou", { description: e.message }); }
   };
 
   return (
