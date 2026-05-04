@@ -5,9 +5,14 @@ import { categories, formatBRL, getStoreProducts, Sacoleira } from "@/lib/mockDa
 import { Button } from "@/components/ui/button";
 import heroImg from "@/assets/hero-jewelry.jpg";
 import { CloudStoreProduct, loadStoreProducts } from "@/lib/cloudStore";
+import { DEFAULT_BANNER, StoreTheme, defaultTheme } from "@/lib/storeTheme";
+
+type StoreCtx = { store: Sacoleira; theme?: StoreTheme; banner?: string };
 
 const StoreHome = () => {
-  const { store } = useOutletContext<{ store: Sacoleira }>();
+  const { store, theme, banner } = useOutletContext<StoreCtx>();
+  const t = { ...defaultTheme, ...(theme || {}) };
+  const heroBanner = banner || t.bannerUrl || DEFAULT_BANNER || heroImg;
   const [cloudProducts, setCloudProducts] = useState<CloudStoreProduct[]>([]);
   const mockProducts = getStoreProducts(store.id).slice(0, 8);
   const featured = cloudProducts.length ? cloudProducts : mockProducts;
@@ -25,19 +30,19 @@ const StoreHome = () => {
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-border/50">
         <div className="absolute inset-0">
-          <img src={heroImg} alt="" className="w-full h-full object-cover opacity-40" />
+          <img src={heroBanner} alt="" className="w-full h-full object-cover opacity-50" />
           <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
         </div>
         <div className="container relative py-20 lg:py-32">
           <div className="max-w-xl">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-3 flex items-center gap-2">
+            <p className="text-[10px] uppercase tracking-[0.3em] mb-3 flex items-center gap-2" style={{ color: t.primaryColor }}>
               <Sparkles className="h-3 w-3" /> Coleção atual
             </p>
             <h1 className="font-display text-5xl sm:text-6xl font-light leading-[1.05]">
-              Joias com sua<br /><span className="text-gold italic">história</span>.
+              {store.storeName}
             </h1>
             <p className="mt-4 text-muted-foreground max-w-md">
-              Curadoria exclusiva de {store.storeName}. Peças folheadas a ouro, selecionadas com carinho para você brilhar todos os dias.
+              {t.description || `Curadoria exclusiva de ${store.storeName}. Peças folheadas a ouro, selecionadas com carinho para você brilhar todos os dias.`}
             </p>
             <Button variant="gold" size="xl" className="mt-7" asChild>
               <a href="#vitrine">Ver vitrine <ArrowRight className="h-4 w-4" /></a>
