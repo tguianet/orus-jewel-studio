@@ -63,8 +63,8 @@ const StoreCheckout = () => {
     };
 
     toast.promise(createOrder(), {
-      loading: "Registrando venda e comissões...",
-      success: "Venda criada; comissões pendentes geradas na wallet.",
+      loading: "Registrando pedido...",
+      success: "Pedido registrado com sucesso. Finalize pelo WhatsApp.",
       error: "Não foi possível registrar o pedido real.",
     });
 
