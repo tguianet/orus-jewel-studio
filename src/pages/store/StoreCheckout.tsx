@@ -88,10 +88,20 @@ const StoreCheckout = () => {
     const waUrl = `https://wa.me/${fullPhone}?text=${message}`;
     const webUrl = `https://web.whatsapp.com/send?phone=${fullPhone}&text=${message}`;
 
-    const win = window.open(waUrl, "_blank");
+    const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(navigator.userAgent);
+    const targetUrl = isMobile ? waUrl : webUrl;
+
+    const win = window.open(targetUrl, "_blank", "noopener,noreferrer");
+
+    // Fallback se popup bloqueado ou janela não abriu
     setTimeout(() => {
       if (!win || win.closed || typeof win.closed === "undefined") {
-        window.open(webUrl, "_blank");
+        // Tenta o outro endpoint; se ainda assim falhar, navega na própria aba
+        const fallbackUrl = isMobile ? webUrl : waUrl;
+        const win2 = window.open(fallbackUrl, "_blank", "noopener,noreferrer");
+        if (!win2 || win2.closed || typeof win2.closed === "undefined") {
+          window.location.href = targetUrl;
+        }
       }
     }, 800);
     clear();
