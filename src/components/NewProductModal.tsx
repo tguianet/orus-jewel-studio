@@ -56,7 +56,8 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
   const handleCreate = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSaving(true);
-    const form = new FormData(event.currentTarget);
+    const formEl = event.currentTarget;
+    const form = new FormData(formEl);
     const name = String(form.get("name") || "Nova joia Aura");
     const category = String(form.get("category") || categories[0]?.name || "Joias");
     const wholesalePrice = Number(form.get("wholesalePrice") || 0);
@@ -131,7 +132,7 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
         toast.warning("Produto salvo, mas a lista não atualizou automaticamente. Recarregue a página.");
       }
 
-      event.currentTarget.reset();
+      formEl?.reset?.();
       setImagePreview(fallbackProduct.image);
       setImageFile(null);
       setImageError("");
