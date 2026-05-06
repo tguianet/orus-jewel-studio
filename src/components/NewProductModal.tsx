@@ -132,7 +132,7 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
         toast.warning("Produto salvo, mas a lista não atualizou automaticamente. Recarregue a página.");
       }
 
-      event.currentTarget.reset();
+      formEl?.reset?.();
       setImagePreview(fallbackProduct.image);
       setImageFile(null);
       setImageError("");
