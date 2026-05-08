@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { Network, Users, Loader2 } from "lucide-react";
+import { Network, Users, Loader2, Copy, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { SellerLayout } from "@/layouts/SellerLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
@@ -16,6 +18,19 @@ const SellerNetwork = () => {
   const { profile } = useAuth();
   const [members, setMembers] = useState<NetworkMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    if (!profile?.resellerId) return;
+    try {
+      await navigator.clipboard.writeText(profile.resellerId);
+      setCopied(true);
+      toast.success("Código copiado!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Não foi possível copiar.");
+    }
+  };
 
   useEffect(() => {
     if (!profile?.resellerId) { setLoading(false); return; }
@@ -31,7 +46,13 @@ const SellerNetwork = () => {
       {profile?.resellerId && (
         <div className="mb-6 rounded-xl border border-primary/20 bg-primary/5 p-4">
           <p className="text-xs text-muted-foreground">Compartilhe seu código de indicação:</p>
-          <p className="font-mono text-sm text-primary break-all mt-1">{profile.resellerId}</p>
+          <div className="mt-1 flex items-center gap-2">
+            <p className="font-mono text-sm text-primary break-all flex-1">{profile.resellerId}</p>
+            <Button size="sm" variant="goldOutline" onClick={handleCopy} className="shrink-0">
+              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copied ? "Copiado" : "Copiar"}
+            </Button>
+          </div>
         </div>
       )}
 
