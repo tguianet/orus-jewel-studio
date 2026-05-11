@@ -19,6 +19,7 @@ import {
   loadMarketingBanners,
 } from "@/lib/marketingBanners";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 const BANNER_SLUG = "banner-loja";
 
