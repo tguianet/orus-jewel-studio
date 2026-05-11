@@ -82,13 +82,23 @@ const SellerCustomization = () => {
     try {
       setUploading(kind);
       const url = await uploadStoreAsset(store.id, kind, file);
+      let nextTheme: StoreTheme = theme;
       setTheme((t) => {
-        if (kind === "logo") return { ...t, logoUrl: url };
-        const list = [...(t.bannerUrls || (t.bannerUrl ? [t.bannerUrl] : []))];
-        list.push(url);
-        return { ...t, bannerUrl: list[0], bannerUrls: list };
+        if (kind === "logo") {
+          nextTheme = { ...t, logoUrl: url };
+        } else {
+          const list = [...(t.bannerUrls || (t.bannerUrl ? [t.bannerUrl] : []))];
+          list.push(url);
+          nextTheme = { ...t, bannerUrl: list[0], bannerUrls: list };
+        }
+        return nextTheme;
       });
-      toast.success(`${kind === "banner" ? "Banner" : "Logo"} enviado.`);
+      try {
+        await saveStoreCustomization(store.id, { theme: nextTheme });
+        toast.success(`${kind === "banner" ? "Banner" : "Logo"} salvo na loja.`);
+      } catch {
+        toast.error("Enviado, mas falhou ao salvar. Clique em Salvar personalização.");
+      }
     } catch (e) {
       toast.error("Falha no upload.");
     } finally {
@@ -96,12 +106,18 @@ const SellerCustomization = () => {
     }
   };
 
-  const removeBanner = (idx: number) => {
-    setTheme((t) => {
-      const list = [...(t.bannerUrls || (t.bannerUrl ? [t.bannerUrl] : []))];
-      list.splice(idx, 1);
-      return { ...t, bannerUrl: list[0], bannerUrls: list };
-    });
+  const removeBanner = async (idx: number) => {
+    const list = [...(theme.bannerUrls || (theme.bannerUrl ? [theme.bannerUrl] : []))];
+    list.splice(idx, 1);
+    const nextTheme: StoreTheme = { ...theme, bannerUrl: list[0], bannerUrls: list };
+    setTheme(nextTheme);
+    if (!store) return;
+    try {
+      await saveStoreCustomization(store.id, { theme: nextTheme });
+      toast.success("Banner removido.");
+    } catch {
+      toast.error("Falha ao remover banner.");
+    }
   };
 
   const handleSave = async () => {
