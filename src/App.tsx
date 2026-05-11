@@ -62,6 +62,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
             <Route path="/admin/configuracoes" element={<Admin><AdminSettings /></Admin>} />
             <Route path="/admin/rede" element={<Admin><AdminNetwork /></Admin>} />
             <Route path="/admin/banners" element={<Admin><AdminBanners /></Admin>} />
+            <Route path="/admin/banners/:formatSlug" element={<Admin><AdminBanners /></Admin>} />
 
             {/* Seller */}
             <Route path="/sacoleira" element={<Seller><SellerDashboard /></Seller>} />
