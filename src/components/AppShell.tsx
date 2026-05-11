@@ -39,21 +39,44 @@ export const AppShell = ({ nav, scopeLabel, userName, children }: Props) => {
             {nav.map((item) => {
               const active = pathname === item.to || (item.to !== "/" && pathname.startsWith(item.to));
               return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setOpen(false)}
-                  className={cn(
-                    "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-300",
-                    active
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground border border-primary/20"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
+                <div key={item.to}>
+                  <Link
+                    to={item.to}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-300",
+                      active
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground border border-primary/20"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
+                    )}
+                  >
+                    <item.icon className={cn("h-4 w-4 transition-colors", active ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
+                    <span className="font-medium">{item.label}</span>
+                    {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary animate-glow" />}
+                  </Link>
+                  {active && item.children && item.children.length > 0 && (
+                    <div className="mt-1 ml-7 pl-3 border-l border-sidebar-border/60 space-y-0.5">
+                      {item.children.map((c) => {
+                        const subActive = pathname === c.to;
+                        return (
+                          <Link
+                            key={c.to}
+                            to={c.to}
+                            onClick={() => setOpen(false)}
+                            className={cn(
+                              "block rounded-md px-2.5 py-1.5 text-xs transition-colors",
+                              subActive
+                                ? "text-primary font-medium"
+                                : "text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            {c.label}
+                          </Link>
+                        );
+                      })}
+                    </div>
                   )}
-                >
-                  <item.icon className={cn("h-4 w-4 transition-colors", active ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
-                  <span className="font-medium">{item.label}</span>
-                  {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary animate-glow" />}
-                </Link>
+                </div>
               );
             })}
           </nav>
