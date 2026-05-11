@@ -313,6 +313,14 @@ const SellerMarketing = () => {
           </>
         )}
       </section>
+      <Dialog open={!!previewImage} onOpenChange={(o) => !o && setPreviewImage(null)}>
+        <DialogContent className="max-w-[90vw] w-auto p-0 bg-transparent border-0 shadow-none">
+          <DialogTitle className="sr-only">{previewImage?.title || "Imagem"}</DialogTitle>
+          {previewImage && (
+            <img src={previewImage.url} alt={previewImage.title} className="w-auto h-auto max-w-[90vw] max-h-[85vh] object-contain rounded-lg mx-auto" />
+          )}
+        </DialogContent>
+      </Dialog>
     </SellerLayout>
   );
 };
