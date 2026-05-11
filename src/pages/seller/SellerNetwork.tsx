@@ -74,9 +74,23 @@ const SellerNetwork = () => {
                 <p className="font-display text-lg mb-3">Nível {lvl}</p>
                 <div className="space-y-2">
                   {byLevel(lvl).length ? byLevel(lvl).map((m) => (
-                    <div key={m.id} className="flex items-center justify-between rounded-lg border border-border bg-background/50 px-3 py-2">
-                      <div><p className="font-medium">{m.name}</p><p className="text-xs text-muted-foreground">{m.email}</p></div>
-                      <span className="text-xs text-muted-foreground">{m.status}</span>
+                    <div key={m.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background/50 px-3 py-2">
+                      <div className="min-w-0"><p className="font-medium truncate">{m.name}</p><p className="text-xs text-muted-foreground truncate">{m.email}</p></div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-xs text-muted-foreground hidden sm:inline">{m.status}</span>
+                        {m.phone && (
+                          <a
+                            href={waLink(
+                              m.phone,
+                              `Olá ${m.name}! Aqui é da sua mentora na Aura. Tudo bem? Passando pra te dar um apoio com a sua loja. ✨`,
+                            )}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <Button variant="whatsapp" size="sm"><MessageCircle className="h-4 w-4"/></Button>
+                          </a>
+                        )}
+                      </div>
                     </div>
                   )) : <p className="text-sm text-muted-foreground">Nenhuma indicada neste nível.</p>}
                 </div>
