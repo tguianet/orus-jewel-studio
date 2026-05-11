@@ -291,7 +291,7 @@ const SellerMarketing = () => {
                       className="bg-muted"
                       style={{ aspectRatio: currentFormat ? `${currentFormat.width} / ${currentFormat.height}` : "1 / 1" }}
                     >
-                      <img src={b.imageUrl} alt={b.title || "Imagem"} className="w-full h-full object-cover" />
+                      <img src={b.imageUrl} alt={b.title || "Imagem"} className="w-full h-full object-cover cursor-zoom-in" onClick={() => setPreviewImage({ url: b.imageUrl, title: b.title || "Imagem" })} />
                     </div>
                     <div className="p-3 space-y-2 flex-1 flex flex-col">
                       <p className="text-sm font-medium line-clamp-2">{b.title || "Sem título"}</p>
