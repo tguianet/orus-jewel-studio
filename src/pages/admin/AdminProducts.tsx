@@ -234,6 +234,12 @@ const AdminProducts = () => {
         </div>
       )}
     </div>
+    <EditProductModal
+      product={editingProduct}
+      open={!!editingProduct}
+      onOpenChange={(o) => { if (!o) setEditingProduct(null); }}
+      onUpdated={loadProducts}
+    />
   </AdminLayout>
   );
 };
