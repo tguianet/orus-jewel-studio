@@ -218,7 +218,7 @@ const SellerMarketing = () => {
               return (
                 <div key={b.id} className="rounded-lg border border-border bg-muted/30 overflow-hidden">
                   <div className="aspect-[16/5] bg-muted">
-                    <img src={b.imageUrl} alt={b.title || "Banner"} className="w-full h-full object-cover" />
+                    <img src={b.imageUrl} alt={b.title || "Banner"} className="w-full h-full object-cover cursor-zoom-in" onClick={() => setPreviewImage({ url: b.imageUrl, title: b.title || "Banner" })} />
                   </div>
                   <div className="p-3 flex items-center justify-between gap-3">
                     <p className="text-sm font-medium truncate">{b.title || "Banner"}</p>
