@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { clearAuthStorage, isRefreshTokenError } from "@/lib/authStorage";
 
 export type AppRole = "admin" | "sacoleira";
 
@@ -53,6 +54,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<AuthProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const onUnhandledRejection = (event: PromiseRejectionEvent) => {
+      if (!isRefreshTokenError(event.reason)) return;
+      event.preventDefault();
+      clearAuthStorage();
+      setSession(null);
+      setProfile(null);
+    };
+
+    window.addEventListener("unhandledrejection", onUnhandledRejection);
+    return () => window.removeEventListener("unhandledrejection", onUnhandledRejection);
+  }, []);
+
   const hydrate = async (s: Session | null) => {
     if (!s?.user) { setProfile(null); return; }
     const extras = await loadExtras(s.user);
@@ -71,12 +85,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setTimeout(() => { void hydrate(s); }, 0);
       }
     });
-    supabase.auth.getSession().then(async ({ data }) => {
-      setSession(data.session);
-      lastUserId = data.session?.user?.id ?? null;
-      await hydrate(data.session);
-      setLoading(false);
-    });
+    supabase.auth.getSession()
+      .then(async ({ data }) => {
+        setSession(data.session);
+        lastUserId = data.session?.user?.id ?? null;
+        await hydrate(data.session);
+      })
+      .catch((error) => {
+        if (isRefreshTokenError(error)) clearAuthStorage();
+        setSession(null);
+        setProfile(null);
+      })
+      .finally(() => setLoading(false));
     return () => sub.subscription.unsubscribe();
   }, []);
 
@@ -84,6 +104,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loading,
     profile,
     signIn: async (email, password) => {
+      clearAuthStorage();
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       return error ? { error: error.message } : {};
     },
