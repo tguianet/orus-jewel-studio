@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation } from "react-router-dom";
 import { ShieldAlert, ArrowRight } from "lucide-react";
 import { useAuth, AppRole } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { ReferralGate } from "@/components/ReferralGate";
 
 export const ProtectedRoute = ({ role, children }: { role: AppRole; children: ReactNode }) => {
   const { profile, loading, signOut } = useAuth();
@@ -24,6 +25,14 @@ export const ProtectedRoute = ({ role, children }: { role: AppRole; children: Re
 
   const userRoles = profile.roles ?? (profile.role ? [profile.role] : []);
   const hasRequired = userRoles.includes(role);
+
+  // Sacoleira gate: must have a sponsor (parent_id) before accessing the system.
+  // Admins are exempt.
+  const isSeller = userRoles.includes("sacoleira");
+  const isAdmin = userRoles.includes("admin");
+  if (isSeller && !isAdmin && profile.resellerId && !profile.parentResellerId) {
+    return <ReferralGate />;
+  }
 
   if (hasRequired) return <>{children}</>;
 
