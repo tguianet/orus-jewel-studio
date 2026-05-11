@@ -166,7 +166,7 @@ const AdminBanners = () => {
           {filteredBanners.map((b) => (
             <div key={b.id} className="rounded-xl border border-border bg-card overflow-hidden">
               <button type="button" onClick={() => setPreviewUrl(b.imageUrl)} className="block w-full bg-muted focus:outline-none focus:ring-2 focus:ring-primary" style={{ aspectRatio: previewAspect }}>
-                <img src={b.imageUrl} alt={b.title || "Banner"} className="w-full h-full object-cover cursor-zoom-in" />
+                <img src={b.imageUrl} alt={b.title || "Banner"} className="w-full h-full object-contain cursor-zoom-in" />
               </button>
               <div className="p-4 flex items-center justify-between gap-3">
                 <div className="min-w-0">
