@@ -17,6 +17,22 @@ const StoreLayout = () => {
   const [theme, setTheme] = useState<StoreTheme>(defaultTheme);
   const { count } = useCart();
 
+  useEffect(() => {
+    let mounted = true;
+    loadPublicStore(slug).then((cloudStore) => {
+      if (mounted && cloudStore) setStore(cloudStore);
+    });
+    loadStoreThemeBySlug(slug).then((t) => {
+      if (mounted && t) setTheme({ ...defaultTheme, ...t });
+    });
+    return () => { mounted = false; };
+  }, [slug]);
+
+  const ctx = useMemo(
+    () => ({ store, theme, banner: theme.bannerUrl || DEFAULT_BANNER }),
+    [store, theme],
+  );
+
   // Block sacoleiras from viewing another reseller's store/data.
   // Admins and unauthenticated visitors are allowed.
   const isSeller = !!profile?.roles?.includes("sacoleira");
@@ -53,22 +69,6 @@ const StoreLayout = () => {
       </div>
     );
   }
-
-  useEffect(() => {
-    let mounted = true;
-    loadPublicStore(slug).then((cloudStore) => {
-      if (mounted && cloudStore) setStore(cloudStore);
-    });
-    loadStoreThemeBySlug(slug).then((t) => {
-      if (mounted && t) setTheme({ ...defaultTheme, ...t });
-    });
-    return () => { mounted = false; };
-  }, [slug]);
-
-  const ctx = useMemo(
-    () => ({ store, theme, banner: theme.bannerUrl || DEFAULT_BANNER }),
-    [store, theme],
-  );
 
   return (
     <div className="min-h-screen flex flex-col" style={themeCssVars(theme.primaryColor, theme.secondaryColor)}>
