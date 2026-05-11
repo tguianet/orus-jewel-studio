@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Network, Users, Loader2, Copy, Check } from "lucide-react";
+import { Network, Users, Loader2, Copy, Check, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { SellerLayout } from "@/layouts/SellerLayout";
@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { loadNetwork, NetworkMember } from "@/lib/cloudStore";
+import { waLink } from "@/lib/whatsapp";
 
 const commissionRules = [
   { level: 1, rate: 0.1, label: "Nível 1 — venda direta" },
