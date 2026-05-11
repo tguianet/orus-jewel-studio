@@ -168,12 +168,12 @@ const AdminBanners = () => {
               <button
                 type="button"
                 onClick={() => setPreviewUrl(b.imageUrl)}
-                className="block w-full focus:outline-none focus:ring-2 focus:ring-primary"
+                className="flex items-center justify-center w-full h-64 bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <img
                   src={b.imageUrl}
                   alt={b.title || "Banner"}
-                  className="w-full h-auto object-contain cursor-zoom-in"
+                  className="max-w-full max-h-full object-contain cursor-zoom-in"
                 />
               </button>
               <div className="px-4 py-3 flex items-center justify-between gap-3">
