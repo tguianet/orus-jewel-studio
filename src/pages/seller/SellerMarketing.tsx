@@ -119,7 +119,7 @@ const SellerMarketing = () => {
     (async () => {
       const [s, ab] = await Promise.all([
         loadCurrentSellerStore(profile?.storeId || undefined),
-        loadMarketingBanners(true),
+        loadMarketingBanners({ onlyActive: true }),
       ]);
       setAdminBanners(ab);
       if (s) {
