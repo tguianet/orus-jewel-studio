@@ -1,6 +1,6 @@
 import { Link, Outlet, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { ShoppingBag, Search, Heart, Instagram, MessageCircle } from "lucide-react";
+import { ShoppingBag, Search, Heart, Instagram, MessageCircle, ShieldAlert, ArrowRight } from "lucide-react";
 import { getStoreBySlug } from "@/lib/mockData";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
@@ -8,9 +8,11 @@ import { loadPublicStore } from "@/lib/cloudStore";
 import { DEFAULT_BANNER, StoreTheme, defaultTheme, loadStoreThemeBySlug } from "@/lib/storeTheme";
 import { waLink } from "@/lib/whatsapp";
 import { themeCssVars } from "@/lib/colorUtils";
+import { useAuth } from "@/contexts/AuthContext";
 
 const StoreLayout = () => {
   const { slug } = useParams();
+  const { profile, loading: authLoading } = useAuth();
   const [store, setStore] = useState(() => getStoreBySlug(slug));
   const [theme, setTheme] = useState<StoreTheme>(defaultTheme);
   const { count } = useCart();
@@ -30,6 +32,43 @@ const StoreLayout = () => {
     () => ({ store, theme, banner: theme.bannerUrl || DEFAULT_BANNER }),
     [store, theme],
   );
+
+  // Block sacoleiras from viewing another reseller's store/data.
+  // Admins and unauthenticated visitors are allowed.
+  const isSeller = !!profile?.roles?.includes("sacoleira");
+  const isAdmin = !!profile?.roles?.includes("admin");
+  const ownsThisStore = !!profile?.storeSlug && profile.storeSlug === slug;
+  const blocked = !authLoading && isSeller && !isAdmin && !ownsThisStore;
+
+  if (blocked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <div className="max-w-md w-full text-center space-y-5 border border-border rounded-2xl p-8 bg-card">
+          <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+            <ShieldAlert className="h-7 w-7 text-primary" />
+          </div>
+          <div className="space-y-2">
+            <p className="text-[10px] uppercase tracking-[0.3em] text-primary">Acesso bloqueado</p>
+            <h1 className="font-display text-3xl text-foreground">Esta loja não é sua</h1>
+            <p className="text-sm text-muted-foreground">
+              Você está logada como sacoleira e não pode visualizar o painel ou os dados de outra loja.
+              Acesse apenas a sua própria loja{profile?.storeSlug ? <> em <span className="text-foreground font-medium">/loja/{profile.storeSlug}</span></> : null}.
+            </p>
+          </div>
+          <div className="flex flex-col gap-2 pt-2">
+            {profile?.storeSlug && (
+              <Button asChild variant="gold" size="lg" className="w-full">
+                <Link to={`/loja/${profile.storeSlug}`}>Ir para a minha loja <ArrowRight className="h-4 w-4" /></Link>
+              </Button>
+            )}
+            <Button asChild variant="outline" size="lg" className="w-full">
+              <Link to="/sacoleira">Voltar ao painel</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col" style={themeCssVars(theme.primaryColor, theme.secondaryColor)}>
