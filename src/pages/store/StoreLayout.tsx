@@ -71,51 +71,76 @@ const StoreLayout = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={themeCssVars(theme.primaryColor, theme.secondaryColor)}>
-      <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-xl">
-        <div className="container flex h-16 items-center justify-between gap-4">
-          <Link to={`/loja/${store.storeSlug}`} className="flex items-center gap-3">
-            <div
-              className="h-9 w-9 rounded-full overflow-hidden flex items-center justify-center text-primary-foreground font-display font-semibold"
-              style={theme.logoUrl ? undefined : { background: theme.primaryColor }}
-            >
-              {theme.logoUrl ? (
-                <img src={theme.logoUrl} alt="" className="w-full h-full object-cover" />
-              ) : (
-                store.storeName.charAt(0)
-              )}
-            </div>
-            <div>
-              <p className="font-display text-lg leading-none">{store.storeName}</p>
-              <p className="text-[10px] text-muted-foreground tracking-widest uppercase">por Aura</p>
-            </div>
-          </Link>
-          <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
-            <a href={`/loja/${store.storeSlug}#vitrine`} className="hover:text-primary transition-colors">Vitrine</a>
-            <a href={`/loja/${store.storeSlug}#colecoes`} className="hover:text-primary transition-colors">Coleções</a>
-            <a href={`/loja/${store.storeSlug}#sobre`} className="hover:text-primary transition-colors">Sobre</a>
-          </nav>
-          <div className="flex items-center gap-1">
+    <div className="store-light min-h-screen flex flex-col bg-background text-foreground" style={themeCssVars(theme.primaryColor, theme.secondaryColor)}>
+      {/* Top promo bar */}
+      <div className="w-full text-[12px] text-primary-foreground" style={{ background: theme.primaryColor || "hsl(var(--primary))" }}>
+        <div className="container flex items-center justify-center gap-3 py-2 text-center tracking-wide">
+          <span className="hidden sm:inline opacity-90">FRETE GRÁTIS PARA TODO BRASIL</span>
+          <span className="hidden sm:inline opacity-60">•</span>
+          <span>10% OFF NA PRIMEIRA COMPRA</span>
+          <span className="opacity-60">•</span>
+          <span className="font-medium">CUPOM: BEMVINDO10</span>
+        </div>
+      </div>
+
+      <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-xl">
+        <div className="container grid grid-cols-3 items-center gap-4 py-4">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
             {theme.instagram && (
-              <a
-                href={`https://instagram.com/${theme.instagram}`}
-                target="_blank"
-                rel="noreferrer"
-                className="hidden sm:inline-flex"
-              >
-                <Button variant="ghost" size="icon"><Instagram className="h-4 w-4" /></Button>
+              <a href={`https://instagram.com/${theme.instagram}`} target="_blank" rel="noreferrer">
+                <Button variant="ghost" size="icon" className="h-8 w-8"><Instagram className="h-4 w-4" /></Button>
               </a>
             )}
-            <Button variant="ghost" size="icon"><Search className="h-4 w-4" /></Button>
-            <Button variant="ghost" size="icon" className="hidden sm:inline-flex"><Heart className="h-4 w-4" /></Button>
+            <span className="hidden md:inline">Atendimento: {theme.whatsapp || store.phone || "—"}</span>
+          </div>
+
+          <Link to={`/loja/${store.storeSlug}`} className="flex flex-col items-center justify-center">
+            {theme.logoUrl ? (
+              <img src={theme.logoUrl} alt={store.storeName} className="h-12 object-contain" />
+            ) : (
+              <>
+                <span className="font-display text-2xl sm:text-3xl tracking-[0.2em] uppercase leading-none">
+                  {store.storeName}
+                </span>
+                <span className="mt-1 text-[10px] tracking-[0.4em] uppercase text-muted-foreground">Joalheria</span>
+              </>
+            )}
+          </Link>
+
+          <div className="flex items-center justify-end gap-1">
+            <Button variant="ghost" size="icon" className="h-9 w-9"><Search className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="icon" className="h-9 w-9 hidden sm:inline-flex"><Heart className="h-4 w-4" /></Button>
             <Link to={`/loja/${store.storeSlug}/carrinho`}>
-              <Button variant="ghost" size="icon" className="relative">
+              <Button variant="ghost" size="icon" className="h-9 w-9 relative">
                 <ShoppingBag className="h-4 w-4" />
-                {count > 0 && <span className="absolute -top-1 -right-1 h-4 min-w-[1rem] px-1 rounded-full bg-gradient-gold text-[10px] text-primary-foreground flex items-center justify-center font-medium">{count}</span>}
+                {count > 0 && (
+                  <span
+                    className="absolute -top-1 -right-1 h-4 min-w-[1rem] px-1 rounded-full text-[10px] flex items-center justify-center font-medium text-primary-foreground"
+                    style={{ background: theme.primaryColor || "hsl(var(--primary))" }}
+                  >
+                    {count}
+                  </span>
+                )}
               </Button>
             </Link>
           </div>
         </div>
+
+        <nav className="border-t border-border/70">
+          <div className="container flex items-center justify-center gap-6 sm:gap-8 py-3 text-[12px] sm:text-[13px] uppercase tracking-[0.18em] text-foreground/80 overflow-x-auto">
+            <a href={`/loja/${store.storeSlug}#vitrine`} className="hover:text-primary transition-colors whitespace-nowrap">Joias</a>
+            <a href={`/loja/${store.storeSlug}#colecoes`} className="hover:text-primary transition-colors whitespace-nowrap">Coleções</a>
+            <a href={`/loja/${store.storeSlug}#vitrine`} className="hover:text-primary transition-colors whitespace-nowrap hidden sm:inline">Novidades</a>
+            <a href={`/loja/${store.storeSlug}#sobre`} className="hover:text-primary transition-colors whitespace-nowrap">Sobre</a>
+            <a
+              href={`/loja/${store.storeSlug}#vitrine`}
+              className="rounded-sm px-3 py-1 text-primary-foreground whitespace-nowrap"
+              style={{ background: theme.primaryColor || "hsl(var(--primary))" }}
+            >
+              OFF
+            </a>
+          </div>
+        </nav>
       </header>
 
       <main className="flex-1">

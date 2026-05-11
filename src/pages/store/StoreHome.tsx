@@ -40,28 +40,38 @@ const StoreHome = () => {
 
   return (
     <>
-      {/* Hero */}
-      <section className="relative overflow-hidden border-b border-border/50">
+      {/* Hero estilo Monte Carlo */}
+      <section className="relative overflow-hidden bg-secondary/40 border-b border-border">
         <div className="absolute inset-0">
-          <img src={heroBanner} alt={`Banner ${store.storeName}`} className="w-full h-full object-cover opacity-50" />
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
+          <img src={heroBanner} alt={`Banner ${store.storeName}`} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/70 to-transparent" />
         </div>
         <div className="container relative py-20 lg:py-32">
           <div className="max-w-xl">
-            <p className="text-[10px] uppercase tracking-[0.3em] mb-3 flex items-center gap-2" style={{ color: t.primaryColor }}>
-              <Sparkles className="h-3 w-3" /> Coleção atual
+            <p className="text-[10px] uppercase tracking-[0.4em] mb-4" style={{ color: t.primaryColor }}>
+              Coleção Atual
             </p>
-            <h1 className="font-display text-5xl sm:text-6xl font-light leading-[1.05]">
-              {store.storeName}
+            <h1 className="font-display text-5xl sm:text-7xl font-light leading-[1] uppercase tracking-tight">
+              Especial<br/>
+              <span style={{ color: t.primaryColor }}>Joias</span>
             </h1>
-            <p className="mt-4 text-muted-foreground max-w-md">
+            <div className="h-px w-24 my-6" style={{ background: t.primaryColor }} />
+            <p className="text-2xl sm:text-3xl font-display font-light text-foreground/80">
+              até <span className="font-medium" style={{ color: t.primaryColor }}>20% OFF</span> em peças selecionadas
+            </p>
+            <p className="mt-3 text-sm text-muted-foreground max-w-md">
               {t.description || `Curadoria exclusiva de ${store.storeName}. Peças folheadas a ouro, selecionadas com carinho para você brilhar todos os dias.`}
             </p>
             <div className="flex flex-wrap gap-3 mt-7">
-              <Button variant="gold" size="xl" asChild>
-                <a href="#vitrine">Ver vitrine <ArrowRight className="h-4 w-4" /></a>
+              <Button
+                size="xl"
+                asChild
+                className="text-primary-foreground rounded-none px-10 hover:brightness-110"
+                style={{ background: t.primaryColor }}
+              >
+                <a href="#vitrine">comprar</a>
               </Button>
-              <Button variant="outline" size="xl" asChild>
+              <Button variant="outline" size="xl" asChild className="rounded-none">
                 <a href="#sobre">Sobre a loja</a>
               </Button>
             </div>
@@ -69,12 +79,14 @@ const StoreHome = () => {
         </div>
       </section>
 
-      {/* Benefits strip */}
-      <section className="border-b border-border/50 bg-secondary/20">
-        <div className="container grid grid-cols-2 md:grid-cols-3 gap-4 py-5 text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground"><Truck className="h-4 w-4 text-primary" /> Envio para todo Brasil</div>
-          <div className="flex items-center gap-2 text-muted-foreground"><ShieldCheck className="h-4 w-4 text-primary" /> Garantia da folheação</div>
-          <div className="flex items-center gap-2 text-muted-foreground"><Heart className="h-4 w-4 text-primary" /> Atendimento pessoal</div>
+      {/* Benefits strip estilo Monte Carlo */}
+      <section className="border-b border-border bg-secondary/40">
+        <div className="container flex flex-wrap items-center justify-center gap-x-8 gap-y-2 divide-x divide-border py-4 text-[13px] text-foreground/80">
+          <span className="px-4 font-medium">Frete Grátis*</span>
+          <span className="px-4 font-medium">Parcele em até 10x sem juros</span>
+          <span className="px-4 font-medium hidden md:inline">Bônus em todas as compras*</span>
+          <span className="px-4 font-medium hidden lg:inline">5% OFF com PIX</span>
+          <span className="px-4 font-medium hidden lg:inline">Atendimento personalizado</span>
         </div>
       </section>
 

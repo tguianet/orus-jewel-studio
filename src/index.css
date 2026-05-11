@@ -127,4 +127,26 @@
     height: 1px;
     background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.5), transparent);
   }
+
+  /* Tema claro (estilo Monte Carlo) aplicado apenas à loja pública */
+  .store-light {
+    --background: 0 0% 100%;
+    --foreground: 30 12% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 30 12% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 30 12% 12%;
+    --secondary: 40 30% 96%;
+    --secondary-foreground: 30 12% 15%;
+    --muted: 40 25% 95%;
+    --muted-foreground: 30 8% 40%;
+    --accent: 42 65% 55%;
+    --accent-foreground: 30 20% 8%;
+    --border: 35 20% 88%;
+    --input: 35 20% 92%;
+    background: hsl(0 0% 100%);
+    background-image: none;
+    color: hsl(30 12% 12%);
+  }
+  .store-light body { background: hsl(0 0% 100%); }
 }
