@@ -19,12 +19,27 @@ import {
   uploadStoreAsset,
 } from "@/lib/storeTheme";
 
-const palettes = [
+type Palette = { name: string; primary: string; secondary: string; custom?: boolean };
+
+const defaultPalettes: Palette[] = [
   { name: "Dourado clássico", primary: "#d4a747", secondary: "#f5e6c8" },
   { name: "Rosé elegante", primary: "#d4877a", secondary: "#f5d6cb" },
   { name: "Champanhe", primary: "#e8c97a", secondary: "#f8efd7" },
   { name: "Preto & nude", primary: "#c8b59c", secondary: "#e8dcc8" },
 ];
+
+const CUSTOM_PALETTES_KEY = "aura:customPalettes";
+const loadCustomPalettes = (): Palette[] => {
+  try {
+    const raw = localStorage.getItem(CUSTOM_PALETTES_KEY);
+    return raw ? (JSON.parse(raw) as Palette[]) : [];
+  } catch {
+    return [];
+  }
+};
+const saveCustomPalettes = (list: Palette[]) => {
+  localStorage.setItem(CUSTOM_PALETTES_KEY, JSON.stringify(list));
+};
 
 import { useAuth } from "@/contexts/AuthContext";
 
