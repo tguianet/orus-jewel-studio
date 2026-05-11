@@ -189,6 +189,13 @@ const AdminBanners = () => {
           ))}
         </div>
       )}
+
+      <Dialog open={!!previewUrl} onOpenChange={(o) => !o && setPreviewUrl(null)}>
+        <DialogContent className="max-w-4xl p-2 bg-background">
+          <DialogTitle className="sr-only">Pré-visualização</DialogTitle>
+          {previewUrl && <img src={previewUrl} alt="Pré-visualização" className="w-full h-auto max-h-[85vh] object-contain rounded" />}
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };
