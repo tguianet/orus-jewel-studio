@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
   ImageFormat,
@@ -28,6 +29,7 @@ const AdminBanners = () => {
   const [uploading, setUploading] = useState(false);
   const [title, setTitle] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const currentFormat = useMemo(
     () => formats.find((f) => f.slug === formatSlug) || null,
@@ -163,9 +165,9 @@ const AdminBanners = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredBanners.map((b) => (
             <div key={b.id} className="rounded-xl border border-border bg-card overflow-hidden">
-              <div className="bg-muted" style={{ aspectRatio: previewAspect }}>
-                <img src={b.imageUrl} alt={b.title || "Banner"} className="w-full h-full object-cover" />
-              </div>
+              <button type="button" onClick={() => setPreviewUrl(b.imageUrl)} className="block w-full bg-muted focus:outline-none focus:ring-2 focus:ring-primary" style={{ aspectRatio: previewAspect }}>
+                <img src={b.imageUrl} alt={b.title || "Banner"} className="w-full h-full object-cover cursor-zoom-in" />
+              </button>
               <div className="p-4 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-medium truncate">{b.title || "Sem título"}</p>
@@ -187,6 +189,13 @@ const AdminBanners = () => {
           ))}
         </div>
       )}
+
+      <Dialog open={!!previewUrl} onOpenChange={(o) => !o && setPreviewUrl(null)}>
+        <DialogContent className="max-w-4xl p-2 bg-background">
+          <DialogTitle className="sr-only">Pré-visualização</DialogTitle>
+          {previewUrl && <img src={previewUrl} alt="Pré-visualização" className="w-full h-auto max-h-[85vh] object-contain rounded" />}
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };
