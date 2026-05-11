@@ -178,7 +178,7 @@ const SellerMarketing = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {bannerList.map((url, i) => (
               <div key={url + i} className="relative group aspect-[16/9] rounded-lg overflow-hidden border border-border bg-muted">
-                <img src={url} alt={`Banner ${i + 1}`} className="w-full h-full object-cover" />
+                <img src={url} alt={`Banner ${i + 1}`} className="w-full h-full object-cover cursor-zoom-in" onClick={() => setPreviewImage({ url, title: `Banner ${i + 1}` })} />
                 <span className="absolute top-2 left-2 text-[10px] px-2 py-1 rounded bg-background/85 border border-border">
                   #{i + 1}
                 </span>
