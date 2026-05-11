@@ -1,6 +1,6 @@
 import { Link, useOutletContext } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Sparkles, Instagram, MessageCircle, Heart, Truck, ShieldCheck, Gem, Crown, Award, Droplet, Sun, Sparkle, CheckCircle2, Package, RefreshCw, CreditCard } from "lucide-react";
+import { ArrowRight, Sparkles, Instagram, MessageCircle, Heart, Truck, ShieldCheck, Gem, Crown, Award, Droplet, Sun, Sparkle, CheckCircle2, Package, RefreshCw, CreditCard, ChevronLeft, ChevronRight } from "lucide-react";
 import { formatBRL, getStoreProducts, Sacoleira } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
 import heroImg from "@/assets/hero-jewelry.jpg";
