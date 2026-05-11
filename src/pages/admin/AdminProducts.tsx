@@ -1,4 +1,5 @@
-import { Check, Search, MoreVertical, Tags } from "lucide-react";
+import { Check, Search, Pencil, Tags } from "lucide-react";
+import { EditProductModal } from "@/components/EditProductModal";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
