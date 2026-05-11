@@ -129,10 +129,50 @@ export type Database = {
           },
         ]
       }
+      image_formats: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string
+          height: number
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+          width: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          height?: number
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+          width?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          height?: number
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+          width?: number
+        }
+        Relationships: []
+      }
       marketing_banners: {
         Row: {
           active: boolean
           created_at: string
+          format_id: string | null
           id: string
           image_url: string
           sort_order: number
@@ -142,6 +182,7 @@ export type Database = {
         Insert: {
           active?: boolean
           created_at?: string
+          format_id?: string | null
           id?: string
           image_url: string
           sort_order?: number
@@ -151,13 +192,22 @@ export type Database = {
         Update: {
           active?: boolean
           created_at?: string
+          format_id?: string | null
           id?: string
           image_url?: string
           sort_order?: number
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "marketing_banners_format_id_fkey"
+            columns: ["format_id"]
+            isOneToOne: false
+            referencedRelation: "image_formats"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       order_items: {
         Row: {
