@@ -259,26 +259,88 @@ const SellerCustomization = () => {
 
           {/* Cores */}
           <div className="rounded-xl border border-border bg-card p-6 space-y-4">
-            <h3 className="font-display text-xl">Paleta</h3>
+            <div className="flex items-baseline justify-between">
+              <h3 className="font-display text-xl">Paleta</h3>
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                {defaultPalettes.length + customPalettes.length} opções
+              </span>
+            </div>
             <div className="grid grid-cols-2 gap-3">
-              {palettes.map((p) => {
-                const active = p.primary === primary;
+              {[...defaultPalettes, ...customPalettes].map((p) => {
+                const active = p.primary.toLowerCase() === primary.toLowerCase()
+                  && p.secondary.toLowerCase() === secondary.toLowerCase();
                 return (
-                  <button
-                    key={p.name}
-                    onClick={() => setTheme({ ...theme, primaryColor: p.primary, secondaryColor: p.secondary })}
-                    className={`text-left p-3 rounded-lg border transition-colors ${active ? "border-primary" : "border-border hover:border-primary/40"}`}
-                  >
-                    <div className="flex gap-1.5 mb-2">
-                      <span className="h-8 flex-1 rounded" style={{ background: "#1a1410" }} />
-                      <span className="h-8 flex-1 rounded" style={{ background: p.primary }} />
-                      <span className="h-8 flex-1 rounded" style={{ background: p.secondary }} />
-                    </div>
-                    <p className="text-sm font-medium">{p.name}</p>
-                  </button>
+                  <div key={p.name} className="relative group">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTheme({ ...theme, primaryColor: p.primary, secondaryColor: p.secondary });
+                        toast.success(`Paleta "${p.name}" aplicada`);
+                      }}
+                      className={`w-full text-left p-3 rounded-lg border transition-colors ${active ? "border-primary ring-1 ring-primary" : "border-border hover:border-primary/40"}`}
+                    >
+                      <div className="flex gap-1.5 mb-2">
+                        <span className="h-8 flex-1 rounded" style={{ background: "#1a1410" }} />
+                        <span className="h-8 flex-1 rounded" style={{ background: p.primary }} />
+                        <span className="h-8 flex-1 rounded" style={{ background: p.secondary }} />
+                      </div>
+                      <p className="text-sm font-medium flex items-center gap-1.5">
+                        {active && <Check className="h-3.5 w-3.5 text-primary" />}
+                        {p.name}
+                        {p.custom && <span className="text-[10px] text-muted-foreground ml-auto">custom</span>}
+                      </p>
+                    </button>
+                    {p.custom && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = customPalettes.filter((c) => c.name !== p.name);
+                          setCustomPalettes(next);
+                          saveCustomPalettes(next);
+                          toast.success("Paleta removida");
+                        }}
+                        className="absolute top-2 right-2 h-6 w-6 rounded-full bg-background/80 border border-border opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:text-destructive"
+                        aria-label="Remover paleta"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
                 );
               })}
             </div>
+
+            <div className="rounded-lg border border-dashed border-border p-3 space-y-2">
+              <Label className="text-xs">Salvar cores atuais como nova paleta</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={newPaletteName}
+                  onChange={(e) => setNewPaletteName(e.target.value)}
+                  placeholder="Nome da paleta"
+                  maxLength={30}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const n = newPaletteName.trim();
+                    if (!n) return toast.error("Dê um nome à paleta");
+                    if ([...defaultPalettes, ...customPalettes].some((p) => p.name.toLowerCase() === n.toLowerCase())) {
+                      return toast.error("Já existe uma paleta com esse nome");
+                    }
+                    const next = [...customPalettes, { name: n, primary, secondary, custom: true }];
+                    setCustomPalettes(next);
+                    saveCustomPalettes(next);
+                    setNewPaletteName("");
+                    toast.success("Paleta salva");
+                  }}
+                >
+                  <Plus className="h-4 w-4" /> Criar
+                </Button>
+              </div>
+            </div>
+
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
                 <Label>Cor principal</Label>
