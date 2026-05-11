@@ -153,7 +153,8 @@ const StoreHome = () => {
       </section>
 
       {/* Sobre */}
-      <section id="sobre" className="container py-16 scroll-mt-20">
+      <section id="sobre" className="container py-16 scroll-mt-20 space-y-10">
+        {/* Hero do sobre */}
         <div className="rounded-2xl border border-primary/20 bg-gradient-gold-soft p-10 lg:p-14">
           <div className="grid lg:grid-cols-2 gap-10 items-center">
             <div>
@@ -163,7 +164,10 @@ const StoreHome = () => {
               </h3>
               <p className="mt-4 text-muted-foreground leading-relaxed">
                 {t.description ||
-                  `${store.storeName} é uma curadoria de joias folheadas a ouro feita com carinho. Cada peça é escolhida pensando em quem usa — para acompanhar você nos dias comuns e nos momentos especiais.`}
+                  `${store.storeName} é uma curadoria autoral de joias em prata 925, ouro 18k e folheados a ouro de alta qualidade. Cada peça é escolhida pensando em quem usa — para acompanhar você nos dias comuns e nos momentos que merecem brilho.`}
+              </p>
+              <p className="mt-3 text-muted-foreground leading-relaxed">
+                Trabalhamos com fornecedores reconhecidos no Brasil, priorizando acabamento impecável, design atemporal e durabilidade. Mais do que vender joias, queremos fazer parte da sua história.
               </p>
               <div className="flex flex-wrap gap-3 mt-6">
                 {t.whatsapp || store.phone ? (
@@ -191,11 +195,153 @@ const StoreHome = () => {
                 <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Coleções</p>
                 <p className="font-display text-3xl mt-1">{collections.length}</p>
               </div>
-              <div className="col-span-2 rounded-xl border border-primary/20 bg-background/40 p-5">
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Atendimento</p>
-                <p className="text-sm mt-2">Tire dúvidas, peça sugestões e finalize seu pedido pelo WhatsApp com a {store.name || "sacoleira"}.</p>
+              <div className="rounded-xl border border-primary/20 bg-background/40 p-5">
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Garantia</p>
+                <p className="font-display text-3xl mt-1">12 <span className="text-base text-muted-foreground">meses</span></p>
+              </div>
+              <div className="rounded-xl border border-primary/20 bg-background/40 p-5">
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Troca</p>
+                <p className="font-display text-3xl mt-1">7 <span className="text-base text-muted-foreground">dias</span></p>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Materiais */}
+        <div>
+          <div className="text-center mb-8">
+            <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Materiais</p>
+            <h3 className="font-display text-3xl sm:text-4xl font-light">Joias com a qualidade que você merece</h3>
+            <p className="text-muted-foreground mt-3 max-w-2xl mx-auto">
+              Trabalhamos com três linhas para você encontrar a peça ideal para cada ocasião — todas com garantia, embalagem para presente e nota fiscal.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-5">
+            <div className="rounded-2xl border border-border bg-card p-7 hover:border-primary/40 transition-colors">
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <Crown className="h-6 w-6 text-primary" />
+              </div>
+              <h4 className="font-display text-xl mb-2">Ouro 18k</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Joias maciças em ouro 18 quilates com pureza certificada. Investimento que atravessa gerações, sem perder o brilho nem o valor.
+              </p>
+              <ul className="mt-4 space-y-2 text-sm">
+                <li className="flex items-center gap-2 text-muted-foreground"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> Pureza 750 (75% ouro puro)</li>
+                <li className="flex items-center gap-2 text-muted-foreground"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> Hipoalergênico</li>
+                <li className="flex items-center gap-2 text-muted-foreground"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> Certificado de autenticidade</li>
+              </ul>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-card p-7 hover:border-primary/40 transition-colors">
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <Gem className="h-6 w-6 text-primary" />
+              </div>
+              <h4 className="font-display text-xl mb-2">Prata 925</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Prata de lei com 92,5% de pureza. Versátil, elegante e ideal para o uso diário. Combina com qualquer estilo e ocasião.
+              </p>
+              <ul className="mt-4 space-y-2 text-sm">
+                <li className="flex items-center gap-2 text-muted-foreground"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> Selo 925 garantido</li>
+                <li className="flex items-center gap-2 text-muted-foreground"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> Acabamento polido ou ródio</li>
+                <li className="flex items-center gap-2 text-muted-foreground"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> Antialérgica</li>
+              </ul>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-card p-7 hover:border-primary/40 transition-colors">
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <Sparkle className="h-6 w-6 text-primary" />
+              </div>
+              <h4 className="font-display text-xl mb-2">Folheado a ouro</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Banho de ouro 18k sobre base nobre, com camada reforçada para durar muito mais. O brilho da joia fina, no preço que cabe no seu dia a dia.
+              </p>
+              <ul className="mt-4 space-y-2 text-sm">
+                <li className="flex items-center gap-2 text-muted-foreground"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> Banho triplo reforçado</li>
+                <li className="flex items-center gap-2 text-muted-foreground"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> Garantia de 12 meses</li>
+                <li className="flex items-center gap-2 text-muted-foreground"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> Não escurece com facilidade</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Cuidados */}
+        <div className="rounded-2xl border border-border bg-secondary/20 p-8 lg:p-10">
+          <div className="text-center mb-8">
+            <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Cuidados</p>
+            <h3 className="font-display text-2xl sm:text-3xl font-light">Para suas joias durarem ainda mais</h3>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="text-center">
+              <div className="h-11 w-11 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                <Droplet className="h-5 w-5 text-primary" />
+              </div>
+              <h5 className="font-medium mb-1">Evite contato com água</h5>
+              <p className="text-xs text-muted-foreground">Tire as peças folheadas antes de banho, piscina e mar.</p>
+            </div>
+            <div className="text-center">
+              <div className="h-11 w-11 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                <Sun className="h-5 w-5 text-primary" />
+              </div>
+              <h5 className="font-medium mb-1">Perfume por último</h5>
+              <p className="text-xs text-muted-foreground">Coloque a joia depois do creme e do perfume já secos.</p>
+            </div>
+            <div className="text-center">
+              <div className="h-11 w-11 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                <Sparkles className="h-5 w-5 text-primary" />
+              </div>
+              <h5 className="font-medium mb-1">Limpeza suave</h5>
+              <p className="text-xs text-muted-foreground">Use flanela seca. Para prata, pasta específica de joias.</p>
+            </div>
+            <div className="text-center">
+              <div className="h-11 w-11 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                <Package className="h-5 w-5 text-primary" />
+              </div>
+              <h5 className="font-medium mb-1">Guarde separadas</h5>
+              <p className="text-xs text-muted-foreground">Em saquinhos individuais para evitar arranhões.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Compra & garantia */}
+        <div className="grid md:grid-cols-3 gap-5">
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <Award className="h-6 w-6 text-primary mb-3" />
+            <h4 className="font-display text-lg mb-2">Garantia real</h4>
+            <p className="text-sm text-muted-foreground">12 meses contra defeitos de fabricação e oxidação fora do uso normal.</p>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <RefreshCw className="h-6 w-6 text-primary mb-3" />
+            <h4 className="font-display text-lg mb-2">Troca facilitada</h4>
+            <p className="text-sm text-muted-foreground">Não gostou? Troque em até 7 dias após o recebimento, sem complicação.</p>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <CreditCard className="h-6 w-6 text-primary mb-3" />
+            <h4 className="font-display text-lg mb-2">Pagamento seguro</h4>
+            <p className="text-sm text-muted-foreground">Pix, cartão em até 6x e combinação direto pelo WhatsApp.</p>
+          </div>
+        </div>
+
+        {/* CTA final */}
+        <div className="rounded-2xl border border-primary/30 bg-gradient-gold-soft p-8 lg:p-10 text-center">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Atendimento personalizado</p>
+          <h3 className="font-display text-2xl sm:text-3xl font-light max-w-2xl mx-auto">
+            Não encontrou o que procurava? Fale comigo e eu ajudo a escolher a joia perfeita.
+          </h3>
+          <div className="flex flex-wrap gap-3 mt-6 justify-center">
+            {t.whatsapp || store.phone ? (
+              <a
+                href={`https://wa.me/${(t.whatsapp || store.phone).replace(/\D/g, "")}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Button variant="gold" size="xl"><MessageCircle className="h-4 w-4" /> Chamar no WhatsApp</Button>
+              </a>
+            ) : null}
+            {t.instagram && (
+              <a href={`https://instagram.com/${t.instagram}`} target="_blank" rel="noreferrer">
+                <Button variant="outline" size="xl"><Instagram className="h-4 w-4" /> Ver Instagram</Button>
+              </a>
+            )}
           </div>
         </div>
       </section>
