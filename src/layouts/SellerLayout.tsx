@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { LayoutDashboard, Store, Palette, BookOpen, Sparkles, ShoppingBag, Network, Wallet, Settings } from "lucide-react";
+import { LayoutDashboard, Store, Palette, BookOpen, Sparkles, ShoppingBag, Network, Wallet, Settings, Megaphone } from "lucide-react";
 import { AppShell, NavItem } from "@/components/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -7,6 +7,7 @@ const nav: NavItem[] = [
   { label: "Dashboard", to: "/sacoleira", icon: LayoutDashboard },
   { label: "Minha loja", to: "/sacoleira/loja", icon: Store },
   { label: "Personalização", to: "/sacoleira/personalizacao", icon: Palette },
+  { label: "Marketing", to: "/sacoleira/marketing", icon: Megaphone },
   { label: "Catálogo disponível", to: "/sacoleira/catalogo", icon: BookOpen },
   { label: "Meus produtos", to: "/sacoleira/meus-produtos", icon: Sparkles },
   { label: "Pedidos", to: "/sacoleira/pedidos", icon: ShoppingBag },

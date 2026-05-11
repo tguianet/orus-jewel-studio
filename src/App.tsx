@@ -26,6 +26,7 @@ import SellerOrders from "./pages/seller/SellerOrders";
 import SellerCustomers from "./pages/seller/SellerCustomers";
 import SellerSettings from "./pages/seller/SellerSettings";
 import SellerNetwork from "./pages/seller/SellerNetwork";
+import SellerMarketing from "./pages/seller/SellerMarketing";
 import StoreLayout from "./pages/store/StoreLayout";
 import StoreHome from "./pages/store/StoreHome";
 import StoreProduct from "./pages/store/StoreProduct";
@@ -70,6 +71,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
             <Route path="/sacoleira/clientes" element={<Seller><SellerCustomers /></Seller>} />
             <Route path="/sacoleira/configuracoes" element={<Seller><SellerSettings /></Seller>} />
             <Route path="/sacoleira/rede" element={<Seller><SellerNetwork /></Seller>} />
+            <Route path="/sacoleira/marketing" element={<Seller><SellerMarketing /></Seller>} />
 
             {/* Public store */}
             <Route path="/loja/:slug" element={<StoreLayout />}>

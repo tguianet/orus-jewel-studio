@@ -1,0 +1,324 @@
+import { useEffect, useRef, useState } from "react";
+import { Download, ImagePlus, Instagram, Loader2, Plus, Trash2 } from "lucide-react";
+import { SellerLayout } from "@/layouts/SellerLayout";
+import { PageHeader } from "@/components/PageHeader";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  StoreCustomization,
+  StoreTheme,
+  defaultTheme,
+  loadCurrentSellerStore,
+  saveStoreCustomization,
+  uploadStoreAsset,
+} from "@/lib/storeTheme";
+import { CatalogProduct, loadCatalogForStore } from "@/lib/cloudStore";
+import { formatBRL } from "@/lib/mockData";
+
+const SIZE = 1080;
+
+const drawInstagramTile = async (opts: {
+  imageUrl: string;
+  productName: string;
+  price: string;
+  storeName: string;
+  primary: string;
+  secondary: string;
+}): Promise<Blob> => {
+  const canvas = document.createElement("canvas");
+  canvas.width = SIZE;
+  canvas.height = SIZE;
+  const ctx = canvas.getContext("2d")!;
+
+  // background
+  const grad = ctx.createLinearGradient(0, 0, SIZE, SIZE);
+  grad.addColorStop(0, opts.secondary);
+  grad.addColorStop(1, "#ffffff");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, SIZE, SIZE);
+
+  // load image
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const i = new Image();
+    i.crossOrigin = "anonymous";
+    i.onload = () => resolve(i);
+    i.onerror = reject;
+    i.src = opts.imageUrl;
+  }).catch(() => null);
+
+  // photo area (square inset)
+  const pad = 80;
+  const photoSize = SIZE - pad * 2 - 220;
+  const px = pad;
+  const py = pad;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(px, py, photoSize, photoSize);
+
+  if (img) {
+    // cover-fit
+    const ratio = Math.max(photoSize / img.width, photoSize / img.height);
+    const w = img.width * ratio;
+    const h = img.height * ratio;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(px, py, photoSize, photoSize);
+    ctx.clip();
+    ctx.drawImage(img, px + (photoSize - w) / 2, py + (photoSize - h) / 2, w, h);
+    ctx.restore();
+  }
+
+  // accent bar
+  ctx.fillStyle = opts.primary;
+  ctx.fillRect(px, py + photoSize + 24, photoSize, 6);
+
+  // product name
+  ctx.fillStyle = "#1a1410";
+  ctx.font = "600 44px 'Helvetica Neue', Arial, sans-serif";
+  ctx.textBaseline = "top";
+  const nameY = py + photoSize + 50;
+  const maxW = photoSize;
+  const words = opts.productName.split(" ");
+  let line = "";
+  let y = nameY;
+  for (const w of words) {
+    const test = line ? line + " " + w : w;
+    if (ctx.measureText(test).width > maxW && line) {
+      ctx.fillText(line, px, y);
+      y += 52;
+      line = w;
+    } else line = test;
+  }
+  if (line) ctx.fillText(line, px, y);
+
+  // price
+  ctx.fillStyle = opts.primary;
+  ctx.font = "700 64px 'Helvetica Neue', Arial, sans-serif";
+  ctx.fillText(opts.price, px, y + 70);
+
+  // store name footer
+  ctx.fillStyle = "#1a1410";
+  ctx.font = "500 28px 'Helvetica Neue', Arial, sans-serif";
+  ctx.textAlign = "right";
+  ctx.fillText(opts.storeName.toUpperCase(), SIZE - pad, SIZE - pad - 28);
+
+  return new Promise<Blob>((res) => canvas.toBlob((b) => res(b!), "image/jpeg", 0.92));
+};
+
+const SellerMarketing = () => {
+  const { profile } = useAuth();
+  const [store, setStore] = useState<StoreCustomization | null>(null);
+  const [theme, setTheme] = useState<StoreTheme>(defaultTheme);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [products, setProducts] = useState<CatalogProduct[]>([]);
+  const [generating, setGenerating] = useState<string | null>(null);
+  const bannerRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    (async () => {
+      const s = await loadCurrentSellerStore(profile?.storeId || undefined);
+      if (s) {
+        setStore(s);
+        setTheme({ ...defaultTheme, ...s.theme });
+        const list = await loadCatalogForStore(s.id);
+        setProducts(list.filter((p) => p.selected));
+      }
+      setLoading(false);
+    })();
+  }, [profile?.storeId]);
+
+  const bannerList = theme.bannerUrls && theme.bannerUrls.length
+    ? theme.bannerUrls
+    : (theme.bannerUrl ? [theme.bannerUrl] : []);
+
+  const handleUploadBanner = async (file?: File | null) => {
+    if (!file || !store) return;
+    if (file.size > 5 * 1024 * 1024) return toast.error("Arquivo muito grande (máx 5MB).");
+    try {
+      setUploading(true);
+      const url = await uploadStoreAsset(store.id, "banner", file);
+      const list = [...bannerList, url];
+      const nextTheme: StoreTheme = { ...theme, bannerUrl: list[0], bannerUrls: list };
+      setTheme(nextTheme);
+      await saveStoreCustomization(store.id, { theme: nextTheme });
+      toast.success("Banner adicionado à loja!");
+    } catch {
+      toast.error("Falha ao enviar banner.");
+    } finally {
+      setUploading(false);
+      if (bannerRef.current) bannerRef.current.value = "";
+    }
+  };
+
+  const removeBanner = async (idx: number) => {
+    if (!store) return;
+    const list = [...bannerList];
+    list.splice(idx, 1);
+    const nextTheme: StoreTheme = { ...theme, bannerUrl: list[0], bannerUrls: list };
+    setTheme(nextTheme);
+    try {
+      await saveStoreCustomization(store.id, { theme: nextTheme });
+      toast.success("Banner removido.");
+    } catch {
+      toast.error("Falha ao remover.");
+    }
+  };
+
+  const downloadInstagramImage = async (p: CatalogProduct) => {
+    if (!store) return;
+    try {
+      setGenerating(p.id);
+      const blob = await drawInstagramTile({
+        imageUrl: p.image,
+        productName: p.name,
+        price: formatBRL(p.resellerPrice || p.suggestedPrice),
+        storeName: store.storeName,
+        primary: theme.primaryColor || defaultTheme.primaryColor!,
+        secondary: theme.secondaryColor || defaultTheme.secondaryColor!,
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `instagram-${p.code || p.id}.jpg`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Imagem baixada!");
+    } catch {
+      toast.error("Não foi possível gerar a imagem.");
+    } finally {
+      setGenerating(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <SellerLayout>
+        <div className="flex items-center justify-center h-64 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin mr-2" /> Carregando...
+        </div>
+      </SellerLayout>
+    );
+  }
+
+  if (!store) {
+    return (
+      <SellerLayout>
+        <PageHeader title="Marketing" description="Nenhuma loja aprovada encontrada." />
+      </SellerLayout>
+    );
+  }
+
+  return (
+    <SellerLayout>
+      <PageHeader
+        eyebrow="Divulgação"
+        title="Marketing"
+        description="Gerencie banners da sua loja e baixe imagens prontas para o Instagram Shop."
+      />
+
+      {/* Banners section */}
+      <section className="rounded-xl border border-border bg-card p-6 space-y-4 mb-8">
+        <div className="flex items-baseline justify-between">
+          <h3 className="font-display text-xl">Banners da loja</h3>
+          <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+            1600 × 500 px · rotativo
+          </span>
+        </div>
+        <p className="text-xs text-muted-foreground -mt-2">
+          Envie 2 ou mais imagens para criar um carrossel automático na home da sua loja.
+        </p>
+
+        {bannerList.length === 0 ? (
+          <div className="aspect-[16/5] rounded-lg overflow-hidden border border-dashed border-border bg-muted flex items-center justify-center text-xs text-muted-foreground">
+            Nenhum banner enviado
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {bannerList.map((url, i) => (
+              <div key={url + i} className="relative group aspect-[16/9] rounded-lg overflow-hidden border border-border bg-muted">
+                <img src={url} alt={`Banner ${i + 1}`} className="w-full h-full object-cover" />
+                <span className="absolute top-2 left-2 text-[10px] px-2 py-1 rounded bg-background/85 border border-border">
+                  #{i + 1}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => removeBanner(i)}
+                  className="absolute top-2 right-2 h-8 w-8 rounded-full bg-background/90 border border-border opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:text-destructive"
+                  aria-label="Remover banner"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <input
+          ref={bannerRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => handleUploadBanner(e.target.files?.[0])}
+        />
+        <Button variant="gold" onClick={() => bannerRef.current?.click()} disabled={uploading}>
+          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+          Adicionar banner
+        </Button>
+      </section>
+
+      {/* Instagram section */}
+      <section className="rounded-xl border border-border bg-card p-6 space-y-4">
+        <div className="flex items-baseline justify-between">
+          <h3 className="font-display text-xl flex items-center gap-2">
+            <Instagram className="h-5 w-5 text-primary" /> Imagens para o Instagram
+          </h3>
+          <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+            1080 × 1080 px
+          </span>
+        </div>
+        <p className="text-xs text-muted-foreground -mt-2">
+          Baixe imagens prontas dos seus produtos com preço e marca, no formato ideal para o feed e o Instagram Shop.
+        </p>
+
+        {products.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+            Adicione produtos à sua loja para gerar imagens.
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {products.map((p) => (
+              <div key={p.id} className="rounded-lg border border-border bg-muted/30 overflow-hidden flex flex-col">
+                <div className="aspect-square bg-muted">
+                  <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                </div>
+                <div className="p-3 space-y-1 flex-1 flex flex-col">
+                  <p className="text-sm font-medium line-clamp-2">{p.name}</p>
+                  <p className="text-sm text-primary font-semibold">
+                    {formatBRL(p.resellerPrice || p.suggestedPrice)}
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-auto"
+                    onClick={() => downloadInstagramImage(p)}
+                    disabled={generating === p.id}
+                  >
+                    {generating === p.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Download className="h-3.5 w-3.5" />
+                    )}
+                    Baixar
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </SellerLayout>
+  );
+};
+
+export default SellerMarketing;
