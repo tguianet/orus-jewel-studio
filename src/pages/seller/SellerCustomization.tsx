@@ -82,13 +82,26 @@ const SellerCustomization = () => {
     try {
       setUploading(kind);
       const url = await uploadStoreAsset(store.id, kind, file);
-      setTheme((t) => ({ ...t, [kind === "banner" ? "bannerUrl" : "logoUrl"]: url }));
+      setTheme((t) => {
+        if (kind === "logo") return { ...t, logoUrl: url };
+        const list = [...(t.bannerUrls || (t.bannerUrl ? [t.bannerUrl] : []))];
+        list.push(url);
+        return { ...t, bannerUrl: list[0], bannerUrls: list };
+      });
       toast.success(`${kind === "banner" ? "Banner" : "Logo"} enviado.`);
     } catch (e) {
       toast.error("Falha no upload.");
     } finally {
       setUploading(null);
     }
+  };
+
+  const removeBanner = (idx: number) => {
+    setTheme((t) => {
+      const list = [...(t.bannerUrls || (t.bannerUrl ? [t.bannerUrl] : []))];
+      list.splice(idx, 1);
+      return { ...t, bannerUrl: list[0], bannerUrls: list };
+    });
   };
 
   const handleSave = async () => {
