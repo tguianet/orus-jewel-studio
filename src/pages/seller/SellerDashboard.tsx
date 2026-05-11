@@ -40,10 +40,14 @@ const SellerDashboard = () => {
     let mounted = true;
 
     const loadDashboard = async () => {
+      const { data: authData } = await supabase.auth.getUser();
+      const userId = authData?.user?.id;
+      if (!userId) return;
+
       const { data: stores } = await supabase
         .from("seller_stores")
         .select("id,store_name,store_slug,reseller_id,resellers(display_name)")
-        .eq("status", "approved")
+        .eq("owner_user_id", userId)
         .limit(1);
 
       const store = stores?.[0];
