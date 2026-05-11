@@ -56,7 +56,14 @@ const StoreHome = () => {
       {/* Hero estilo Monte Carlo */}
       <section className="relative overflow-hidden bg-secondary/40 border-b border-border">
         <div className="absolute inset-0">
-          <img src={heroBanner} alt={`Banner ${store.storeName}`} className="w-full h-full object-cover" />
+          {banners.map((b, i) => (
+            <img
+              key={b + i}
+              src={b}
+              alt={`Banner ${i + 1} ${store.storeName}`}
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1200ms] ${i === bannerIdx ? "opacity-100" : "opacity-0"}`}
+            />
+          ))}
           <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/70 to-transparent" />
         </div>
         <div className="container relative py-20 lg:py-32">
