@@ -1,63 +1,108 @@
-import { ExternalLink, Eye, Share2 } from "lucide-react";
+import { ExternalLink, Share2, Check } from "lucide-react";
+import { useState } from "react";
 import { SellerLayout } from "@/layouts/SellerLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
-const SellerStore = () => (
-  <SellerLayout>
-    <PageHeader
-      eyebrow="Sua presença online"
-      title="Minha loja"
-      description="Visão geral da sua loja virtual pública."
-      actions={
-        <Link to="/loja/marina-aura" target="_blank">
-          <Button variant="gold"><ExternalLink className="h-4 w-4" /> Abrir loja</Button>
-        </Link>
-      }
-    />
+const SellerStore = () => {
+  const { profile } = useAuth();
+  const slug = profile?.storeSlug;
+  const storePath = slug ? `/loja/${slug}` : null;
+  const fullUrl = storePath ? `${window.location.origin}${storePath}` : "";
+  const [copied, setCopied] = useState(false);
 
-    <div className="grid lg:grid-cols-3 gap-5">
-      <div className="lg:col-span-2 rounded-xl border border-border bg-card overflow-hidden">
-        <div className="aspect-[16/7] bg-gradient-gold relative">
-          <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
-          <div className="absolute bottom-6 left-6">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-primary-foreground/80">marina aura</p>
-            <h2 className="font-display text-3xl text-primary-foreground">Joias com sua história</h2>
-          </div>
-        </div>
-        <div className="p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground">URL pública da sua loja</p>
-              <p className="font-mono text-sm">aura.app/loja/marina-aura</p>
+  const handleCopy = async () => {
+    if (!fullUrl) return;
+    try {
+      await navigator.clipboard.writeText(fullUrl);
+      setCopied(true);
+      toast.success("Link copiado!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Não foi possível copiar");
+    }
+  };
+
+  return (
+    <SellerLayout>
+      <PageHeader
+        eyebrow="Sua presença online"
+        title="Minha loja"
+        description="Visão geral da sua loja virtual pública."
+        actions={
+          storePath ? (
+            <Link to={storePath} target="_blank" rel="noopener noreferrer">
+              <Button variant="gold"><ExternalLink className="h-4 w-4" /> Abrir loja</Button>
+            </Link>
+          ) : (
+            <Button variant="gold" disabled><ExternalLink className="h-4 w-4" /> Abrir loja</Button>
+          )
+        }
+      />
+
+      <div className="grid lg:grid-cols-3 gap-5">
+        <div className="lg:col-span-2 rounded-xl border border-border bg-card overflow-hidden">
+          <div className="aspect-[16/7] bg-gradient-gold relative">
+            <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
+            <div className="absolute bottom-6 left-6">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-primary-foreground/80">
+                {profile?.displayName || "sua loja"}
+              </p>
+              <h2 className="font-display text-3xl text-primary-foreground">Joias com sua história</h2>
             </div>
-            <Button variant="outline" size="sm"><Share2 className="h-4 w-4" /> Copiar</Button>
           </div>
-          <div className="grid sm:grid-cols-3 gap-3 pt-2">
-            <div className="rounded-lg border border-border p-3"><p className="text-xs text-muted-foreground">Visitas</p><p className="font-display text-2xl">412</p></div>
-            <div className="rounded-lg border border-border p-3"><p className="text-xs text-muted-foreground">Produtos ativos</p><p className="font-display text-2xl">4</p></div>
-            <div className="rounded-lg border border-border p-3"><p className="text-xs text-muted-foreground">Conversão</p><p className="font-display text-2xl">3,2%</p></div>
+          <div className="p-5 space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">URL pública da sua loja</p>
+                {storePath ? (
+                  <a
+                    href={storePath}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono text-sm text-primary hover:underline truncate block"
+                  >
+                    {fullUrl}
+                  </a>
+                ) : (
+                  <p className="font-mono text-sm text-muted-foreground">
+                    Sua loja ainda está sendo configurada
+                  </p>
+                )}
+              </div>
+              <Button variant="outline" size="sm" onClick={handleCopy} disabled={!storePath}>
+                {copied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
+                {copied ? "Copiado" : "Copiar"}
+              </Button>
+            </div>
+            <div className="grid sm:grid-cols-3 gap-3 pt-2">
+              <div className="rounded-lg border border-border p-3"><p className="text-xs text-muted-foreground">Visitas</p><p className="font-display text-2xl">—</p></div>
+              <div className="rounded-lg border border-border p-3"><p className="text-xs text-muted-foreground">Produtos ativos</p><p className="font-display text-2xl">—</p></div>
+              <div className="rounded-lg border border-border p-3"><p className="text-xs text-muted-foreground">Conversão</p><p className="font-display text-2xl">—</p></div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="space-y-3">
-        <Link to="/sacoleira/personalizacao" className="block rounded-xl border border-border bg-card p-5 hover:border-primary/40 transition-all">
-          <h4 className="font-display text-lg">Personalizar visual</h4>
-          <p className="text-xs text-muted-foreground mt-1">Logo, banner e cores</p>
-        </Link>
-        <Link to="/sacoleira/catalogo" className="block rounded-xl border border-border bg-card p-5 hover:border-primary/40 transition-all">
-          <h4 className="font-display text-lg">Adicionar produtos</h4>
-          <p className="text-xs text-muted-foreground mt-1">Selecione do catálogo Aura</p>
-        </Link>
-        <Link to="/sacoleira/meus-produtos" className="block rounded-xl border border-border bg-card p-5 hover:border-primary/40 transition-all">
-          <h4 className="font-display text-lg">Definir preços</h4>
-          <p className="text-xs text-muted-foreground mt-1">Sua margem, sua escolha</p>
-        </Link>
+        <div className="space-y-3">
+          <Link to="/sacoleira/personalizacao" className="block rounded-xl border border-border bg-card p-5 hover:border-primary/40 transition-all">
+            <h4 className="font-display text-lg">Personalizar visual</h4>
+            <p className="text-xs text-muted-foreground mt-1">Logo, banner e cores</p>
+          </Link>
+          <Link to="/sacoleira/catalogo" className="block rounded-xl border border-border bg-card p-5 hover:border-primary/40 transition-all">
+            <h4 className="font-display text-lg">Adicionar produtos</h4>
+            <p className="text-xs text-muted-foreground mt-1">Selecione do catálogo Aura</p>
+          </Link>
+          <Link to="/sacoleira/meus-produtos" className="block rounded-xl border border-border bg-card p-5 hover:border-primary/40 transition-all">
+            <h4 className="font-display text-lg">Definir preços</h4>
+            <p className="text-xs text-muted-foreground mt-1">Sua margem, sua escolha</p>
+          </Link>
+        </div>
       </div>
-    </div>
-  </SellerLayout>
-);
+    </SellerLayout>
+  );
+};
 
 export default SellerStore;
