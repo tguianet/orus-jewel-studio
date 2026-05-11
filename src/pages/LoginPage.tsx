@@ -87,21 +87,35 @@ const LoginPage = ({ role }: Props) => {
         <div className="max-w-sm w-full mx-auto lg:mx-0">
           <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-3">{isAdmin ? "Acesso administrativo" : "Painel da sacoleira"}</p>
           <h1 className="font-display text-4xl font-light mb-2">
-            {mode === "signin" ? "Bem-vinda de volta" : "Criar conta"}
+            {mode === "signin" ? "Bem-vinda de volta" : mode === "signup" ? "Criar conta" : "Redefinir senha"}
           </h1>
           <p className="text-sm text-muted-foreground mb-8">
-            {mode === "signin" ? `Entre para acessar ${isAdmin ? "o admin" : "sua loja"}.` : "Preencha para começar a revender."}
+            {mode === "signin"
+              ? `Entre para acessar ${isAdmin ? "o admin" : "sua loja"}.`
+              : mode === "signup"
+              ? "Preencha para começar a revender."
+              : "Informe seu email e enviaremos um link para criar uma nova senha."}
           </p>
 
-          {mode === "signin" ? (
+          {mode === "signin" && (
             <form onSubmit={handleSignIn} className="space-y-4">
               <div><Label htmlFor="email">Email</Label><Input id="email" name="email" type="email" required className="mt-1.5" /></div>
-              <div><Label htmlFor="password">Senha</Label><Input id="password" name="password" type="password" required minLength={6} className="mt-1.5" /></div>
+              <div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Senha</Label>
+                  <button type="button" onClick={() => setMode("forgot")} className="text-xs text-primary hover:underline">
+                    Esqueci minha senha
+                  </button>
+                </div>
+                <Input id="password" name="password" type="password" required minLength={6} className="mt-1.5" />
+              </div>
               <Button type="submit" variant="gold" size="lg" className="w-full" disabled={busy}>
                 {busy ? "Entrando..." : <>Entrar <ArrowRight className="h-4 w-4" /></>}
               </Button>
             </form>
-          ) : (
+          )}
+
+          {mode === "signup" && (
             <form onSubmit={handleSignUp} className="space-y-4">
               <div><Label htmlFor="name">Nome completo</Label><Input id="name" name="name" required className="mt-1.5" /></div>
               <div><Label htmlFor="email">Email</Label><Input id="email" name="email" type="email" required className="mt-1.5" /></div>
@@ -114,8 +128,20 @@ const LoginPage = ({ role }: Props) => {
             </form>
           )}
 
+          {mode === "forgot" && (
+            <form onSubmit={handleForgot} className="space-y-4">
+              <div><Label htmlFor="email">Email</Label><Input id="email" name="email" type="email" required className="mt-1.5" /></div>
+              <Button type="submit" variant="gold" size="lg" className="w-full" disabled={busy}>
+                {busy ? "Enviando..." : "Enviar link de redefinição"}
+              </Button>
+              <button type="button" onClick={() => setMode("signin")} className="block w-full text-xs text-center text-primary hover:underline">
+                Voltar para o login
+              </button>
+            </form>
+          )}
+
           <div className="my-6 gold-divider" />
-          {!isAdmin && (
+          {!isAdmin && mode !== "forgot" && (
             <p className="text-xs text-center text-muted-foreground">
               {mode === "signin" ? (
                 <>Quer ser revendedora Aura?{" "}
@@ -126,7 +152,7 @@ const LoginPage = ({ role }: Props) => {
               )}
             </p>
           )}
-          {isAdmin && (
+          {isAdmin && mode !== "forgot" && (
             <p className="text-xs text-center text-muted-foreground">
               É sacoleira? <Link to="/login-sacoleira" className="text-primary hover:underline">Acesse aqui</Link>
             </p>
