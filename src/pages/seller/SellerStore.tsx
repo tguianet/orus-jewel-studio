@@ -1,4 +1,4 @@
-import { ExternalLink, Share2, Check } from "lucide-react";
+import { ExternalLink, Share2, Check, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { SellerLayout } from "@/layouts/SellerLayout";
 import { PageHeader } from "@/components/PageHeader";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { waLink } from "@/lib/whatsapp";
 
 const SellerStore = () => {
   const { profile } = useAuth();
