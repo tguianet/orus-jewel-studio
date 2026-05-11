@@ -122,7 +122,8 @@ const SellerCustomization = () => {
     }
   };
 
-  const banner = theme.bannerUrl || DEFAULT_BANNER;
+  const bannerList = (theme.bannerUrls && theme.bannerUrls.length ? theme.bannerUrls : (theme.bannerUrl ? [theme.bannerUrl] : []));
+  const banner = bannerList[0] || DEFAULT_BANNER;
   const primary = theme.primaryColor || defaultTheme.primaryColor!;
   const secondary = theme.secondaryColor || defaultTheme.secondaryColor!;
 
