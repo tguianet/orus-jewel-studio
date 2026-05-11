@@ -82,13 +82,26 @@ const SellerCustomization = () => {
     try {
       setUploading(kind);
       const url = await uploadStoreAsset(store.id, kind, file);
-      setTheme((t) => ({ ...t, [kind === "banner" ? "bannerUrl" : "logoUrl"]: url }));
+      setTheme((t) => {
+        if (kind === "logo") return { ...t, logoUrl: url };
+        const list = [...(t.bannerUrls || (t.bannerUrl ? [t.bannerUrl] : []))];
+        list.push(url);
+        return { ...t, bannerUrl: list[0], bannerUrls: list };
+      });
       toast.success(`${kind === "banner" ? "Banner" : "Logo"} enviado.`);
     } catch (e) {
       toast.error("Falha no upload.");
     } finally {
       setUploading(null);
     }
+  };
+
+  const removeBanner = (idx: number) => {
+    setTheme((t) => {
+      const list = [...(t.bannerUrls || (t.bannerUrl ? [t.bannerUrl] : []))];
+      list.splice(idx, 1);
+      return { ...t, bannerUrl: list[0], bannerUrls: list };
+    });
   };
 
   const handleSave = async () => {
@@ -109,7 +122,8 @@ const SellerCustomization = () => {
     }
   };
 
-  const banner = theme.bannerUrl || DEFAULT_BANNER;
+  const bannerList = (theme.bannerUrls && theme.bannerUrls.length ? theme.bannerUrls : (theme.bannerUrl ? [theme.bannerUrl] : []));
+  const banner = bannerList[0] || DEFAULT_BANNER;
   const primary = theme.primaryColor || defaultTheme.primaryColor!;
   const secondary = theme.secondaryColor || defaultTheme.secondaryColor!;
 
@@ -150,18 +164,42 @@ const SellerCustomization = () => {
           {/* Banner */}
           <div className="rounded-xl border border-border bg-card p-6 space-y-3">
             <div className="flex items-baseline justify-between">
-              <h3 className="font-display text-xl">Banner da loja</h3>
-              <span className="text-[10px] uppercase tracking-widest text-muted-foreground">1600 × 500 px</span>
+              <h3 className="font-display text-xl">Banners da loja</h3>
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground">1600 × 500 px · rotativo</span>
             </div>
-            <div className="aspect-[16/5] rounded-lg overflow-hidden border border-border bg-muted">
-              <img src={banner} alt="Preview do banner" className="w-full h-full object-cover" />
-            </div>
+            <p className="text-xs text-muted-foreground -mt-1">
+              Envie 2 ou mais imagens para criar um banner rotativo automático na sua loja.
+            </p>
+            {bannerList.length === 0 ? (
+              <div className="aspect-[16/5] rounded-lg overflow-hidden border border-border bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                Nenhum banner enviado
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                {bannerList.map((url, i) => (
+                  <div key={url + i} className="relative group aspect-[16/9] rounded-lg overflow-hidden border border-border bg-muted">
+                    <img src={url} alt={`Banner ${i + 1}`} className="w-full h-full object-cover" />
+                    <span className="absolute top-1.5 left-1.5 text-[10px] px-1.5 py-0.5 rounded bg-background/80 border border-border">
+                      #{i + 1}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeBanner(i)}
+                      className="absolute top-1.5 right-1.5 h-7 w-7 rounded-full bg-background/90 border border-border opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:text-destructive"
+                      aria-label="Remover banner"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
             <input
               ref={bannerRef}
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={(e) => handleUpload("banner", e.target.files?.[0])}
+              onChange={(e) => { handleUpload("banner", e.target.files?.[0]); if (bannerRef.current) bannerRef.current.value = ""; }}
             />
             <Button
               variant="outline"
@@ -169,8 +207,8 @@ const SellerCustomization = () => {
               onClick={() => bannerRef.current?.click()}
               disabled={uploading === "banner"}
             >
-              {uploading === "banner" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-              Enviar novo banner
+              {uploading === "banner" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              Adicionar banner
             </Button>
           </div>
 

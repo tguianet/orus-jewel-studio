@@ -12,7 +12,20 @@ type StoreCtx = { store: Sacoleira; theme?: StoreTheme; banner?: string };
 const StoreHome = () => {
   const { store, theme, banner } = useOutletContext<StoreCtx>();
   const t = { ...defaultTheme, ...(theme || {}) };
-  const heroBanner = banner || t.bannerUrl || DEFAULT_BANNER || heroImg;
+  const banners = useMemo(() => {
+    const list = [
+      ...((t.bannerUrls || []).filter(Boolean)),
+      ...(t.bannerUrl && !(t.bannerUrls || []).includes(t.bannerUrl) ? [t.bannerUrl] : []),
+    ];
+    if (list.length === 0) list.push(banner || DEFAULT_BANNER || heroImg);
+    return list;
+  }, [t.bannerUrls, t.bannerUrl, banner]);
+  const [bannerIdx, setBannerIdx] = useState(0);
+  useEffect(() => {
+    if (banners.length < 2) return;
+    const id = setInterval(() => setBannerIdx((i) => (i + 1) % banners.length), 5000);
+    return () => clearInterval(id);
+  }, [banners.length]);
   const [cloudProducts, setCloudProducts] = useState<CloudStoreProduct[]>([]);
   const [activeCat, setActiveCat] = useState<string>("Todos");
   const mockProducts = getStoreProducts(store.id);
@@ -43,7 +56,14 @@ const StoreHome = () => {
       {/* Hero estilo Monte Carlo */}
       <section className="relative overflow-hidden bg-secondary/40 border-b border-border">
         <div className="absolute inset-0">
-          <img src={heroBanner} alt={`Banner ${store.storeName}`} className="w-full h-full object-cover" />
+          {banners.map((b, i) => (
+            <img
+              key={b + i}
+              src={b}
+              alt={`Banner ${i + 1} ${store.storeName}`}
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1200ms] ${i === bannerIdx ? "opacity-100" : "opacity-0"}`}
+            />
+          ))}
           <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/70 to-transparent" />
         </div>
         <div className="container relative py-20 lg:py-32">
@@ -77,6 +97,19 @@ const StoreHome = () => {
             </div>
           </div>
         </div>
+        {banners.length > 1 && (
+          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+            {banners.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setBannerIdx(i)}
+                aria-label={`Banner ${i + 1}`}
+                className={`h-1.5 rounded-full transition-all ${i === bannerIdx ? "w-8" : "w-3 opacity-60 hover:opacity-100"}`}
+                style={{ background: t.primaryColor }}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Benefits strip estilo Monte Carlo */}

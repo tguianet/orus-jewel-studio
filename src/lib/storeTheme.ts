@@ -5,6 +5,7 @@ export const DEFAULT_BANNER = defaultBanner;
 
 export type StoreTheme = {
   bannerUrl?: string;
+  bannerUrls?: string[];
   logoUrl?: string;
   description?: string;
   whatsapp?: string;
