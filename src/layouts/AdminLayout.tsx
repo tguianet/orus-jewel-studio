@@ -20,7 +20,7 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
     { label: "Pedidos", to: "/admin/pedidos", icon: ShoppingBag },
     { label: "Comissões", to: "/admin/financeiro", icon: Wallet },
     {
-      label: "Banners",
+      label: "Marketing",
       to: "/admin/banners",
       icon: ImageIcon,
       children: [
