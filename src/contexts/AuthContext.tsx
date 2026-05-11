@@ -10,6 +10,7 @@ export type AuthProfile = {
   role: AppRole | null;
   roles: AppRole[];
   resellerId: string | null;
+  parentResellerId: string | null;
   storeId: string | null;
   storeSlug: string | null;
   displayName: string;
