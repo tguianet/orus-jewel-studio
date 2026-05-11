@@ -33,6 +33,7 @@ const SellerMarketing = () => {
   const [adminBanners, setAdminBanners] = useState<MarketingBanner[]>([]);
   const [formats, setFormats] = useState<ImageFormat[]>([]);
   const [activeTab, setActiveTab] = useState<string>("");
+  const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
 
   useEffect(() => {
     (async () => {
