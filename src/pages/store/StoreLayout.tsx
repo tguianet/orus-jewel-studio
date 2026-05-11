@@ -32,7 +32,7 @@ const StoreLayout = () => {
   );
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col" style={themeCssVars(theme.primaryColor, theme.secondaryColor)}>
       <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-xl">
         <div className="container flex h-16 items-center justify-between gap-4">
           <Link to={`/loja/${store.storeSlug}`} className="flex items-center gap-3">
