@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { loadOrdersForStore, SellerOrderRow } from "@/lib/cloudStore";
 import { formatBRL, statusColors } from "@/lib/mockData";
 import { Loader2, MessageCircle } from "lucide-react";
+import { waLink } from "@/lib/whatsapp";
 
 const SellerOrders = () => {
   const { profile } = useAuth();
