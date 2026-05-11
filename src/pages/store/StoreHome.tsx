@@ -12,7 +12,20 @@ type StoreCtx = { store: Sacoleira; theme?: StoreTheme; banner?: string };
 const StoreHome = () => {
   const { store, theme, banner } = useOutletContext<StoreCtx>();
   const t = { ...defaultTheme, ...(theme || {}) };
-  const heroBanner = banner || t.bannerUrl || DEFAULT_BANNER || heroImg;
+  const banners = useMemo(() => {
+    const list = [
+      ...((t.bannerUrls || []).filter(Boolean)),
+      ...(t.bannerUrl && !(t.bannerUrls || []).includes(t.bannerUrl) ? [t.bannerUrl] : []),
+    ];
+    if (list.length === 0) list.push(banner || DEFAULT_BANNER || heroImg);
+    return list;
+  }, [t.bannerUrls, t.bannerUrl, banner]);
+  const [bannerIdx, setBannerIdx] = useState(0);
+  useEffect(() => {
+    if (banners.length < 2) return;
+    const id = setInterval(() => setBannerIdx((i) => (i + 1) % banners.length), 5000);
+    return () => clearInterval(id);
+  }, [banners.length]);
   const [cloudProducts, setCloudProducts] = useState<CloudStoreProduct[]>([]);
   const [activeCat, setActiveCat] = useState<string>("Todos");
   const mockProducts = getStoreProducts(store.id);
