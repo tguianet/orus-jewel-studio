@@ -54,6 +54,8 @@ const SellerCustomization = () => {
   const [slug, setSlug] = useState("");
   const [phone, setPhone] = useState("");
   const [theme, setTheme] = useState<StoreTheme>(defaultTheme);
+  const [customPalettes, setCustomPalettes] = useState<Palette[]>(() => loadCustomPalettes());
+  const [newPaletteName, setNewPaletteName] = useState("");
 
   const bannerRef = useRef<HTMLInputElement>(null);
   const logoRef = useRef<HTMLInputElement>(null);
