@@ -34,6 +34,7 @@ const AdminProducts = () => {
     const { data, error } = await supabase
       .from("products")
       .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,category_name,status")
+      .is("seller_store_id", null)
       .order("created_at", { ascending: false });
 
     if (error) {
