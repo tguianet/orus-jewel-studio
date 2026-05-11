@@ -1,11 +1,12 @@
 import { Link, Outlet, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { ShoppingBag, Search, Heart, Instagram } from "lucide-react";
+import { ShoppingBag, Search, Heart, Instagram, MessageCircle } from "lucide-react";
 import { getStoreBySlug } from "@/lib/mockData";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { loadPublicStore } from "@/lib/cloudStore";
 import { DEFAULT_BANNER, StoreTheme, defaultTheme, loadStoreThemeBySlug } from "@/lib/storeTheme";
+import { waLink } from "@/lib/whatsapp";
 
 const StoreLayout = () => {
   const { slug } = useParams();
@@ -80,6 +81,22 @@ const StoreLayout = () => {
       <main className="flex-1">
         <Outlet context={ctx} />
       </main>
+
+      {(theme.whatsapp || store.phone) && (
+        <a
+          href={waLink(
+            theme.whatsapp || store.phone,
+            `Olá ${store.storeName}! Vi sua loja e gostaria de mais informações. ✨`,
+          )}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Falar no WhatsApp"
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-3 text-white shadow-[0_8px_30px_-8px_rgba(37,211,102,0.6)] hover:brightness-110 transition-all"
+        >
+          <MessageCircle className="h-5 w-5" />
+          <span className="hidden sm:inline text-sm font-medium">Fale conosco</span>
+        </a>
+      )}
 
       <footer className="border-t border-border/50 mt-16 py-8">
         <div className="container text-center space-y-2">

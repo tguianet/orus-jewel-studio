@@ -235,23 +235,23 @@ export const loadWalletForReseller = async (resellerId: string) => {
 
 // ---------- Network (MLM) ----------
 
-export type NetworkMember = { id: string; name: string; email: string; status: string; level: number };
+export type NetworkMember = { id: string; name: string; email: string; phone: string | null; status: string; level: number };
 
 export const loadNetwork = async (rootResellerId: string): Promise<NetworkMember[]> => {
   // Three levels via three queries (small N)
   const result: NetworkMember[] = [];
-  const lvl1Res = await supabase.from("resellers").select("id,display_name,email,status").eq("parent_id", rootResellerId);
+  const lvl1Res = await supabase.from("resellers").select("id,display_name,email,phone,status").eq("parent_id", rootResellerId);
   const lvl1 = lvl1Res.data ?? [];
-  lvl1.forEach((r: any) => result.push({ id: r.id, name: r.display_name, email: r.email, status: r.status, level: 1 }));
+  lvl1.forEach((r: any) => result.push({ id: r.id, name: r.display_name, email: r.email, phone: r.phone, status: r.status, level: 1 }));
   if (lvl1.length) {
     const ids1 = lvl1.map((r: any) => r.id);
-    const lvl2Res = await supabase.from("resellers").select("id,display_name,email,status").in("parent_id", ids1);
+    const lvl2Res = await supabase.from("resellers").select("id,display_name,email,phone,status").in("parent_id", ids1);
     const lvl2 = lvl2Res.data ?? [];
-    lvl2.forEach((r: any) => result.push({ id: r.id, name: r.display_name, email: r.email, status: r.status, level: 2 }));
+    lvl2.forEach((r: any) => result.push({ id: r.id, name: r.display_name, email: r.email, phone: r.phone, status: r.status, level: 2 }));
     if (lvl2.length) {
       const ids2 = lvl2.map((r: any) => r.id);
-      const lvl3Res = await supabase.from("resellers").select("id,display_name,email,status").in("parent_id", ids2);
-      (lvl3Res.data ?? []).forEach((r: any) => result.push({ id: r.id, name: r.display_name, email: r.email, status: r.status, level: 3 }));
+      const lvl3Res = await supabase.from("resellers").select("id,display_name,email,phone,status").in("parent_id", ids2);
+      (lvl3Res.data ?? []).forEach((r: any) => result.push({ id: r.id, name: r.display_name, email: r.email, phone: r.phone, status: r.status, level: 3 }));
     }
   }
   return result;

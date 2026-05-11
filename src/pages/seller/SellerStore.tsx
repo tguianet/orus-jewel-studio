@@ -1,4 +1,4 @@
-import { ExternalLink, Share2, Check } from "lucide-react";
+import { ExternalLink, Share2, Check, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { SellerLayout } from "@/layouts/SellerLayout";
 import { PageHeader } from "@/components/PageHeader";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { waLink } from "@/lib/whatsapp";
 
 const SellerStore = () => {
   const { profile } = useAuth();
@@ -73,10 +74,24 @@ const SellerStore = () => {
                   </p>
                 )}
               </div>
-              <Button variant="outline" size="sm" onClick={handleCopy} disabled={!storePath}>
-                {copied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
-                {copied ? "Copiado" : "Copiar"}
-              </Button>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button variant="outline" size="sm" onClick={handleCopy} disabled={!storePath}>
+                  {copied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
+                  {copied ? "Copiado" : "Copiar"}
+                </Button>
+                <a
+                  href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
+                    `✨ Acabei de garimpar joias incríveis pra você! Dá uma olhada na minha loja: ${fullUrl}`,
+                  )}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={!storePath ? "pointer-events-none opacity-50" : ""}
+                >
+                  <Button variant="whatsapp" size="sm" disabled={!storePath}>
+                    <MessageCircle className="h-4 w-4" /> Compartilhar
+                  </Button>
+                </a>
+              </div>
             </div>
             <div className="grid sm:grid-cols-3 gap-3 pt-2">
               <div className="rounded-lg border border-border p-3"><p className="text-xs text-muted-foreground">Visitas</p><p className="font-display text-2xl">—</p></div>

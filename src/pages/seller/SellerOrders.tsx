@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { loadOrdersForStore, SellerOrderRow } from "@/lib/cloudStore";
 import { formatBRL, statusColors } from "@/lib/mockData";
 import { Loader2, MessageCircle } from "lucide-react";
+import { waLink } from "@/lib/whatsapp";
 
 const SellerOrders = () => {
   const { profile } = useAuth();
@@ -35,7 +36,14 @@ const SellerOrders = () => {
               </div>
               <div className="flex items-center gap-3">
                 <div className="text-right"><p className="text-xs text-muted-foreground">Total</p><p className="font-display text-xl text-gold">{formatBRL(o.total)}</p></div>
-                <a href={`https://wa.me/55${o.phone.replace(/\D/g,'')}`} target="_blank" rel="noreferrer">
+                <a
+                  href={waLink(
+                    o.phone,
+                    `Olá ${o.customer}! Tudo bem? Recebi seu pedido de ${formatBRL(o.total)} (${o.items} ${o.items === 1 ? "item" : "itens"}) e já estou cuidando de tudo com muito carinho. Qualquer dúvida, é só me chamar por aqui. ✨`,
+                  )}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   <Button variant="whatsapp" size="sm"><MessageCircle className="h-4 w-4"/> Contatar</Button>
                 </a>
               </div>
