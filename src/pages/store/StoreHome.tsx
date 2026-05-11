@@ -98,17 +98,33 @@ const StoreHome = () => {
           </div>
         </div>
         {banners.length > 1 && (
-          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-            {banners.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setBannerIdx(i)}
-                aria-label={`Banner ${i + 1}`}
-                className={`h-1.5 rounded-full transition-all ${i === bannerIdx ? "w-8" : "w-3 opacity-60 hover:opacity-100"}`}
-                style={{ background: t.primaryColor }}
-              />
-            ))}
-          </div>
+          <>
+            <button
+              onClick={() => setBannerIdx((i) => (i - 1 + banners.length) % banners.length)}
+              aria-label="Banner anterior"
+              className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/80 backdrop-blur border border-border flex items-center justify-center hover:bg-background transition-colors"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => setBannerIdx((i) => (i + 1) % banners.length)}
+              aria-label="Próximo banner"
+              className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/80 backdrop-blur border border-border flex items-center justify-center hover:bg-background transition-colors"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+              {banners.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setBannerIdx(i)}
+                  aria-label={`Banner ${i + 1}`}
+                  className={`h-1.5 rounded-full transition-all ${i === bannerIdx ? "w-8" : "w-3 opacity-60 hover:opacity-100"}`}
+                  style={{ background: t.primaryColor }}
+                />
+              ))}
+            </div>
+          </>
         )}
       </section>
 
