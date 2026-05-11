@@ -58,13 +58,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+    let lastUserId: string | null = null;
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s);
-      // defer extra calls to avoid deadlocks
-      setTimeout(() => { void hydrate(s); }, 0);
+      // Only re-hydrate profile when the user actually changes (sign in/out),
+      // not on every TOKEN_REFRESHED — that caused a refresh storm and lock contention.
+      const newUserId = s?.user?.id ?? null;
+      if (event === "SIGNED_OUT" || newUserId !== lastUserId) {
+        lastUserId = newUserId;
+        setTimeout(() => { void hydrate(s); }, 0);
+      }
     });
     supabase.auth.getSession().then(async ({ data }) => {
       setSession(data.session);
+      lastUserId = data.session?.user?.id ?? null;
       await hydrate(data.session);
       setLoading(false);
     });
