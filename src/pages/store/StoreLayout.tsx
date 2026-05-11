@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { loadPublicStore } from "@/lib/cloudStore";
 import { DEFAULT_BANNER, StoreTheme, defaultTheme, loadStoreThemeBySlug } from "@/lib/storeTheme";
 import { waLink } from "@/lib/whatsapp";
+import { themeCssVars } from "@/lib/colorUtils";
 
 const StoreLayout = () => {
   const { slug } = useParams();
