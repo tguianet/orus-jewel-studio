@@ -50,9 +50,9 @@ const StoreLayout = () => {
             </div>
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
-            <Link to={`/loja/${store.storeSlug}`} className="hover:text-primary transition-colors">Vitrine</Link>
-            <a className="hover:text-primary transition-colors cursor-pointer">Coleções</a>
-            <a className="hover:text-primary transition-colors cursor-pointer">Sobre</a>
+            <a href={`/loja/${store.storeSlug}#vitrine`} className="hover:text-primary transition-colors">Vitrine</a>
+            <a href={`/loja/${store.storeSlug}#colecoes`} className="hover:text-primary transition-colors">Coleções</a>
+            <a href={`/loja/${store.storeSlug}#sobre`} className="hover:text-primary transition-colors">Sobre</a>
           </nav>
           <div className="flex items-center gap-1">
             {theme.instagram && (
