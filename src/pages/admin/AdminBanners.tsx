@@ -168,13 +168,12 @@ const AdminBanners = () => {
               <button
                 type="button"
                 onClick={() => setPreviewUrl(b.imageUrl)}
-                className="block w-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary"
-                style={{ aspectRatio: previewAspect }}
+                className="block w-full focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <img
                   src={b.imageUrl}
                   alt={b.title || "Banner"}
-                  className="w-full h-full object-cover cursor-zoom-in transition-transform duration-300 hover:scale-[1.03]"
+                  className="w-full h-auto object-contain cursor-zoom-in"
                 />
               </button>
               <div className="px-4 py-3 flex items-center justify-between gap-3">
