@@ -16,8 +16,22 @@ const LoginPage = ({ role }: Props) => {
   const { signIn, signUp } = useAuth();
   const isAdmin = role === "admin";
   const target = isAdmin ? "/admin" : "/sacoleira";
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [busy, setBusy] = useState(false);
+
+  const handleForgot = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget);
+    const email = String(f.get("email"));
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setBusy(false);
+    if (error) { toast.error("Não foi possível enviar", { description: error.message }); return; }
+    toast.success("Email enviado!", { description: "Verifique sua caixa de entrada para redefinir sua senha." });
+    setMode("signin");
+  };
 
   const handleSignIn = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
