@@ -1,5 +1,5 @@
-// Converte "#rrggbb" em "H S% L%" (formato esperado pelo Tailwind via hsl(var(--token)))
-export const hexToHslString = (hex?: string): string | null => {
+// Converte "#rrggbb" em { h, s, l } (0-360, 0-100, 0-100)
+export const hexToHsl = (hex?: string): { h: number; s: number; l: number } | null => {
   if (!hex) return null;
   const m = hex.trim().replace("#", "");
   if (!/^[0-9a-fA-F]{6}$/.test(m)) return null;
@@ -21,21 +21,36 @@ export const hexToHslString = (hex?: string): string | null => {
     }
     h *= 60;
   }
-  return `${Math.round(h)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+  return { h: Math.round(h), s: Math.round(s * 100), l: Math.round(l * 100) };
 };
+
+export const hexToHslString = (hex?: string): string | null => {
+  const v = hexToHsl(hex);
+  return v ? `${v.h} ${v.s}% ${v.l}%` : null;
+};
+
+const clamp = (n: number, min = 0, max = 100) => Math.max(min, Math.min(max, n));
 
 export const themeCssVars = (primary?: string, secondary?: string): React.CSSProperties => {
   const vars: Record<string, string> = {};
-  const p = hexToHslString(primary);
-  const s = hexToHslString(secondary);
+  const p = hexToHsl(primary);
+  const s = hexToHsl(secondary);
+
   if (p) {
-    vars["--primary"] = p;
-    vars["--ring"] = p;
-    vars["--accent"] = p;
+    const pStr = `${p.h} ${p.s}% ${p.l}%`;
+    vars["--primary"] = pStr;
+    vars["--ring"] = pStr;
+    vars["--accent"] = pStr;
+    // Gradiente gold dinâmico baseado na cor principal
+    const lighter = `hsl(${p.h} ${clamp(p.s + 5)}% ${clamp(p.l + 12)}%)`;
+    const base = `hsl(${p.h} ${p.s}% ${p.l}%)`;
+    const darker = `hsl(${p.h} ${clamp(p.s + 10)}% ${clamp(p.l - 15)}%)`;
+    vars["--gradient-gold"] = `linear-gradient(135deg, ${lighter} 0%, ${darker} 50%, ${base} 100%)`;
+    vars["--gradient-gold-soft"] = `linear-gradient(135deg, hsl(${p.h} ${p.s}% ${p.l}% / 0.18), hsl(${p.h} ${p.s}% ${clamp(p.l - 10)}% / 0.08))`;
   }
   if (s) {
-    vars["--secondary"] = s;
-    vars["--muted"] = s;
+    vars["--secondary"] = `${s.h} ${s.s}% ${s.l}%`;
+    vars["--muted"] = `${s.h} ${s.s}% ${s.l}%`;
   }
   return vars as React.CSSProperties;
 };
