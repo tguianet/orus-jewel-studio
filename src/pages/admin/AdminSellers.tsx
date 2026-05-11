@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Loader2, ExternalLink, Check, Ban } from "lucide-react";
+import { Loader2, ExternalLink, Check, Ban, Eye } from "lucide-react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { loadAllSellers, updateResellerStatus } from "@/lib/cloudStore";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const tone: Record<string, string> = {
   approved: "bg-success/15 text-success border-success/30",
@@ -16,6 +17,7 @@ const tone: Record<string, string> = {
 const AdminSellers = () => {
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [previewStore, setPreviewStore] = useState<{ slug: string; name: string } | null>(null);
 
   const refresh = () => loadAllSellers().then((data) => { setRows(data); setLoading(false); });
   useEffect(() => { refresh(); }, []);
@@ -53,10 +55,20 @@ const AdminSellers = () => {
                   <td className="px-5 py-4">
                     <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider border ${tone[s.status]}`}>{s.status}</span>
                   </td>
-                  <td className="px-5 py-4 text-right space-x-1">
+                  <td className="px-5 py-4 text-right space-x-1 whitespace-nowrap">
+                    {store && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setPreviewStore({ slug: store.store_slug, name: store.store_name })}
+                        title="Visualizar loja sem sair"
+                      >
+                        <Eye className="h-3 w-3" /> Visualizar
+                      </Button>
+                    )}
                     {s.status !== "approved" && <Button size="sm" variant="outline" onClick={() => setStatus(s.id, "approved")}><Check className="h-3 w-3"/> Aprovar</Button>}
                     {s.status !== "blocked" && <Button size="sm" variant="ghost" onClick={() => setStatus(s.id, "blocked")}><Ban className="h-3 w-3"/> Bloquear</Button>}
-                    {store && <Link to={`/loja/${store.store_slug}`} target="_blank"><Button variant="ghost" size="icon" className="h-8 w-8"><ExternalLink className="h-4 w-4"/></Button></Link>}
+                    {store && <Link to={`/loja/${store.store_slug}`} target="_blank"><Button variant="ghost" size="icon" className="h-8 w-8" title="Abrir em nova aba"><ExternalLink className="h-4 w-4"/></Button></Link>}
                   </td>
                 </tr>);
               })}
@@ -66,6 +78,29 @@ const AdminSellers = () => {
         </div>
       </div>
       )}
+
+      <Dialog open={!!previewStore} onOpenChange={(o) => !o && setPreviewStore(null)}>
+        <DialogContent className="max-w-6xl w-[95vw] h-[88vh] p-0 gap-0 overflow-hidden flex flex-col">
+          <DialogHeader className="px-5 py-3 border-b border-border flex-row items-center justify-between space-y-0">
+            <div>
+              <DialogTitle className="text-base">{previewStore?.name}</DialogTitle>
+              <p className="text-xs text-muted-foreground">/loja/{previewStore?.slug}</p>
+            </div>
+            {previewStore && (
+              <Link to={`/loja/${previewStore.slug}`} target="_blank" className="mr-8">
+                <Button variant="ghost" size="sm"><ExternalLink className="h-4 w-4" /> Abrir em nova aba</Button>
+              </Link>
+            )}
+          </DialogHeader>
+          {previewStore && (
+            <iframe
+              src={`/loja/${previewStore.slug}`}
+              title={`Pré-visualização ${previewStore.name}`}
+              className="flex-1 w-full bg-background"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };
