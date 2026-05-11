@@ -17,6 +17,7 @@ import AdminOrders from "./pages/admin/AdminOrders";
 import AdminFinance from "./pages/admin/AdminFinance";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminNetwork from "./pages/admin/AdminNetwork";
+import AdminBanners from "./pages/admin/AdminBanners";
 import SellerDashboard from "./pages/seller/SellerDashboard";
 import SellerStore from "./pages/seller/SellerStore";
 import SellerCustomization from "./pages/seller/SellerCustomization";
@@ -60,6 +61,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
             <Route path="/admin/financeiro" element={<Admin><AdminFinance /></Admin>} />
             <Route path="/admin/configuracoes" element={<Admin><AdminSettings /></Admin>} />
             <Route path="/admin/rede" element={<Admin><AdminNetwork /></Admin>} />
+            <Route path="/admin/banners" element={<Admin><AdminBanners /></Admin>} />
 
             {/* Seller */}
             <Route path="/sacoleira" element={<Seller><SellerDashboard /></Seller>} />

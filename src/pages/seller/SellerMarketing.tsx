@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Download, ImagePlus, Instagram, Loader2, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check, Download, Instagram, Loader2, Plus, Trash2 } from "lucide-react";
 import { SellerLayout } from "@/layouts/SellerLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -11,10 +11,10 @@ import {
   defaultTheme,
   loadCurrentSellerStore,
   saveStoreCustomization,
-  uploadStoreAsset,
 } from "@/lib/storeTheme";
 import { CatalogProduct, loadCatalogForStore } from "@/lib/cloudStore";
 import { formatBRL } from "@/lib/mockData";
+import { MarketingBanner, loadMarketingBanners } from "@/lib/marketingBanners";
 
 const SIZE = 1080;
 
@@ -110,14 +110,18 @@ const SellerMarketing = () => {
   const [store, setStore] = useState<StoreCustomization | null>(null);
   const [theme, setTheme] = useState<StoreTheme>(defaultTheme);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
+  const [uploading, setUploading] = useState<string | null>(null);
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [generating, setGenerating] = useState<string | null>(null);
-  const bannerRef = useRef<HTMLInputElement>(null);
+  const [adminBanners, setAdminBanners] = useState<MarketingBanner[]>([]);
 
   useEffect(() => {
     (async () => {
-      const s = await loadCurrentSellerStore(profile?.storeId || undefined);
+      const [s, ab] = await Promise.all([
+        loadCurrentSellerStore(profile?.storeId || undefined),
+        loadMarketingBanners(true),
+      ]);
+      setAdminBanners(ab);
       if (s) {
         setStore(s);
         setTheme({ ...defaultTheme, ...s.theme });
@@ -132,22 +136,20 @@ const SellerMarketing = () => {
     ? theme.bannerUrls
     : (theme.bannerUrl ? [theme.bannerUrl] : []);
 
-  const handleUploadBanner = async (file?: File | null) => {
-    if (!file || !store) return;
-    if (file.size > 5 * 1024 * 1024) return toast.error("Arquivo muito grande (máx 5MB).");
+  const addAdminBanner = async (b: MarketingBanner) => {
+    if (!store) return;
+    if (bannerList.includes(b.imageUrl)) return toast.info("Esse banner já está na sua loja.");
     try {
-      setUploading(true);
-      const url = await uploadStoreAsset(store.id, "banner", file);
-      const list = [...bannerList, url];
+      setUploading(b.id);
+      const list = [...bannerList, b.imageUrl];
       const nextTheme: StoreTheme = { ...theme, bannerUrl: list[0], bannerUrls: list };
       setTheme(nextTheme);
       await saveStoreCustomization(store.id, { theme: nextTheme });
-      toast.success("Banner adicionado à loja!");
+      toast.success("Banner adicionado à sua loja!");
     } catch {
-      toast.error("Falha ao enviar banner.");
+      toast.error("Falha ao adicionar.");
     } finally {
-      setUploading(false);
-      if (bannerRef.current) bannerRef.current.value = "";
+      setUploading(null);
     }
   };
 
@@ -159,7 +161,7 @@ const SellerMarketing = () => {
     setTheme(nextTheme);
     try {
       await saveStoreCustomization(store.id, { theme: nextTheme });
-      toast.success("Banner removido.");
+      toast.success("Banner removido da loja.");
     } catch {
       toast.error("Falha ao remover.");
     }
@@ -214,24 +216,20 @@ const SellerMarketing = () => {
       <PageHeader
         eyebrow="Divulgação"
         title="Marketing"
-        description="Gerencie banners da sua loja e baixe imagens prontas para o Instagram Shop."
+        description="Escolha banners da rede para a sua loja e baixe imagens prontas para o Instagram Shop."
       />
 
-      {/* Banners section */}
-      <section className="rounded-xl border border-border bg-card p-6 space-y-4 mb-8">
+      {/* Banners atualmente na loja */}
+      <section className="rounded-xl border border-border bg-card p-6 space-y-4 mb-6">
         <div className="flex items-baseline justify-between">
-          <h3 className="font-display text-xl">Banners da loja</h3>
+          <h3 className="font-display text-xl">Banners da minha loja</h3>
           <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
-            1600 × 500 px · rotativo
+            {bannerList.length} ativo{bannerList.length === 1 ? "" : "s"} · rotativo
           </span>
         </div>
-        <p className="text-xs text-muted-foreground -mt-2">
-          Envie 2 ou mais imagens para criar um carrossel automático na home da sua loja.
-        </p>
-
         {bannerList.length === 0 ? (
-          <div className="aspect-[16/5] rounded-lg overflow-hidden border border-dashed border-border bg-muted flex items-center justify-center text-xs text-muted-foreground">
-            Nenhum banner enviado
+          <div className="aspect-[16/5] rounded-lg border border-dashed border-border bg-muted flex items-center justify-center text-xs text-muted-foreground">
+            Nenhum banner ativo. Escolha um abaixo.
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -253,19 +251,57 @@ const SellerMarketing = () => {
             ))}
           </div>
         )}
-
-        <input
-          ref={bannerRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => handleUploadBanner(e.target.files?.[0])}
-        />
-        <Button variant="gold" onClick={() => bannerRef.current?.click()} disabled={uploading}>
-          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-          Adicionar banner
-        </Button>
       </section>
+
+      {/* Galeria de banners do admin */}
+      <section className="rounded-xl border border-border bg-card p-6 space-y-4 mb-8">
+        <div className="flex items-baseline justify-between">
+          <h3 className="font-display text-xl">Banners disponíveis</h3>
+          <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+            Publicados pela administração
+          </span>
+        </div>
+        <p className="text-xs text-muted-foreground -mt-2">
+          Adicione um ou mais banners da rede à sua loja. Eles aparecerão no carrossel da home automaticamente.
+        </p>
+        {adminBanners.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+            Nenhum banner disponível no momento.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {adminBanners.map((b) => {
+              const inStore = bannerList.includes(b.imageUrl);
+              return (
+                <div key={b.id} className="rounded-lg border border-border bg-muted/30 overflow-hidden">
+                  <div className="aspect-[16/5] bg-muted">
+                    <img src={b.imageUrl} alt={b.title || "Banner"} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="p-3 flex items-center justify-between gap-3">
+                    <p className="text-sm font-medium truncate">{b.title || "Banner"}</p>
+                    {inStore ? (
+                      <Button variant="outline" size="sm" disabled>
+                        <Check className="h-3.5 w-3.5" /> Na loja
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="gold"
+                        size="sm"
+                        onClick={() => addAdminBanner(b)}
+                        disabled={uploading === b.id}
+                      >
+                        {uploading === b.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+                        Adicionar
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
 
       {/* Instagram section */}
       <section className="rounded-xl border border-border bg-card p-6 space-y-4">

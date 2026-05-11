@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { LayoutDashboard, Package, Tags, Users, ShoppingBag, Wallet, Settings, Network } from "lucide-react";
+import { LayoutDashboard, Package, Tags, Users, ShoppingBag, Wallet, Settings, Network, Image as ImageIcon } from "lucide-react";
 import { AppShell, NavItem } from "@/components/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -10,6 +10,7 @@ const nav: NavItem[] = [
   { label: "Sacoleiras", to: "/admin/sacoleiras", icon: Users },
   { label: "Pedidos", to: "/admin/pedidos", icon: ShoppingBag },
   { label: "Comissões", to: "/admin/financeiro", icon: Wallet },
+  { label: "Banners", to: "/admin/banners", icon: ImageIcon },
   { label: "MLM", to: "/admin/rede", icon: Network },
   { label: "Configurações", to: "/admin/configuracoes", icon: Settings },
 ];
