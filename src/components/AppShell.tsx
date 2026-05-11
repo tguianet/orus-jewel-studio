@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 
-export type NavItem = { label: string; to: string; icon: LucideIcon };
+export type NavItem = { label: string; to: string; icon: LucideIcon; children?: { label: string; to: string }[] };
 
 interface Props {
   nav: NavItem[];
