@@ -97,6 +97,19 @@ const StoreHome = () => {
             </div>
           </div>
         </div>
+        {banners.length > 1 && (
+          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+            {banners.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setBannerIdx(i)}
+                aria-label={`Banner ${i + 1}`}
+                className={`h-1.5 rounded-full transition-all ${i === bannerIdx ? "w-8" : "w-3 opacity-60 hover:opacity-100"}`}
+                style={{ background: t.primaryColor }}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Benefits strip estilo Monte Carlo */}
