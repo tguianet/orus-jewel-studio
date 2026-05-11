@@ -1,11 +1,12 @@
 import { Link, Outlet, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { ShoppingBag, Search, Heart, Instagram } from "lucide-react";
+import { ShoppingBag, Search, Heart, Instagram, MessageCircle } from "lucide-react";
 import { getStoreBySlug } from "@/lib/mockData";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { loadPublicStore } from "@/lib/cloudStore";
 import { DEFAULT_BANNER, StoreTheme, defaultTheme, loadStoreThemeBySlug } from "@/lib/storeTheme";
+import { waLink } from "@/lib/whatsapp";
 
 const StoreLayout = () => {
   const { slug } = useParams();
