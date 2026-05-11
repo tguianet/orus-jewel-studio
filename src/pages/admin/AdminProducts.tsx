@@ -1,4 +1,5 @@
-import { Check, Search, MoreVertical, Tags } from "lucide-react";
+import { Check, Search, Pencil, Tags } from "lucide-react";
+import { EditProductModal } from "@/components/EditProductModal";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
@@ -22,6 +23,7 @@ const getCategoryFromParams = (searchParams: URLSearchParams) => {
 const AdminProducts = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [items, setItems] = useState<Product[]>([]);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>(() => getCategoryFromParams(searchParams));
   const [highlightedCategory, setHighlightedCategory] = useState<string>(() => getCategoryFromParams(searchParams));
@@ -219,7 +221,9 @@ const AdminProducts = () => {
             </div>
             <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
               <span className="text-xs text-muted-foreground">Mín. {p.minOrder} un.</span>
-              <Button variant="ghost" size="icon" className="h-7 w-7"><MoreVertical className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => setEditingProduct(p)}>
+                <Pencil className="h-3.5 w-3.5" /> Editar
+              </Button>
             </div>
           </div>
         </div>
@@ -230,6 +234,12 @@ const AdminProducts = () => {
         </div>
       )}
     </div>
+    <EditProductModal
+      product={editingProduct}
+      open={!!editingProduct}
+      onOpenChange={(o) => { if (!o) setEditingProduct(null); }}
+      onUpdated={loadProducts}
+    />
   </AdminLayout>
   );
 };
