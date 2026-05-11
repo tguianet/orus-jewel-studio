@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Download, ImagePlus, Instagram, Loader2, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check, Download, Instagram, Loader2, Plus, Trash2 } from "lucide-react";
 import { SellerLayout } from "@/layouts/SellerLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -11,10 +11,10 @@ import {
   defaultTheme,
   loadCurrentSellerStore,
   saveStoreCustomization,
-  uploadStoreAsset,
 } from "@/lib/storeTheme";
 import { CatalogProduct, loadCatalogForStore } from "@/lib/cloudStore";
 import { formatBRL } from "@/lib/mockData";
+import { MarketingBanner, loadMarketingBanners } from "@/lib/marketingBanners";
 
 const SIZE = 1080;
 
