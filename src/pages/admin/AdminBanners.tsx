@@ -162,23 +162,32 @@ const AdminBanners = () => {
           Nenhuma imagem publicada {currentFormat ? `no formato "${currentFormat.name}"` : "ainda"}.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredBanners.map((b) => (
-            <div key={b.id} className="rounded-xl border border-border bg-card overflow-hidden">
-              <button type="button" onClick={() => setPreviewUrl(b.imageUrl)} className="block w-full bg-muted focus:outline-none focus:ring-2 focus:ring-primary" style={{ aspectRatio: previewAspect }}>
-                <img src={b.imageUrl} alt={b.title || "Banner"} className="w-full h-full object-contain cursor-zoom-in" />
+            <div key={b.id} className="rounded-xl border border-border bg-card overflow-hidden flex flex-col">
+              <button
+                type="button"
+                onClick={() => setPreviewUrl(b.imageUrl)}
+                className="block w-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary"
+                style={{ aspectRatio: previewAspect }}
+              >
+                <img
+                  src={b.imageUrl}
+                  alt={b.title || "Banner"}
+                  className="w-full h-full object-cover cursor-zoom-in transition-transform duration-300 hover:scale-[1.03]"
+                />
               </button>
-              <div className="p-4 flex items-center justify-between gap-3">
+              <div className="px-4 py-3 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-medium truncate">{b.title || "Sem título"}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {b.active ? "Ativa — visível para sacoleiras" : "Pausada"}
+                  <p className="text-xs text-muted-foreground truncate">
+                    {b.active ? "Ativa" : "Pausada"}
                     {!currentFormat && b.formatId && (
                       <> · {formats.find((f) => f.id === b.formatId)?.name || "—"}</>
                     )}
                   </p>
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
                   <Switch checked={b.active} onCheckedChange={(v) => toggleActive(b, v)} />
                   <Button variant="ghost" size="icon" onClick={() => remove(b)} className="text-muted-foreground hover:text-destructive">
                     <Trash2 className="h-4 w-4" />
