@@ -26,6 +26,14 @@ export const ProtectedRoute = ({ role, children }: { role: AppRole; children: Re
   const userRoles = profile.roles ?? (profile.role ? [profile.role] : []);
   const hasRequired = userRoles.includes(role);
 
+  // Sacoleira gate: must have a sponsor (parent_id) before accessing the system.
+  // Admins are exempt.
+  const isSeller = userRoles.includes("sacoleira");
+  const isAdmin = userRoles.includes("admin");
+  if (isSeller && !isAdmin && profile.resellerId && !profile.parentResellerId) {
+    return <ReferralGate />;
+  }
+
   if (hasRequired) return <>{children}</>;
 
   // Logged in but wrong role → friendly message + suggestion to go to the area they DO have access to
