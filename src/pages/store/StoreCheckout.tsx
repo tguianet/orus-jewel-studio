@@ -68,8 +68,8 @@ const StoreCheckout = () => {
 
   const handlePay = async () => {
     if (method === "card") {
-      if (!card.number || !card.name || !card.expiry || !card.cvv) {
-        toast.error("Preencha os dados do cartão (simulado)");
+      if (!card.number.replace(/\s/g, "")) {
+        toast.error("Digite um número de cartão para simular");
         return;
       }
     }
