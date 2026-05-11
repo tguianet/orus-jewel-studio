@@ -7,6 +7,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Landing from "./pages/Landing";
 import LoginPage from "./pages/LoginPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProducts from "./pages/admin/AdminProducts";
@@ -47,6 +48,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
             <Route path="/" element={<Landing />} />
             <Route path="/login-admin" element={<LoginPage role="admin" />} />
             <Route path="/login-sacoleira" element={<LoginPage role="sacoleira" />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
 
             {/* Admin */}
             <Route path="/admin" element={<Admin><AdminDashboard /></Admin>} />
