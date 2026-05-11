@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ExternalLink, ImagePlus, Loader2, Upload } from "lucide-react";
+import { Check, ExternalLink, ImagePlus, Loader2, Plus, Trash2, Upload } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SellerLayout } from "@/layouts/SellerLayout";
 import { PageHeader } from "@/components/PageHeader";
