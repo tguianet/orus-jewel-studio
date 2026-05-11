@@ -29,6 +29,7 @@ const AdminBanners = () => {
   const [uploading, setUploading] = useState(false);
   const [title, setTitle] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const currentFormat = useMemo(
     () => formats.find((f) => f.slug === formatSlug) || null,
