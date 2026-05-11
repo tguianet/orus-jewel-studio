@@ -23,6 +23,7 @@ const getCategoryFromParams = (searchParams: URLSearchParams) => {
 const AdminProducts = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [items, setItems] = useState<Product[]>([]);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>(() => getCategoryFromParams(searchParams));
   const [highlightedCategory, setHighlightedCategory] = useState<string>(() => getCategoryFromParams(searchParams));
