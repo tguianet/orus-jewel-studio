@@ -19,6 +19,7 @@ import {
   loadMarketingBanners,
 } from "@/lib/marketingBanners";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 const BANNER_SLUG = "banner-loja";
 
@@ -32,6 +33,7 @@ const SellerMarketing = () => {
   const [adminBanners, setAdminBanners] = useState<MarketingBanner[]>([]);
   const [formats, setFormats] = useState<ImageFormat[]>([]);
   const [activeTab, setActiveTab] = useState<string>("");
+  const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -176,7 +178,7 @@ const SellerMarketing = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {bannerList.map((url, i) => (
               <div key={url + i} className="relative group aspect-[16/9] rounded-lg overflow-hidden border border-border bg-muted">
-                <img src={url} alt={`Banner ${i + 1}`} className="w-full h-full object-cover" />
+                <img src={url} alt={`Banner ${i + 1}`} className="w-full h-full object-cover cursor-zoom-in" onClick={() => setPreviewImage({ url, title: `Banner ${i + 1}` })} />
                 <span className="absolute top-2 left-2 text-[10px] px-2 py-1 rounded bg-background/85 border border-border">
                   #{i + 1}
                 </span>
@@ -216,7 +218,7 @@ const SellerMarketing = () => {
               return (
                 <div key={b.id} className="rounded-lg border border-border bg-muted/30 overflow-hidden">
                   <div className="aspect-[16/5] bg-muted">
-                    <img src={b.imageUrl} alt={b.title || "Banner"} className="w-full h-full object-cover" />
+                    <img src={b.imageUrl} alt={b.title || "Banner"} className="w-full h-full object-cover cursor-zoom-in" onClick={() => setPreviewImage({ url: b.imageUrl, title: b.title || "Banner" })} />
                   </div>
                   <div className="p-3 flex items-center justify-between gap-3">
                     <p className="text-sm font-medium truncate">{b.title || "Banner"}</p>
@@ -289,7 +291,7 @@ const SellerMarketing = () => {
                       className="bg-muted"
                       style={{ aspectRatio: currentFormat ? `${currentFormat.width} / ${currentFormat.height}` : "1 / 1" }}
                     >
-                      <img src={b.imageUrl} alt={b.title || "Imagem"} className="w-full h-full object-cover" />
+                      <img src={b.imageUrl} alt={b.title || "Imagem"} className="w-full h-full object-cover cursor-zoom-in" onClick={() => setPreviewImage({ url: b.imageUrl, title: b.title || "Imagem" })} />
                     </div>
                     <div className="p-3 space-y-2 flex-1 flex flex-col">
                       <p className="text-sm font-medium line-clamp-2">{b.title || "Sem título"}</p>
@@ -311,6 +313,14 @@ const SellerMarketing = () => {
           </>
         )}
       </section>
+      <Dialog open={!!previewImage} onOpenChange={(o) => !o && setPreviewImage(null)}>
+        <DialogContent className="max-w-[90vw] w-auto p-0 bg-transparent border-0 shadow-none">
+          <DialogTitle className="sr-only">{previewImage?.title || "Imagem"}</DialogTitle>
+          {previewImage && (
+            <img src={previewImage.url} alt={previewImage.title} className="w-auto h-auto max-w-[90vw] max-h-[85vh] object-contain rounded-lg mx-auto" />
+          )}
+        </DialogContent>
+      </Dialog>
     </SellerLayout>
   );
 };
