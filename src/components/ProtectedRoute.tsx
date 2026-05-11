@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation } from "react-router-dom";
 import { ShieldAlert, ArrowRight } from "lucide-react";
 import { useAuth, AppRole } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { ReferralGate } from "@/components/ReferralGate";
 
 export const ProtectedRoute = ({ role, children }: { role: AppRole; children: ReactNode }) => {
   const { profile, loading, signOut } = useAuth();
