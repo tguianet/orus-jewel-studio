@@ -201,7 +201,7 @@ const StoreLayout = () => {
 
           {/* Busca + ícones à direita */}
           <div className="flex items-center justify-end gap-2">
-            <form onSubmit={submitSearch} className="hidden md:flex items-center rounded-full border border-border bg-secondary/50 px-3 h-9 w-56 focus-within:border-primary transition-colors">
+            <form onSubmit={submitSearch} className="hidden md:flex items-center rounded-full border border-border bg-white px-3 h-9 w-56 focus-within:border-primary transition-colors text-foreground">
               <button type="submit" aria-label="Buscar" className="text-muted-foreground hover:text-foreground transition-colors">
                 <Search className="h-4 w-4" />
               </button>
