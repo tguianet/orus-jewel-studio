@@ -164,7 +164,13 @@ const StoreLayout = () => {
         </div>
       </div>
 
-      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/75 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/60">
+      <header
+        className="sticky top-0 z-30 border-b border-border/60 bg-background/75 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/60"
+        style={{
+          ...(theme.headerBgColor ? { background: theme.headerBgColor } : {}),
+          ...(theme.headerTextColor ? { color: theme.headerTextColor } : {}),
+        }}
+      >
         <div className="container grid grid-cols-[auto_1fr_auto] items-center gap-6 py-4">
           {/* Logo à esquerda */}
           <Link to={`/loja/${store.storeSlug}`} className="flex items-center">
