@@ -258,7 +258,7 @@ const StoreLayout = () => {
 
         {/* Menu mobile (visível apenas em telas pequenas) */}
         <nav className="lg:hidden border-t border-border/70">
-          <div className="container flex items-center justify-center gap-6 sm:gap-10 py-3 text-[11px] uppercase tracking-[0.32em] text-foreground/80 overflow-x-auto font-light">
+          <div className="container flex items-center justify-center gap-6 sm:gap-10 py-3 text-[11px] uppercase tracking-[0.32em] overflow-x-auto font-light">
             <a href={`/loja/${store.storeSlug}#vitrine`} className="whitespace-nowrap">Joias</a>
             <a href={`/loja/${store.storeSlug}#colecoes`} className="whitespace-nowrap">Coleções</a>
             <a href={`/loja/${store.storeSlug}#vitrine`} className="whitespace-nowrap">Novidades</a>
