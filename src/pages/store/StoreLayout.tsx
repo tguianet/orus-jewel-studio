@@ -1,10 +1,11 @@
 import { Link, Outlet, useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { ShoppingBag, Search, Heart, Instagram, MessageCircle, ShieldAlert, ArrowRight, X } from "lucide-react";
-import { getStoreBySlug } from "@/lib/mockData";
+import { getStoreBySlug, getStoreProducts, formatBRL } from "@/lib/mockData";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
-import { loadPublicStore } from "@/lib/cloudStore";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { CloudStoreProduct, loadPublicStore, loadStoreProducts } from "@/lib/cloudStore";
 import { DEFAULT_BANNER, StoreTheme, defaultTheme, loadStoreThemeBySlug } from "@/lib/storeTheme";
 import { waLink } from "@/lib/whatsapp";
 import { themeCssVars } from "@/lib/colorUtils";
@@ -20,19 +21,41 @@ const StoreLayout = () => {
   const [theme, setTheme] = useState<StoreTheme>(defaultTheme);
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [allProducts, setAllProducts] = useState<any[]>([]);
   const { count } = useCart();
 
   useEffect(() => {
     setSearchTerm(searchParams.get("q") || "");
   }, [searchParams]);
 
+  useEffect(() => {
+    let mounted = true;
+    const mock = getStoreProducts(store.id);
+    setAllProducts(mock);
+    loadStoreProducts(store.id).then((items) => {
+      if (mounted && items && items.length) setAllProducts(items);
+    });
+    return () => { mounted = false; };
+  }, [store.id]);
+
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    return allProducts.filter((p: any) =>
+      [p.name, p.category, p.code, p.sku, p.id]
+        .filter(Boolean)
+        .some((s: any) => String(s).toLowerCase().includes(q))
+    );
+  }, [searchQuery, allProducts]);
+
   const submitSearch = (e?: React.FormEvent) => {
     e?.preventDefault();
     const q = searchTerm.trim();
-    const target = q
-      ? `/loja/${store.storeSlug}?q=${encodeURIComponent(q)}#vitrine`
-      : `/loja/${store.storeSlug}#vitrine`;
-    navigate(target);
+    if (!q) return;
+    setSearchQuery(q);
+    setSearchOpen(true);
     setMobileSearchOpen(false);
   };
 
@@ -237,6 +260,44 @@ const StoreLayout = () => {
           </div>
         </nav>
       </header>
+
+      <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl font-light">
+              Resultados para "{searchQuery}"
+            </DialogTitle>
+            <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+              {searchResults.length} {searchResults.length === 1 ? "peça encontrada" : "peças encontradas"}
+            </p>
+          </DialogHeader>
+          <div className="overflow-y-auto -mx-2 px-2">
+            {searchResults.length === 0 ? (
+              <p className="text-center text-sm text-muted-foreground py-12">
+                Nenhuma peça encontrada para "{searchQuery}".
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 py-4">
+                {searchResults.map((p: any) => (
+                  <Link
+                    key={p.id}
+                    to={`/loja/${store.storeSlug}/produto/${p.id}`}
+                    onClick={() => setSearchOpen(false)}
+                    className="group block"
+                  >
+                    <div className="aspect-square overflow-hidden bg-secondary/50 mb-3 rounded">
+                      <img src={p.image} alt={p.name} loading="lazy" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    </div>
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{p.category}</p>
+                    <h3 className="font-display text-sm font-light leading-tight mt-1 group-hover:text-primary transition-colors line-clamp-2">{p.name}</h3>
+                    <p className="mt-1 text-sm font-light" style={{ color: "hsl(var(--primary-deep))" }}>{formatBRL(p.resellerPrice)}</p>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <main className="flex-1">
         <Outlet context={ctx} />
