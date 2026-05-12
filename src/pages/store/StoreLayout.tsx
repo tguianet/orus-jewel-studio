@@ -124,26 +124,34 @@ const StoreLayout = () => {
       </div>
 
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/75 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/60">
-
-        {/* Linha 1: CEP / Logo central / Buscar Account Bag */}
-        <div className="container grid grid-cols-[1fr_auto_1fr] items-center gap-4 py-5">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="hidden md:inline-flex items-center gap-1.5">
-              <span className="inline-block h-3 w-3 rounded-full" style={{ background: accent }} />
-              Informar meu CEP
-            </span>
-          </div>
-
-          <Link to={`/loja/${store.storeSlug}`} className="flex flex-col items-center justify-center">
+        <div className="container grid grid-cols-[auto_1fr_auto] items-center gap-6 py-4">
+          {/* Logo à esquerda */}
+          <Link to={`/loja/${store.storeSlug}`} className="flex items-center">
             {theme.logoUrl ? (
-              <img src={theme.logoUrl} alt={store.storeName} className="h-20 sm:h-24 lg:h-28 max-w-[280px] object-contain" />
+              <img src={theme.logoUrl} alt={store.storeName} className="h-12 sm:h-14 lg:h-16 max-w-[220px] object-contain" />
             ) : (
-              <span className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-[0.32em] uppercase leading-none font-light text-foreground">
+              <span className="font-display text-xl sm:text-2xl lg:text-3xl tracking-[0.3em] uppercase leading-none font-light text-foreground">
                 {store.storeName}
               </span>
             )}
           </Link>
 
+          {/* Menu centralizado */}
+          <nav className="hidden lg:flex items-center justify-center gap-8 xl:gap-12 text-[11px] sm:text-[12px] uppercase tracking-[0.32em] text-foreground/80 font-light">
+            <a href={`/loja/${store.storeSlug}#vitrine`} className="relative whitespace-nowrap hover:text-foreground transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Joias</a>
+            <a href={`/loja/${store.storeSlug}#colecoes`} className="relative whitespace-nowrap hover:text-foreground transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Coleções</a>
+            <a href={`/loja/${store.storeSlug}#vitrine`} className="relative whitespace-nowrap hover:text-foreground transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Novidades</a>
+            <a href={`/loja/${store.storeSlug}#sobre`} className="relative whitespace-nowrap hover:text-foreground transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Sobre</a>
+            <a
+              href={`/loja/${store.storeSlug}#vitrine`}
+              className="font-medium whitespace-nowrap"
+              style={{ color: "hsl(142 70% 35%)" }}
+            >
+              Sale
+            </a>
+          </nav>
+
+          {/* Busca + ícones à direita */}
           <div className="flex items-center justify-end gap-2">
             <div className="hidden md:flex items-center rounded-full border border-border bg-secondary/50 px-3 h-9 w-56">
               <Search className="h-4 w-4 text-muted-foreground" />
@@ -170,19 +178,14 @@ const StoreLayout = () => {
           </div>
         </div>
 
-        <nav className="border-t border-border/70">
-          <div className="container flex items-center justify-center gap-8 sm:gap-12 py-3.5 text-[11px] sm:text-[12px] uppercase tracking-[0.32em] text-foreground/80 overflow-x-auto font-light">
-            <a href={`/loja/${store.storeSlug}#vitrine`} className="relative whitespace-nowrap hover:text-foreground transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Joias</a>
-            <a href={`/loja/${store.storeSlug}#colecoes`} className="relative whitespace-nowrap hover:text-foreground transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Coleções</a>
-            <a href={`/loja/${store.storeSlug}#vitrine`} className="relative whitespace-nowrap hover:text-foreground transition-colors hidden sm:inline after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Novidades</a>
-            <a href={`/loja/${store.storeSlug}#sobre`} className="relative whitespace-nowrap hover:text-foreground transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Sobre</a>
-            <a
-              href={`/loja/${store.storeSlug}#vitrine`}
-              className="font-medium whitespace-nowrap"
-              style={{ color: "hsl(var(--primary))" }}
-            >
-              Sale
-            </a>
+        {/* Menu mobile (visível apenas em telas pequenas) */}
+        <nav className="lg:hidden border-t border-border/70">
+          <div className="container flex items-center justify-center gap-6 sm:gap-10 py-3 text-[11px] uppercase tracking-[0.32em] text-foreground/80 overflow-x-auto font-light">
+            <a href={`/loja/${store.storeSlug}#vitrine`} className="whitespace-nowrap">Joias</a>
+            <a href={`/loja/${store.storeSlug}#colecoes`} className="whitespace-nowrap">Coleções</a>
+            <a href={`/loja/${store.storeSlug}#vitrine`} className="whitespace-nowrap">Novidades</a>
+            <a href={`/loja/${store.storeSlug}#sobre`} className="whitespace-nowrap">Sobre</a>
+            <a href={`/loja/${store.storeSlug}#vitrine`} className="whitespace-nowrap font-medium" style={{ color: "hsl(142 70% 35%)" }}>Sale</a>
           </div>
         </nav>
       </header>
