@@ -72,16 +72,26 @@ const StoreHome = () => {
           <div className="absolute inset-0">
             <div className="container h-full flex items-center">
               <div className="max-w-md text-foreground">
-                <p className="text-[10px] uppercase tracking-[0.4em] mb-3" style={{ color: accent }}>
-                  {t.heroEyebrow || "Coleção Atual"}
-                </p>
-                <h1 className="font-display text-6xl sm:text-7xl lg:text-8xl font-light leading-[0.95] tracking-tight">
-                  {t.heroTitle1 || store.storeName}
-                </h1>
-                {t.heroTitleHighlight && (
-                  <p className="font-display italic text-3xl sm:text-4xl mt-2 text-foreground/80">
-                    {t.heroTitleHighlight}
-                  </p>
+                <EditableText
+                  field="heroEyebrow"
+                  value={t.heroEyebrow || "Coleção Atual"}
+                  className="block text-[10px] uppercase tracking-[0.4em] mb-3"
+                  style={{ color: accent }}
+                />
+                <EditableText
+                  field="heroTitle1"
+                  value={t.heroTitle1 || store.storeName}
+                  as="h1"
+                  className="block font-display text-6xl sm:text-7xl lg:text-8xl font-light leading-[0.95] tracking-tight"
+                />
+                {(t.heroTitleHighlight || isPreviewActive()) && (
+                  <EditableText
+                    field="heroTitleHighlight"
+                    value={t.heroTitleHighlight || ""}
+                    as="p"
+                    className="block font-display italic text-3xl sm:text-4xl mt-2 text-foreground/80"
+                    placeholder="Subtítulo"
+                  />
                 )}
               </div>
             </div>
