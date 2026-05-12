@@ -233,8 +233,16 @@ const StoreHome = () => {
           ))}
         </div>
 
+        {query && (
+          <p className="text-center text-xs uppercase tracking-[0.3em] text-muted-foreground mb-6">
+            Resultados para "{query}" — {filtered.length} {filtered.length === 1 ? "peça" : "peças"}
+          </p>
+        )}
+
         {filtered.length === 0 ? (
-          <p className="text-center text-sm text-muted-foreground py-12">Ainda não há produtos nesta categoria.</p>
+          <p className="text-center text-sm text-muted-foreground py-12">
+            {query ? `Nenhuma peça encontrada para "${query}".` : "Ainda não há produtos nesta categoria."}
+          </p>
         ) : (
           <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
             {filtered.map((p: any) => (
