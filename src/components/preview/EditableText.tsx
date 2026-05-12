@@ -7,7 +7,7 @@ const isPreviewMode = () =>
 type Props = {
   field: string;
   value: string;
-  as?: keyof JSX.IntrinsicElements;
+  as?: string;
   className?: string;
   style?: React.CSSProperties;
   multiline?: boolean;
