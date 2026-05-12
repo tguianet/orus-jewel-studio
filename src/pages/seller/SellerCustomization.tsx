@@ -626,24 +626,6 @@ const SellerCustomization = () => {
           </Button>
         </div>
 
-        {/* Preview ao vivo da loja */}
-        <div className="lg:sticky lg:top-6 self-start space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-primary">Preview ao vivo</p>
-            <p className="text-xs text-muted-foreground">/loja/<span className="font-mono">{store.storeSlug}</span></p>
-          </div>
-          <div className="rounded-xl border border-border overflow-hidden bg-background shadow-sm">
-            <iframe
-              ref={previewRef}
-              title="Preview da loja"
-              src={`/loja/${store.storeSlug}?preview=1`}
-              className="w-full h-[calc(100vh-200px)] min-h-[600px] bg-background"
-            />
-          </div>
-          <p className="text-[11px] text-muted-foreground">
-            Cores, textos e seções atualizam em tempo real. Imagens (banner/logo) e nome da loja aparecem assim que você salvar.
-          </p>
-        </div>
       </div>
     </SellerLayout>
   );
