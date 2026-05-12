@@ -248,18 +248,33 @@ const StoreHome = () => {
         <div className="rounded-2xl border border-primary/20 bg-gradient-gold-soft p-10 lg:p-14">
           <div className="grid lg:grid-cols-2 gap-10 items-center">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-3">{t.aboutEyebrow || "Sobre a loja"}</p>
-              <h3 className="font-display text-3xl sm:text-4xl font-light">
-                {t.aboutTitle || store.storeName}
-              </h3>
-              <p className="mt-4 text-muted-foreground leading-relaxed whitespace-pre-line">
-                {t.aboutText || t.description ||
-                  `${store.storeName} é uma curadoria autoral de joias em prata 925, ouro 18k e folheados a ouro de alta qualidade. Cada peça é escolhida pensando em quem usa — para acompanhar você nos dias comuns e nos momentos que merecem brilho.`}
-              </p>
-              {(t.aboutText2 || (!t.aboutText && !t.description)) && (
-                <p className="mt-3 text-muted-foreground leading-relaxed whitespace-pre-line">
-                  {t.aboutText2 || "Trabalhamos com fornecedores reconhecidos no Brasil, priorizando acabamento impecável, design atemporal e durabilidade. Mais do que vender joias, queremos fazer parte da sua história."}
-                </p>
+              <EditableText
+                field="aboutEyebrow"
+                value={t.aboutEyebrow || "Sobre a loja"}
+                as="p"
+                className="block text-[10px] uppercase tracking-[0.3em] text-primary mb-3"
+              />
+              <EditableText
+                field="aboutTitle"
+                value={t.aboutTitle || store.storeName}
+                as="h3"
+                className="block font-display text-3xl sm:text-4xl font-light"
+              />
+              <EditableText
+                field="aboutText"
+                value={t.aboutText || t.description || `${store.storeName} é uma curadoria autoral de joias em prata 925, ouro 18k e folheados a ouro de alta qualidade. Cada peça é escolhida pensando em quem usa — para acompanhar você nos dias comuns e nos momentos que merecem brilho.`}
+                as="p"
+                multiline
+                className="block mt-4 text-muted-foreground leading-relaxed whitespace-pre-line"
+              />
+              {(t.aboutText2 || (!t.aboutText && !t.description) || isPreview()) && (
+                <EditableText
+                  field="aboutText2"
+                  value={t.aboutText2 || "Trabalhamos com fornecedores reconhecidos no Brasil, priorizando acabamento impecável, design atemporal e durabilidade. Mais do que vender joias, queremos fazer parte da sua história."}
+                  as="p"
+                  multiline
+                  className="block mt-3 text-muted-foreground leading-relaxed whitespace-pre-line"
+                />
               )}
               <div className="flex flex-wrap gap-3 mt-6">
                 {t.whatsapp || store.phone ? (
