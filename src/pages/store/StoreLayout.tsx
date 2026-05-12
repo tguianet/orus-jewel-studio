@@ -171,17 +171,17 @@ const StoreLayout = () => {
         </div>
 
         <nav className="border-t border-border/70">
-          <div className="container flex items-center justify-center gap-6 sm:gap-10 py-3 text-[12px] sm:text-[13px] uppercase tracking-[0.22em] text-foreground/85 overflow-x-auto">
-            <a href={`/loja/${store.storeSlug}#vitrine`} className="hover:text-foreground transition-colors whitespace-nowrap">Joias</a>
-            <a href={`/loja/${store.storeSlug}#colecoes`} className="hover:text-foreground transition-colors whitespace-nowrap">Coleções</a>
-            <a href={`/loja/${store.storeSlug}#vitrine`} className="hover:text-foreground transition-colors whitespace-nowrap hidden sm:inline">Novidades</a>
-            <a href={`/loja/${store.storeSlug}#sobre`} className="hover:text-foreground transition-colors whitespace-nowrap">Sobre</a>
+          <div className="container flex items-center justify-center gap-8 sm:gap-12 py-3.5 text-[11px] sm:text-[12px] uppercase tracking-[0.32em] text-foreground/80 overflow-x-auto font-light">
+            <a href={`/loja/${store.storeSlug}#vitrine`} className="relative whitespace-nowrap hover:text-foreground transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Joias</a>
+            <a href={`/loja/${store.storeSlug}#colecoes`} className="relative whitespace-nowrap hover:text-foreground transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Coleções</a>
+            <a href={`/loja/${store.storeSlug}#vitrine`} className="relative whitespace-nowrap hover:text-foreground transition-colors hidden sm:inline after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Novidades</a>
+            <a href={`/loja/${store.storeSlug}#sobre`} className="relative whitespace-nowrap hover:text-foreground transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Sobre</a>
             <a
               href={`/loja/${store.storeSlug}#vitrine`}
-              className="font-semibold whitespace-nowrap"
-              style={{ color: accent }}
+              className="font-medium whitespace-nowrap"
+              style={{ color: "hsl(var(--primary))" }}
             >
-              SALE
+              Sale
             </a>
           </div>
         </nav>
