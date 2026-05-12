@@ -144,42 +144,6 @@ const SellerCustomization = () => {
   const primary = theme.primaryColor || defaultTheme.primaryColor!;
   const secondary = theme.secondaryColor || defaultTheme.secondaryColor!;
 
-  // iframe ao vivo (hooks devem ficar antes de qualquer return condicional)
-  const previewRef = useRef<HTMLIFrameElement>(null);
-  const previewReady = useRef(false);
-  useEffect(() => {
-    const onMsg = (e: MessageEvent) => {
-      if ((e.data as any)?.type === "lovable-preview-ready") {
-        previewReady.current = true;
-        previewRef.current?.contentWindow?.postMessage({ type: "lovable-preview-theme", theme }, "*");
-        previewRef.current?.contentWindow?.postMessage({
-          type: "lovable-preview-store",
-          store: { storeName: name, phone, storeSlug: slug },
-        }, "*");
-      }
-      if ((e.data as any)?.type === "lovable-edit-field") {
-        const { field, value } = e.data as { field: string; value: string };
-        setTheme((prev) => ({ ...prev, [field]: value }));
-      }
-    };
-    window.addEventListener("message", onMsg);
-    return () => window.removeEventListener("message", onMsg);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (!previewReady.current) return;
-    previewRef.current?.contentWindow?.postMessage({ type: "lovable-preview-theme", theme }, "*");
-  }, [theme]);
-
-  useEffect(() => {
-    if (!previewReady.current) return;
-    previewRef.current?.contentWindow?.postMessage({
-      type: "lovable-preview-store",
-      store: { storeName: name, phone, storeSlug: slug },
-    }, "*");
-  }, [name, phone, slug]);
-
   if (loading) {
     return (
       <SellerLayout>
