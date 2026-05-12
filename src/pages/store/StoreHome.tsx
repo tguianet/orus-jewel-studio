@@ -149,37 +149,39 @@ const StoreHome = () => {
       })()}
 
       {/* Coleções */}
-      <section id="colecoes" className="container py-14 scroll-mt-20">
-        <div className="text-center mb-8">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Coleções</p>
-          <h2 className="font-display text-3xl sm:text-4xl font-light">Explore por categoria</h2>
-        </div>
-        {collections.length === 0 ? (
-          <p className="text-center text-sm text-muted-foreground">Em breve novas coleções por aqui.</p>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {collections.map((c) => {
-              const sample = allProducts.find((p: any) => p.category === c);
-              return (
-                <button
-                  key={c}
-                  onClick={() => { setActiveCat(c); document.getElementById("vitrine")?.scrollIntoView({ behavior: "smooth" }); }}
-                  className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-border text-left"
-                >
-                  {sample?.image && (
-                    <img src={sample.image} alt={c} loading="lazy" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
-                  <div className="absolute bottom-4 left-4">
-                    <p className="text-[10px] uppercase tracking-[0.25em] text-primary">Coleção</p>
-                    <h3 className="font-display text-xl">{c}</h3>
-                  </div>
-                </button>
-              );
-            })}
+      {(t.showCollections ?? true) && (
+        <section id="colecoes" className="container py-14 scroll-mt-20">
+          <div className="text-center mb-8">
+            <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Coleções</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-light">Explore por categoria</h2>
           </div>
-        )}
-      </section>
+          {collections.length === 0 ? (
+            <p className="text-center text-sm text-muted-foreground">Em breve novas coleções por aqui.</p>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {collections.map((c) => {
+                const sample = allProducts.find((p: any) => p.category === c);
+                return (
+                  <button
+                    key={c}
+                    onClick={() => { setActiveCat(c); document.getElementById("vitrine")?.scrollIntoView({ behavior: "smooth" }); }}
+                    className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-border text-left"
+                  >
+                    {sample?.image && (
+                      <img src={sample.image} alt={c} loading="lazy" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+                    <div className="absolute bottom-4 left-4">
+                      <p className="text-[10px] uppercase tracking-[0.25em] text-primary">Coleção</p>
+                      <h3 className="font-display text-xl">{c}</h3>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Vitrine */}
       <section id="vitrine" className="container py-8 scroll-mt-20">
