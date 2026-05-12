@@ -144,32 +144,13 @@ const SellerCustomization = () => {
   const primary = theme.primaryColor || defaultTheme.primaryColor!;
   const secondary = theme.secondaryColor || defaultTheme.secondaryColor!;
 
-  if (loading) {
-    return (
-      <SellerLayout>
-        <div className="flex items-center justify-center h-64 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin mr-2" /> Carregando...
-        </div>
-      </SellerLayout>
-    );
-  }
-
-  if (!store) {
-    return (
-      <SellerLayout>
-        <PageHeader title="Personalizar loja" description="Nenhuma loja aprovada encontrada." />
-      </SellerLayout>
-    );
-  }
-
-  // iframe ao vivo
+  // iframe ao vivo (hooks devem ficar antes de qualquer return condicional)
   const previewRef = useRef<HTMLIFrameElement>(null);
   const previewReady = useRef(false);
   useEffect(() => {
     const onMsg = (e: MessageEvent) => {
       if ((e.data as any)?.type === "lovable-preview-ready") {
         previewReady.current = true;
-        // empurra estado atual assim que carrega
         previewRef.current?.contentWindow?.postMessage({ type: "lovable-preview-theme", theme }, "*");
         previewRef.current?.contentWindow?.postMessage({
           type: "lovable-preview-store",
@@ -194,6 +175,24 @@ const SellerCustomization = () => {
       store: { storeName: name, phone, storeSlug: slug },
     }, "*");
   }, [name, phone, slug]);
+
+  if (loading) {
+    return (
+      <SellerLayout>
+        <div className="flex items-center justify-center h-64 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin mr-2" /> Carregando...
+        </div>
+      </SellerLayout>
+    );
+  }
+
+  if (!store) {
+    return (
+      <SellerLayout>
+        <PageHeader title="Personalizar loja" description="Nenhuma loja aprovada encontrada." />
+      </SellerLayout>
+    );
+  }
 
   return (
     <SellerLayout>
