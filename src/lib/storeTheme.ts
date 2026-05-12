@@ -12,6 +12,15 @@ export type StoreTheme = {
   instagram?: string;
   primaryColor?: string;
   secondaryColor?: string;
+  accentColor?: string; // Cor de destaque (faixa topo / CTAs estilo Vivara)
+  // Faixa superior (top bar)
+  topBarLeftText?: string;
+  topBarCenterText?: string;
+  topBarRightText?: string;
+  // Categorias destaque (estilo Vivara)
+  categoriesTitle?: string;
+  categoriesSubtitle?: string;
+  categoryImages?: Record<string, string>;
   // Hero
   heroEyebrow?: string;
   heroTitle1?: string;
@@ -46,8 +55,9 @@ export type StoreCustomization = {
 };
 
 export const defaultTheme: StoreTheme = {
-  primaryColor: "#d4a747",
+  primaryColor: "#1a1410",
   secondaryColor: "#f5e6c8",
+  accentColor: "#f4a78a",
 };
 
 export const loadCurrentSellerStore = async (storeId?: string): Promise<StoreCustomization | null> => {
