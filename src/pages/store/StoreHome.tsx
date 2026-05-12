@@ -184,12 +184,12 @@ const StoreHome = () => {
                     onClick={() => { setActiveCat(c); document.getElementById("vitrine")?.scrollIntoView({ behavior: "smooth" }); }}
                     className="group flex flex-col items-center text-center"
                   >
-                    <div className="aspect-square w-full overflow-hidden rounded-full bg-secondary/40 border border-border transition-all group-hover:border-foreground">
+                    <div className="aspect-square w-full overflow-hidden rounded-full bg-secondary/40 ring-1 ring-border transition-all duration-500 group-hover:ring-primary group-hover:shadow-[0_20px_50px_-20px_hsl(var(--primary)/0.4)]">
                       {img && (
-                        <img src={img} alt={c} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                        <img src={img} alt={c} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[1200ms]" />
                       )}
                     </div>
-                    <h3 className="mt-3 text-[12px] uppercase tracking-[0.18em] font-medium">{c}</h3>
+                    <h3 className="mt-4 text-[11px] uppercase tracking-[0.3em] font-light">{c}</h3>
                   </button>
                 );
               })}
