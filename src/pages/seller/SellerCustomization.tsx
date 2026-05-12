@@ -175,10 +175,10 @@ const SellerCustomization = () => {
         }
       />
 
-      <div className="grid lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] gap-5">
+      <div className="space-y-5 max-w-3xl">
 
         {/* Form */}
-        <div className="space-y-5 lg:max-h-[calc(100vh-180px)] lg:overflow-y-auto lg:pr-2 lg:-mr-2">
+        <div className="space-y-5">
 
           {/* Banner */}
           <div className="rounded-xl border border-border bg-card p-6 space-y-3">
