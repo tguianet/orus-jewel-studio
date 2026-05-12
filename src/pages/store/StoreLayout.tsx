@@ -21,19 +21,41 @@ const StoreLayout = () => {
   const [theme, setTheme] = useState<StoreTheme>(defaultTheme);
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [allProducts, setAllProducts] = useState<any[]>([]);
   const { count } = useCart();
 
   useEffect(() => {
     setSearchTerm(searchParams.get("q") || "");
   }, [searchParams]);
 
+  useEffect(() => {
+    let mounted = true;
+    const mock = getStoreProducts(store.id);
+    setAllProducts(mock);
+    loadStoreProducts(store.id).then((items) => {
+      if (mounted && items && items.length) setAllProducts(items);
+    });
+    return () => { mounted = false; };
+  }, [store.id]);
+
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    return allProducts.filter((p: any) =>
+      [p.name, p.category, p.code, p.sku, p.id]
+        .filter(Boolean)
+        .some((s: any) => String(s).toLowerCase().includes(q))
+    );
+  }, [searchQuery, allProducts]);
+
   const submitSearch = (e?: React.FormEvent) => {
     e?.preventDefault();
     const q = searchTerm.trim();
-    const target = q
-      ? `/loja/${store.storeSlug}?q=${encodeURIComponent(q)}#vitrine`
-      : `/loja/${store.storeSlug}#vitrine`;
-    navigate(target);
+    if (!q) return;
+    setSearchQuery(q);
+    setSearchOpen(true);
     setMobileSearchOpen(false);
   };
 
