@@ -230,17 +230,19 @@ const StoreHome = () => {
         <div className="rounded-2xl border border-primary/20 bg-gradient-gold-soft p-10 lg:p-14">
           <div className="grid lg:grid-cols-2 gap-10 items-center">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-3">Sobre a loja</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-3">{t.aboutEyebrow || "Sobre a loja"}</p>
               <h3 className="font-display text-3xl sm:text-4xl font-light">
-                {store.storeName}
+                {t.aboutTitle || store.storeName}
               </h3>
-              <p className="mt-4 text-muted-foreground leading-relaxed">
-                {t.description ||
+              <p className="mt-4 text-muted-foreground leading-relaxed whitespace-pre-line">
+                {t.aboutText || t.description ||
                   `${store.storeName} é uma curadoria autoral de joias em prata 925, ouro 18k e folheados a ouro de alta qualidade. Cada peça é escolhida pensando em quem usa — para acompanhar você nos dias comuns e nos momentos que merecem brilho.`}
               </p>
-              <p className="mt-3 text-muted-foreground leading-relaxed">
-                Trabalhamos com fornecedores reconhecidos no Brasil, priorizando acabamento impecável, design atemporal e durabilidade. Mais do que vender joias, queremos fazer parte da sua história.
-              </p>
+              {(t.aboutText2 || (!t.aboutText && !t.description)) && (
+                <p className="mt-3 text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {t.aboutText2 || "Trabalhamos com fornecedores reconhecidos no Brasil, priorizando acabamento impecável, design atemporal e durabilidade. Mais do que vender joias, queremos fazer parte da sua história."}
+                </p>
+              )}
               <div className="flex flex-wrap gap-3 mt-6">
                 {t.whatsapp || store.phone ? (
                   <a
@@ -280,6 +282,7 @@ const StoreHome = () => {
         </div>
 
         {/* Materiais */}
+        {(t.showMaterials ?? true) && (
         <div>
           <div className="text-center mb-8">
             <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Materiais</p>
@@ -335,8 +338,10 @@ const StoreHome = () => {
             </div>
           </div>
         </div>
+        )}
 
         {/* Cuidados */}
+        {(t.showCare ?? true) && (
         <div className="rounded-2xl border border-border bg-secondary/20 p-8 lg:p-10">
           <div className="text-center mb-8">
             <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Cuidados</p>
@@ -373,8 +378,10 @@ const StoreHome = () => {
             </div>
           </div>
         </div>
+        )}
 
         {/* Compra & garantia */}
+        {(t.showGuarantee ?? true) && (
         <div className="grid md:grid-cols-3 gap-5">
           <div className="rounded-2xl border border-border bg-card p-6">
             <Award className="h-6 w-6 text-primary mb-3" />
@@ -392,12 +399,14 @@ const StoreHome = () => {
             <p className="text-sm text-muted-foreground">Pix, cartão em até 6x e combinação direto pelo WhatsApp.</p>
           </div>
         </div>
+        )}
 
         {/* CTA final */}
+        {(t.showFinalCta ?? true) && (
         <div className="rounded-2xl border border-primary/30 bg-gradient-gold-soft p-8 lg:p-10 text-center">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Atendimento personalizado</p>
+          <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">{t.finalCtaEyebrow || "Atendimento personalizado"}</p>
           <h3 className="font-display text-2xl sm:text-3xl font-light max-w-2xl mx-auto">
-            Não encontrou o que procurava? Fale comigo e eu ajudo a escolher a joia perfeita.
+            {t.finalCtaTitle || "Não encontrou o que procurava? Fale comigo e eu ajudo a escolher a joia perfeita."}
           </h3>
           <div className="flex flex-wrap gap-3 mt-6 justify-center">
             {t.whatsapp || store.phone ? (
@@ -416,6 +425,7 @@ const StoreHome = () => {
             )}
           </div>
         </div>
+        )}
       </section>
     </>
   );
