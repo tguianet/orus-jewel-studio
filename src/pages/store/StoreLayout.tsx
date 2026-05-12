@@ -185,7 +185,7 @@ const StoreLayout = () => {
           </Link>
 
           {/* Menu centralizado */}
-          <nav className="hidden lg:flex items-center justify-center gap-8 xl:gap-12 text-[11px] sm:text-[12px] uppercase tracking-[0.32em] text-foreground/80 font-light">
+          <nav className="hidden lg:flex items-center justify-center gap-8 xl:gap-12 text-[11px] sm:text-[12px] uppercase tracking-[0.32em] font-light">
             <a href={`/loja/${store.storeSlug}#vitrine`} className="relative whitespace-nowrap hover:text-foreground transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Joias</a>
             <a href={`/loja/${store.storeSlug}#colecoes`} className="relative whitespace-nowrap hover:text-foreground transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Coleções</a>
             <a href={`/loja/${store.storeSlug}#vitrine`} className="relative whitespace-nowrap hover:text-foreground transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Novidades</a>
