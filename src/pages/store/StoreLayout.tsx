@@ -17,6 +17,9 @@ const StoreLayout = () => {
   const [theme, setTheme] = useState<StoreTheme>(defaultTheme);
   const { count } = useCart();
 
+  // Modo preview ao vivo: o editor envia ?preview=1 e empurra tema/loja via postMessage
+  const isPreview = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("preview") === "1";
+
   useEffect(() => {
     let mounted = true;
     loadPublicStore(slug).then((cloudStore) => {
@@ -27,6 +30,24 @@ const StoreLayout = () => {
     });
     return () => { mounted = false; };
   }, [slug]);
+
+  useEffect(() => {
+    if (!isPreview) return;
+    const onMsg = (e: MessageEvent) => {
+      const data = e.data as any;
+      if (!data || typeof data !== "object") return;
+      if (data.type === "lovable-preview-theme" && data.theme) {
+        setTheme({ ...defaultTheme, ...(data.theme as StoreTheme) });
+      }
+      if (data.type === "lovable-preview-store" && data.store) {
+        setStore((prev) => ({ ...prev, ...(data.store as any) }));
+      }
+    };
+    window.addEventListener("message", onMsg);
+    // sinaliza que está pronto pra receber estado
+    try { window.parent?.postMessage({ type: "lovable-preview-ready" }, "*"); } catch { /* noop */ }
+    return () => window.removeEventListener("message", onMsg);
+  }, [isPreview]);
 
   const ctx = useMemo(
     () => ({ store, theme, banner: theme.bannerUrl || DEFAULT_BANNER }),
