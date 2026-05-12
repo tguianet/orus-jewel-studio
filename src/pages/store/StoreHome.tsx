@@ -84,7 +84,7 @@ const StoreHome = () => {
                   as="h1"
                   className="block font-display text-6xl sm:text-7xl lg:text-8xl font-light leading-[0.95] tracking-tight"
                 />
-                {(t.heroTitleHighlight || isPreviewActive()) && (
+                {(t.heroTitleHighlight || isPreview()) && (
                   <EditableText
                     field="heroTitleHighlight"
                     value={t.heroTitleHighlight || ""}
