@@ -9,6 +9,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const STATUSES = ["new", "paid", "shipped", "delivered", "cancelled"];
+const STATUS_LABELS: Record<string, string> = {
+  new: "Novo",
+  paid: "Pago",
+  shipped: "Enviado",
+  delivered: "Entregue",
+  cancelled: "Cancelado",
+};
 
 const AdminOrders = () => {
   const [rows, setRows] = useState<any[]>([]);
@@ -54,8 +61,10 @@ const AdminOrders = () => {
                   <td className="px-5 py-4 text-right font-medium">{formatBRL(Number(o.total||0))}</td>
                   <td className="px-5 py-4">
                     <Select value={o.status} onValueChange={(v) => change(o.id, v)}>
-                      <SelectTrigger className={`w-36 h-8 text-xs ${statusColors[o.status] || ""}`}><SelectValue/></SelectTrigger>
-                      <SelectContent>{STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                      <SelectTrigger className={`w-36 h-8 text-xs ${statusColors[o.status] || ""}`}>
+                        <SelectValue>{STATUS_LABELS[o.status] || o.status}</SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>{STATUSES.map((s) => <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>)}</SelectContent>
                     </Select>
                   </td>
                 </tr>
