@@ -481,6 +481,49 @@ const SellerCustomization = () => {
                 <Input value={theme.categoriesSubtitle || ""} onChange={(e) => setTheme({ ...theme, categoriesSubtitle: e.target.value })} placeholder="Escolha por categorias" maxLength={60} className="mt-1.5" />
               </div>
             </div>
+
+            <div>
+              <Label>Cor de fundo desta seção</Label>
+              <p className="text-[11px] text-muted-foreground mt-1">Altera apenas o fundo do bloco "Joias {name}". Escolha uma cor da paleta ou personalize.</p>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {[
+                  { name: "Padrão", value: "" },
+                  { name: "Branco suave", value: "#f8f7f5" },
+                  { name: "Areia", value: "#f1ece2" },
+                  { name: "Champanhe", value: "#f5ead2" },
+                  { name: "Rosé", value: "#f7e6df" },
+                  { name: "Cinza claro", value: "#ece8e1" },
+                  { name: "Preto", value: "#111111" },
+                  { name: "Nude escuro", value: "#1a1410" },
+                ].map((c) => {
+                  const active = (theme.categoriesBgColor || "") === c.value;
+                  return (
+                    <button
+                      key={c.name}
+                      type="button"
+                      onClick={() => setTheme({ ...theme, categoriesBgColor: c.value || undefined })}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs transition-colors ${active ? "border-primary ring-1 ring-primary" : "border-border hover:border-primary/40"}`}
+                    >
+                      <span className="h-4 w-4 rounded-full border border-border" style={{ background: c.value || "transparent" }} />
+                      {c.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex items-center gap-2 mt-3">
+                <Input
+                  type="color"
+                  value={theme.categoriesBgColor || "#f8f7f5"}
+                  onChange={(e) => setTheme({ ...theme, categoriesBgColor: e.target.value })}
+                  className="h-10 w-14 p-1"
+                />
+                <Input
+                  value={theme.categoriesBgColor || ""}
+                  onChange={(e) => setTheme({ ...theme, categoriesBgColor: e.target.value || undefined })}
+                  placeholder="#f8f7f5 (vazio = padrão)"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Hero / Banner principal */}
