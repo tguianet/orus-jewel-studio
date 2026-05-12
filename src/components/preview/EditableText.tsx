@@ -29,6 +29,7 @@ export const EditableText = ({
 }: Props) => {
   const editable = isPreviewMode();
   const ref = useRef<HTMLElement>(null);
+  const Tag = (TagProp || "span") as any;
 
   // Mantém o conteúdo do DOM sincronizado quando o pai atualiza o valor (sem quebrar o cursor durante digitação).
   useEffect(() => {
