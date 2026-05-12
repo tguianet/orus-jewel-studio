@@ -169,6 +169,7 @@ const StoreLayout = () => {
         style={{
           ...(theme.headerBgColor ? { background: theme.headerBgColor } : {}),
           ...(theme.headerTextColor ? { color: theme.headerTextColor } : {}),
+          ...(theme.headerFontFamily ? { fontFamily: theme.headerFontFamily } : {}),
         }}
       >
         <div className="container grid grid-cols-[auto_1fr_auto] items-center gap-6 py-4">
