@@ -1,4 +1,4 @@
-import { Link, useOutletContext } from "react-router-dom";
+import { Link, useOutletContext, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, Sparkles, Instagram, MessageCircle, Heart, Truck, ShieldCheck, Gem, Crown, Award, Droplet, Sun, Sparkle, CheckCircle2, Package, RefreshCw, CreditCard, ChevronLeft, ChevronRight } from "lucide-react";
 import { formatBRL, getStoreProducts, Sacoleira } from "@/lib/mockData";
@@ -12,6 +12,8 @@ type StoreCtx = { store: Sacoleira; theme?: StoreTheme; banner?: string };
 
 const StoreHome = () => {
   const { store, theme, banner } = useOutletContext<StoreCtx>();
+  const [searchParams] = useSearchParams();
+  const query = (searchParams.get("q") || "").trim().toLowerCase();
   const t = { ...defaultTheme, ...(theme || {}) };
   const banners = useMemo(() => {
     const list = [
@@ -46,9 +48,16 @@ const StoreHome = () => {
     return ["Todos", ...Array.from(set)];
   }, [allProducts]);
 
-  const filtered = activeCat === "Todos"
+  const byCategory = activeCat === "Todos"
     ? allProducts
     : allProducts.filter((p: any) => p.category === activeCat);
+  const filtered = query
+    ? byCategory.filter((p: any) =>
+        [p.name, p.category, p.code, p.sku, p.id]
+          .filter(Boolean)
+          .some((s: any) => String(s).toLowerCase().includes(query))
+      )
+    : byCategory;
 
   const collections = cats.filter((c) => c !== "Todos").slice(0, 6);
 
@@ -224,8 +233,16 @@ const StoreHome = () => {
           ))}
         </div>
 
+        {query && (
+          <p className="text-center text-xs uppercase tracking-[0.3em] text-muted-foreground mb-6">
+            Resultados para "{query}" — {filtered.length} {filtered.length === 1 ? "peça" : "peças"}
+          </p>
+        )}
+
         {filtered.length === 0 ? (
-          <p className="text-center text-sm text-muted-foreground py-12">Ainda não há produtos nesta categoria.</p>
+          <p className="text-center text-sm text-muted-foreground py-12">
+            {query ? `Nenhuma peça encontrada para "${query}".` : "Ainda não há produtos nesta categoria."}
+          </p>
         ) : (
           <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
             {filtered.map((p: any) => (

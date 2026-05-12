@@ -1,6 +1,6 @@
-import { Link, Outlet, useParams } from "react-router-dom";
+import { Link, Outlet, useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { ShoppingBag, Search, Heart, Instagram, MessageCircle, ShieldAlert, ArrowRight } from "lucide-react";
+import { ShoppingBag, Search, Heart, Instagram, MessageCircle, ShieldAlert, ArrowRight, X } from "lucide-react";
 import { getStoreBySlug } from "@/lib/mockData";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
@@ -13,10 +13,28 @@ import { EditableText } from "@/components/preview/EditableText";
 
 const StoreLayout = () => {
   const { slug } = useParams();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { profile, loading: authLoading } = useAuth();
   const [store, setStore] = useState(() => getStoreBySlug(slug));
   const [theme, setTheme] = useState<StoreTheme>(defaultTheme);
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const { count } = useCart();
+
+  useEffect(() => {
+    setSearchTerm(searchParams.get("q") || "");
+  }, [searchParams]);
+
+  const submitSearch = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const q = searchTerm.trim();
+    const target = q
+      ? `/loja/${store.storeSlug}?q=${encodeURIComponent(q)}#vitrine`
+      : `/loja/${store.storeSlug}#vitrine`;
+    navigate(target);
+    setMobileSearchOpen(false);
+  };
 
   // Modo preview ao vivo: o editor envia ?preview=1 e empurra tema/loja via postMessage
   const isPreview = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("preview") === "1";
@@ -153,14 +171,25 @@ const StoreLayout = () => {
 
           {/* Busca + ícones à direita */}
           <div className="flex items-center justify-end gap-2">
-            <div className="hidden md:flex items-center rounded-full border border-border bg-secondary/50 px-3 h-9 w-56">
-              <Search className="h-4 w-4 text-muted-foreground" />
+            <form onSubmit={submitSearch} className="hidden md:flex items-center rounded-full border border-border bg-secondary/50 px-3 h-9 w-56 focus-within:border-primary transition-colors">
+              <button type="submit" aria-label="Buscar" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Search className="h-4 w-4" />
+              </button>
               <input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Buscar por nome ou código"
                 className="bg-transparent outline-none text-sm px-2 w-full placeholder:text-muted-foreground"
               />
-            </div>
-            <Button variant="ghost" size="icon" className="h-9 w-9 md:hidden"><Search className="h-4 w-4" /></Button>
+              {searchTerm && (
+                <button type="button" onClick={() => { setSearchTerm(""); navigate(`/loja/${store.storeSlug}#vitrine`); }} aria-label="Limpar" className="text-muted-foreground hover:text-foreground">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </form>
+            <Button variant="ghost" size="icon" className="h-9 w-9 md:hidden" onClick={() => setMobileSearchOpen((v) => !v)}>
+              <Search className="h-4 w-4" />
+            </Button>
             <Button variant="ghost" size="icon" className="h-9 w-9 hidden sm:inline-flex"><Heart className="h-4 w-4" /></Button>
             <Link to={`/loja/${store.storeSlug}/carrinho`}>
               <Button variant="ghost" size="icon" className="h-9 w-9 relative">
@@ -177,6 +206,25 @@ const StoreLayout = () => {
             </Link>
           </div>
         </div>
+
+        {/* Busca mobile */}
+        {mobileSearchOpen && (
+          <div className="md:hidden border-t border-border/70">
+            <form onSubmit={submitSearch} className="container py-3 flex items-center gap-2">
+              <div className="flex-1 flex items-center rounded-full border border-border bg-secondary/50 px-3 h-10">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <input
+                  autoFocus
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Buscar por nome ou código"
+                  className="bg-transparent outline-none text-sm px-2 w-full placeholder:text-muted-foreground"
+                />
+              </div>
+              <Button type="submit" variant="gold" size="sm">Buscar</Button>
+            </form>
+          </div>
+        )}
 
         {/* Menu mobile (visível apenas em telas pequenas) */}
         <nav className="lg:hidden border-t border-border/70">
