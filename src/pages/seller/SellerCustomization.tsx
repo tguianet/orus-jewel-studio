@@ -165,12 +165,12 @@ const SellerCustomization = () => {
   return (
     <SellerLayout>
       <PageHeader
-        eyebrow="Editor ao vivo"
+        eyebrow="Personalização"
         title="Personalizar loja"
-        description="Edite os campos à esquerda e veja sua loja mudando à direita em tempo real."
+        description="Edite os textos, imagens e cores. Clique em 'Abrir loja' para ver o resultado."
         actions={
           <Link to={`/loja/${store.storeSlug}`} target="_blank">
-            <Button variant="outline" size="sm"><ExternalLink className="h-4 w-4" /> Abrir loja real</Button>
+            <Button variant="outline" size="sm"><ExternalLink className="h-4 w-4" /> Abrir loja</Button>
           </Link>
         }
       />
