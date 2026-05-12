@@ -92,15 +92,15 @@ const StoreLayout = () => {
     );
   }
 
-  const accent = theme.accentColor || "#f4a78a";
+  const accent = theme.accentColor || "hsl(36 45% 60%)";
 
   return (
     <div className="store-light min-h-screen flex flex-col bg-background text-foreground" style={themeCssVars(theme.primaryColor, theme.secondaryColor)}>
-      {/* Top bar estilo Vivara */}
-      <div className="w-full text-[12px]" style={{ background: accent, color: "#3a1f12" }}>
+      {/* Top bar minimalista premium */}
+      <div className="w-full text-[11px] tracking-[0.18em] uppercase border-b border-border/60" style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}>
         <div className="container grid grid-cols-3 items-center py-2.5 text-center">
-          <div className="flex items-center justify-start gap-2">
-            <MessageCircle className="h-3.5 w-3.5" />
+          <div className="flex items-center justify-start gap-2 opacity-80">
+            <MessageCircle className="h-3 w-3" />
             <EditableText
               field="topBarLeftText"
               value={theme.topBarLeftText || "Atendimento ao cliente"}
@@ -109,21 +109,22 @@ const StoreLayout = () => {
           </div>
           <EditableText
             field="topBarCenterText"
-            value={theme.topBarCenterText || "Frete cortesia em todas as compras... Aproveite!"}
-            className="font-medium tracking-wide"
+            value={theme.topBarCenterText || "Frete cortesia em todas as compras"}
+            className="font-light"
             as="div"
           />
-          <div className="flex items-center justify-end gap-2">
+          <div className="flex items-center justify-end gap-2 opacity-80">
             <EditableText
               field="topBarRightText"
-              value={theme.topBarRightText || "Acessibilidade"}
+              value={theme.topBarRightText || "Entrega segura"}
               className="hidden md:inline"
             />
           </div>
         </div>
       </div>
 
-      <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/75 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/60">
+
         {/* Linha 1: CEP / Logo central / Buscar Account Bag */}
         <div className="container grid grid-cols-[1fr_auto_1fr] items-center gap-4 py-5">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
