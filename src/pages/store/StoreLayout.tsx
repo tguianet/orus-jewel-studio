@@ -169,6 +169,7 @@ const StoreLayout = () => {
         style={{
           ...(theme.headerBgColor ? { background: theme.headerBgColor } : {}),
           ...(theme.headerTextColor ? { color: theme.headerTextColor } : {}),
+          ...(theme.headerFontFamily ? { fontFamily: theme.headerFontFamily } : {}),
         }}
       >
         <div className="container grid grid-cols-[auto_1fr_auto] items-center gap-6 py-4">
@@ -184,7 +185,7 @@ const StoreLayout = () => {
           </Link>
 
           {/* Menu centralizado */}
-          <nav className="hidden lg:flex items-center justify-center gap-8 xl:gap-12 text-[11px] sm:text-[12px] uppercase tracking-[0.32em] text-foreground/80 font-light">
+          <nav className="hidden lg:flex items-center justify-center gap-8 xl:gap-12 text-[11px] sm:text-[12px] uppercase tracking-[0.32em] font-light">
             <a href={`/loja/${store.storeSlug}#vitrine`} className="relative whitespace-nowrap hover:text-foreground transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Joias</a>
             <a href={`/loja/${store.storeSlug}#colecoes`} className="relative whitespace-nowrap hover:text-foreground transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Coleções</a>
             <a href={`/loja/${store.storeSlug}#vitrine`} className="relative whitespace-nowrap hover:text-foreground transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Novidades</a>
@@ -257,7 +258,7 @@ const StoreLayout = () => {
 
         {/* Menu mobile (visível apenas em telas pequenas) */}
         <nav className="lg:hidden border-t border-border/70">
-          <div className="container flex items-center justify-center gap-6 sm:gap-10 py-3 text-[11px] uppercase tracking-[0.32em] text-foreground/80 overflow-x-auto font-light">
+          <div className="container flex items-center justify-center gap-6 sm:gap-10 py-3 text-[11px] uppercase tracking-[0.32em] overflow-x-auto font-light">
             <a href={`/loja/${store.storeSlug}#vitrine`} className="whitespace-nowrap">Joias</a>
             <a href={`/loja/${store.storeSlug}#colecoes`} className="whitespace-nowrap">Coleções</a>
             <a href={`/loja/${store.storeSlug}#vitrine`} className="whitespace-nowrap">Novidades</a>
