@@ -56,82 +56,79 @@ const StoreHome = () => {
 
   return (
     <>
-      {/* Hero edge-to-edge estilo Vivara */}
+      {/* Hero cinematográfico premium */}
       <section className="relative overflow-hidden bg-secondary/30">
-        <div className="relative w-full h-[68vh] min-h-[460px] max-h-[820px]">
+        <div className="relative w-full h-[78vh] min-h-[520px] max-h-[860px]">
           {banners.map((b, i) => (
             <img
               key={b + i}
               src={b}
               alt={`Banner ${i + 1} ${store.storeName}`}
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1200ms] ${i === bannerIdx ? "opacity-100" : "opacity-0"}`}
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1400ms] ${i === bannerIdx ? "opacity-100" : "opacity-0"}`}
             />
           ))}
 
-          {/* Texto sobreposto à esquerda */}
+          {/* Overlay editorial */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/25 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
+
           <div className="absolute inset-0">
             <div className="container h-full flex items-center">
-              <div className="max-w-md text-foreground">
+              <div className="max-w-xl text-white luxe-rise">
                 <EditableText
                   field="heroEyebrow"
-                  value={t.heroEyebrow || "Coleção Atual"}
-                  className="block text-[10px] uppercase tracking-[0.4em] mb-3"
-                  style={{ color: accent }}
+                  value={t.heroEyebrow || "Nova Coleção"}
+                  className="block text-[10px] uppercase tracking-[0.5em] mb-5 text-white/85"
                 />
                 <EditableText
                   field="heroTitle1"
                   value={t.heroTitle1 || store.storeName}
                   as="h1"
-                  className="block font-display text-6xl sm:text-7xl lg:text-8xl font-light leading-[0.95] tracking-tight"
+                  className="block font-display text-5xl sm:text-7xl lg:text-[88px] font-light leading-[1] tracking-tight text-white"
                 />
                 {(t.heroTitleHighlight || isPreview()) && (
                   <EditableText
                     field="heroTitleHighlight"
                     value={t.heroTitleHighlight || ""}
                     as="p"
-                    className="block font-display italic text-3xl sm:text-4xl mt-2 text-foreground/80"
+                    className="block font-display italic text-2xl sm:text-3xl mt-3 text-white/85"
                     placeholder="Subtítulo"
                   />
                 )}
+                <a
+                  href="#vitrine"
+                  className="mt-10 inline-flex items-center gap-3 px-8 py-3.5 text-[11px] uppercase tracking-[0.32em] font-medium border border-white/80 text-white hover:bg-white hover:text-foreground transition-all duration-500"
+                >
+                  {t.heroCtaPrimary || "Descobrir coleção"}
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </a>
               </div>
             </div>
           </div>
-
-          {/* CTA EXPLORAR à direita */}
-          <a
-            href="#vitrine"
-            className="hidden md:flex absolute right-10 lg:right-20 top-1/2 -translate-y-1/2 flex-col items-center gap-2 group"
-          >
-            <span className="font-display text-2xl tracking-[0.3em] uppercase text-foreground">
-              {t.heroCtaPrimary || "Explorar"}
-            </span>
-            <span className="h-[2px] w-16 transition-all group-hover:w-24" style={{ background: accent }} />
-          </a>
 
           {banners.length > 1 && (
             <>
               <button
                 onClick={() => setBannerIdx((i) => (i - 1 + banners.length) % banners.length)}
                 aria-label="Banner anterior"
-                className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/80 backdrop-blur border border-border flex items-center justify-center hover:bg-background transition-colors"
+                className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-10 h-11 w-11 rounded-full bg-white/15 backdrop-blur-md border border-white/30 text-white flex items-center justify-center hover:bg-white hover:text-foreground transition-all"
               >
-                <ChevronLeft className="h-5 w-5" />
+                <ChevronLeft className="h-4 w-4" />
               </button>
               <button
                 onClick={() => setBannerIdx((i) => (i + 1) % banners.length)}
                 aria-label="Próximo banner"
-                className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/80 backdrop-blur border border-border flex items-center justify-center hover:bg-background transition-colors"
+                className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-10 h-11 w-11 rounded-full bg-white/15 backdrop-blur-md border border-white/30 text-white flex items-center justify-center hover:bg-white hover:text-foreground transition-all"
               >
-                <ChevronRight className="h-5 w-5" />
+                <ChevronRight className="h-4 w-4" />
               </button>
-              <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+              <div className="absolute bottom-7 left-1/2 -translate-x-1/2 flex gap-2 z-10">
                 {banners.map((_, i) => (
                   <button
                     key={i}
                     onClick={() => setBannerIdx(i)}
                     aria-label={`Banner ${i + 1}`}
-                    className={`h-1.5 rounded-full transition-all ${i === bannerIdx ? "w-8" : "w-3 opacity-60 hover:opacity-100"}`}
-                    style={{ background: accent }}
+                    className={`h-[2px] rounded-full transition-all ${i === bannerIdx ? "w-10 bg-white" : "w-5 bg-white/50 hover:bg-white/80"}`}
                   />
                 ))}
               </div>
