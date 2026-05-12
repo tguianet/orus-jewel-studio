@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import heroImg from "@/assets/hero-jewelry.jpg";
 import { CloudStoreProduct, loadStoreProducts } from "@/lib/cloudStore";
 import { DEFAULT_BANNER, StoreTheme, defaultTheme } from "@/lib/storeTheme";
+import { EditableText, isPreview } from "@/components/preview/EditableText";
 
 type StoreCtx = { store: Sacoleira; theme?: StoreTheme; banner?: string };
 
@@ -71,16 +72,26 @@ const StoreHome = () => {
           <div className="absolute inset-0">
             <div className="container h-full flex items-center">
               <div className="max-w-md text-foreground">
-                <p className="text-[10px] uppercase tracking-[0.4em] mb-3" style={{ color: accent }}>
-                  {t.heroEyebrow || "Coleção Atual"}
-                </p>
-                <h1 className="font-display text-6xl sm:text-7xl lg:text-8xl font-light leading-[0.95] tracking-tight">
-                  {t.heroTitle1 || store.storeName}
-                </h1>
-                {t.heroTitleHighlight && (
-                  <p className="font-display italic text-3xl sm:text-4xl mt-2 text-foreground/80">
-                    {t.heroTitleHighlight}
-                  </p>
+                <EditableText
+                  field="heroEyebrow"
+                  value={t.heroEyebrow || "Coleção Atual"}
+                  className="block text-[10px] uppercase tracking-[0.4em] mb-3"
+                  style={{ color: accent }}
+                />
+                <EditableText
+                  field="heroTitle1"
+                  value={t.heroTitle1 || store.storeName}
+                  as="h1"
+                  className="block font-display text-6xl sm:text-7xl lg:text-8xl font-light leading-[0.95] tracking-tight"
+                />
+                {(t.heroTitleHighlight || isPreview()) && (
+                  <EditableText
+                    field="heroTitleHighlight"
+                    value={t.heroTitleHighlight || ""}
+                    as="p"
+                    className="block font-display italic text-3xl sm:text-4xl mt-2 text-foreground/80"
+                    placeholder="Subtítulo"
+                  />
                 )}
               </div>
             </div>
@@ -149,12 +160,18 @@ const StoreHome = () => {
       {(t.showCollections ?? true) && (
         <section id="colecoes" className="container py-16 scroll-mt-20">
           <div className="text-center mb-10">
-            <h2 className="font-display text-4xl sm:text-5xl font-light tracking-wide uppercase">
-              {t.categoriesTitle || `Joias ${store.storeName}`}
-            </h2>
-            <p className="mt-3 text-[11px] uppercase tracking-[0.4em] text-muted-foreground">
-              {t.categoriesSubtitle || "Escolha por categorias"}
-            </p>
+            <EditableText
+              field="categoriesTitle"
+              value={t.categoriesTitle || `Joias ${store.storeName}`}
+              as="h2"
+              className="block font-display text-4xl sm:text-5xl font-light tracking-wide uppercase"
+            />
+            <EditableText
+              field="categoriesSubtitle"
+              value={t.categoriesSubtitle || "Escolha por categorias"}
+              as="p"
+              className="block mt-3 text-[11px] uppercase tracking-[0.4em] text-muted-foreground"
+            />
             <div className="mx-auto mt-3 h-[2px] w-12" style={{ background: accent }} />
           </div>
           {collections.length === 0 ? (
@@ -231,18 +248,33 @@ const StoreHome = () => {
         <div className="rounded-2xl border border-primary/20 bg-gradient-gold-soft p-10 lg:p-14">
           <div className="grid lg:grid-cols-2 gap-10 items-center">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-3">{t.aboutEyebrow || "Sobre a loja"}</p>
-              <h3 className="font-display text-3xl sm:text-4xl font-light">
-                {t.aboutTitle || store.storeName}
-              </h3>
-              <p className="mt-4 text-muted-foreground leading-relaxed whitespace-pre-line">
-                {t.aboutText || t.description ||
-                  `${store.storeName} é uma curadoria autoral de joias em prata 925, ouro 18k e folheados a ouro de alta qualidade. Cada peça é escolhida pensando em quem usa — para acompanhar você nos dias comuns e nos momentos que merecem brilho.`}
-              </p>
-              {(t.aboutText2 || (!t.aboutText && !t.description)) && (
-                <p className="mt-3 text-muted-foreground leading-relaxed whitespace-pre-line">
-                  {t.aboutText2 || "Trabalhamos com fornecedores reconhecidos no Brasil, priorizando acabamento impecável, design atemporal e durabilidade. Mais do que vender joias, queremos fazer parte da sua história."}
-                </p>
+              <EditableText
+                field="aboutEyebrow"
+                value={t.aboutEyebrow || "Sobre a loja"}
+                as="p"
+                className="block text-[10px] uppercase tracking-[0.3em] text-primary mb-3"
+              />
+              <EditableText
+                field="aboutTitle"
+                value={t.aboutTitle || store.storeName}
+                as="h3"
+                className="block font-display text-3xl sm:text-4xl font-light"
+              />
+              <EditableText
+                field="aboutText"
+                value={t.aboutText || t.description || `${store.storeName} é uma curadoria autoral de joias em prata 925, ouro 18k e folheados a ouro de alta qualidade. Cada peça é escolhida pensando em quem usa — para acompanhar você nos dias comuns e nos momentos que merecem brilho.`}
+                as="p"
+                multiline
+                className="block mt-4 text-muted-foreground leading-relaxed whitespace-pre-line"
+              />
+              {(t.aboutText2 || (!t.aboutText && !t.description) || isPreview()) && (
+                <EditableText
+                  field="aboutText2"
+                  value={t.aboutText2 || "Trabalhamos com fornecedores reconhecidos no Brasil, priorizando acabamento impecável, design atemporal e durabilidade. Mais do que vender joias, queremos fazer parte da sua história."}
+                  as="p"
+                  multiline
+                  className="block mt-3 text-muted-foreground leading-relaxed whitespace-pre-line"
+                />
               )}
               <div className="flex flex-wrap gap-3 mt-6">
                 {t.whatsapp || store.phone ? (
@@ -405,10 +437,19 @@ const StoreHome = () => {
         {/* CTA final */}
         {(t.showFinalCta ?? true) && (
         <div className="rounded-2xl border border-primary/30 bg-gradient-gold-soft p-8 lg:p-10 text-center">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">{t.finalCtaEyebrow || "Atendimento personalizado"}</p>
-          <h3 className="font-display text-2xl sm:text-3xl font-light max-w-2xl mx-auto">
-            {t.finalCtaTitle || "Não encontrou o que procurava? Fale comigo e eu ajudo a escolher a joia perfeita."}
-          </h3>
+          <EditableText
+            field="finalCtaEyebrow"
+            value={t.finalCtaEyebrow || "Atendimento personalizado"}
+            as="p"
+            className="block text-[10px] uppercase tracking-[0.3em] text-primary mb-2"
+          />
+          <EditableText
+            field="finalCtaTitle"
+            value={t.finalCtaTitle || "Não encontrou o que procurava? Fale comigo e eu ajudo a escolher a joia perfeita."}
+            as="h3"
+            multiline
+            className="block font-display text-2xl sm:text-3xl font-light max-w-2xl mx-auto"
+          />
           <div className="flex flex-wrap gap-3 mt-6 justify-center">
             {t.whatsapp || store.phone ? (
               <a
