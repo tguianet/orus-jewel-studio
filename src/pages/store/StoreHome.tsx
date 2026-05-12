@@ -160,12 +160,18 @@ const StoreHome = () => {
       {(t.showCollections ?? true) && (
         <section id="colecoes" className="container py-16 scroll-mt-20">
           <div className="text-center mb-10">
-            <h2 className="font-display text-4xl sm:text-5xl font-light tracking-wide uppercase">
-              {t.categoriesTitle || `Joias ${store.storeName}`}
-            </h2>
-            <p className="mt-3 text-[11px] uppercase tracking-[0.4em] text-muted-foreground">
-              {t.categoriesSubtitle || "Escolha por categorias"}
-            </p>
+            <EditableText
+              field="categoriesTitle"
+              value={t.categoriesTitle || `Joias ${store.storeName}`}
+              as="h2"
+              className="block font-display text-4xl sm:text-5xl font-light tracking-wide uppercase"
+            />
+            <EditableText
+              field="categoriesSubtitle"
+              value={t.categoriesSubtitle || "Escolha por categorias"}
+              as="p"
+              className="block mt-3 text-[11px] uppercase tracking-[0.4em] text-muted-foreground"
+            />
             <div className="mx-auto mt-3 h-[2px] w-12" style={{ background: accent }} />
           </div>
           {collections.length === 0 ? (
