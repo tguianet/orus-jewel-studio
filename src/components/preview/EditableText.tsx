@@ -21,7 +21,7 @@ type Props = {
 export const EditableText = ({
   field,
   value,
-  as: Tag = "span",
+  as = "span",
   className = "",
   style,
   multiline,
@@ -29,9 +29,8 @@ export const EditableText = ({
 }: Props) => {
   const editable = isPreviewMode();
   const ref = useRef<HTMLElement>(null);
-  const Tag = (TagProp || "span") as any;
+  const Tag: any = as;
 
-  // Mantém o conteúdo do DOM sincronizado quando o pai atualiza o valor (sem quebrar o cursor durante digitação).
   useEffect(() => {
     if (!editable) return;
     const el = ref.current;
@@ -41,16 +40,12 @@ export const EditableText = ({
   }, [editable, value]);
 
   if (!editable) {
-    return (
-      <Tag className={className} style={style}>
-        {value}
-      </Tag>
-    );
+    return <Tag className={className} style={style}>{value}</Tag>;
   }
 
   return (
     <Tag
-      ref={ref as any}
+      ref={ref}
       className={`${className} outline-none rounded ring-1 ring-transparent hover:ring-primary/40 focus:ring-primary focus:bg-primary/5 cursor-text transition-colors`}
       style={style}
       contentEditable
@@ -64,7 +59,7 @@ export const EditableText = ({
           /* noop */
         }
       }}
-      onBlur={(e) => {
+      onBlur={(e: any) => {
         const text = (e.currentTarget.innerText || "").replace(/\u00A0/g, " ").trim();
         try {
           window.parent?.postMessage({ type: "lovable-edit-field", field, value: text }, "*");
@@ -72,7 +67,7 @@ export const EditableText = ({
           /* noop */
         }
       }}
-      onKeyDown={(e) => {
+      onKeyDown={(e: any) => {
         if (!multiline && e.key === "Enter") {
           e.preventDefault();
           (e.currentTarget as HTMLElement).blur();
