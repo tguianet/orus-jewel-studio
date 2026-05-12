@@ -56,82 +56,79 @@ const StoreHome = () => {
 
   return (
     <>
-      {/* Hero edge-to-edge estilo Vivara */}
+      {/* Hero cinematográfico premium */}
       <section className="relative overflow-hidden bg-secondary/30">
-        <div className="relative w-full h-[68vh] min-h-[460px] max-h-[820px]">
+        <div className="relative w-full h-[78vh] min-h-[520px] max-h-[860px]">
           {banners.map((b, i) => (
             <img
               key={b + i}
               src={b}
               alt={`Banner ${i + 1} ${store.storeName}`}
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1200ms] ${i === bannerIdx ? "opacity-100" : "opacity-0"}`}
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1400ms] ${i === bannerIdx ? "opacity-100" : "opacity-0"}`}
             />
           ))}
 
-          {/* Texto sobreposto à esquerda */}
+          {/* Overlay editorial */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/25 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
+
           <div className="absolute inset-0">
             <div className="container h-full flex items-center">
-              <div className="max-w-md text-foreground">
+              <div className="max-w-xl text-white luxe-rise">
                 <EditableText
                   field="heroEyebrow"
-                  value={t.heroEyebrow || "Coleção Atual"}
-                  className="block text-[10px] uppercase tracking-[0.4em] mb-3"
-                  style={{ color: accent }}
+                  value={t.heroEyebrow || "Nova Coleção"}
+                  className="block text-[10px] uppercase tracking-[0.5em] mb-5 text-white/85"
                 />
                 <EditableText
                   field="heroTitle1"
                   value={t.heroTitle1 || store.storeName}
                   as="h1"
-                  className="block font-display text-6xl sm:text-7xl lg:text-8xl font-light leading-[0.95] tracking-tight"
+                  className="block font-display text-5xl sm:text-7xl lg:text-[88px] font-light leading-[1] tracking-tight text-white"
                 />
                 {(t.heroTitleHighlight || isPreview()) && (
                   <EditableText
                     field="heroTitleHighlight"
                     value={t.heroTitleHighlight || ""}
                     as="p"
-                    className="block font-display italic text-3xl sm:text-4xl mt-2 text-foreground/80"
+                    className="block font-display italic text-2xl sm:text-3xl mt-3 text-white/85"
                     placeholder="Subtítulo"
                   />
                 )}
+                <a
+                  href="#vitrine"
+                  className="mt-10 inline-flex items-center gap-3 px-8 py-3.5 text-[11px] uppercase tracking-[0.32em] font-medium border border-white/80 text-white hover:bg-white hover:text-foreground transition-all duration-500"
+                >
+                  {t.heroCtaPrimary || "Descobrir coleção"}
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </a>
               </div>
             </div>
           </div>
-
-          {/* CTA EXPLORAR à direita */}
-          <a
-            href="#vitrine"
-            className="hidden md:flex absolute right-10 lg:right-20 top-1/2 -translate-y-1/2 flex-col items-center gap-2 group"
-          >
-            <span className="font-display text-2xl tracking-[0.3em] uppercase text-foreground">
-              {t.heroCtaPrimary || "Explorar"}
-            </span>
-            <span className="h-[2px] w-16 transition-all group-hover:w-24" style={{ background: accent }} />
-          </a>
 
           {banners.length > 1 && (
             <>
               <button
                 onClick={() => setBannerIdx((i) => (i - 1 + banners.length) % banners.length)}
                 aria-label="Banner anterior"
-                className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/80 backdrop-blur border border-border flex items-center justify-center hover:bg-background transition-colors"
+                className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-10 h-11 w-11 rounded-full bg-white/15 backdrop-blur-md border border-white/30 text-white flex items-center justify-center hover:bg-white hover:text-foreground transition-all"
               >
-                <ChevronLeft className="h-5 w-5" />
+                <ChevronLeft className="h-4 w-4" />
               </button>
               <button
                 onClick={() => setBannerIdx((i) => (i + 1) % banners.length)}
                 aria-label="Próximo banner"
-                className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/80 backdrop-blur border border-border flex items-center justify-center hover:bg-background transition-colors"
+                className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-10 h-11 w-11 rounded-full bg-white/15 backdrop-blur-md border border-white/30 text-white flex items-center justify-center hover:bg-white hover:text-foreground transition-all"
               >
-                <ChevronRight className="h-5 w-5" />
+                <ChevronRight className="h-4 w-4" />
               </button>
-              <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+              <div className="absolute bottom-7 left-1/2 -translate-x-1/2 flex gap-2 z-10">
                 {banners.map((_, i) => (
                   <button
                     key={i}
                     onClick={() => setBannerIdx(i)}
                     aria-label={`Banner ${i + 1}`}
-                    className={`h-1.5 rounded-full transition-all ${i === bannerIdx ? "w-8" : "w-3 opacity-60 hover:opacity-100"}`}
-                    style={{ background: accent }}
+                    className={`h-[2px] rounded-full transition-all ${i === bannerIdx ? "w-10 bg-white" : "w-5 bg-white/50 hover:bg-white/80"}`}
                   />
                 ))}
               </div>
@@ -187,12 +184,12 @@ const StoreHome = () => {
                     onClick={() => { setActiveCat(c); document.getElementById("vitrine")?.scrollIntoView({ behavior: "smooth" }); }}
                     className="group flex flex-col items-center text-center"
                   >
-                    <div className="aspect-square w-full overflow-hidden rounded-full bg-secondary/40 border border-border transition-all group-hover:border-foreground">
+                    <div className="aspect-square w-full overflow-hidden rounded-full bg-secondary/40 ring-1 ring-border transition-all duration-500 group-hover:ring-primary group-hover:shadow-[0_20px_50px_-20px_hsl(var(--primary)/0.4)]">
                       {img && (
-                        <img src={img} alt={c} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                        <img src={img} alt={c} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[1200ms]" />
                       )}
                     </div>
-                    <h3 className="mt-3 text-[12px] uppercase tracking-[0.18em] font-medium">{c}</h3>
+                    <h3 className="mt-4 text-[11px] uppercase tracking-[0.3em] font-light">{c}</h3>
                   </button>
                 );
               })}
@@ -202,21 +199,22 @@ const StoreHome = () => {
       )}
 
       {/* Vitrine */}
-      <section id="vitrine" className="container py-8 scroll-mt-20">
-        <div className="text-center mb-8">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Vitrine</p>
+      <section id="vitrine" className="container py-20 scroll-mt-20">
+        <div className="text-center mb-12">
+          <p className="text-[10px] uppercase tracking-[0.4em] text-primary mb-3">Vitrine</p>
           <h2 className="font-display text-4xl sm:text-5xl font-light">Selecionadas para você</h2>
+          <div className="mx-auto mt-4 h-px w-12 bg-primary/60" />
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-4 -mx-4 px-4 mb-6 justify-start sm:justify-center">
+        <div className="flex gap-1 overflow-x-auto pb-6 -mx-4 px-4 mb-10 justify-start sm:justify-center">
           {cats.map((c) => (
             <button
               key={c}
               onClick={() => setActiveCat(c)}
-              className={`shrink-0 rounded-full border px-4 py-1.5 text-sm transition-colors ${
+              className={`shrink-0 px-5 py-2 text-[11px] uppercase tracking-[0.28em] font-light transition-all duration-300 border-b ${
                 activeCat === c
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:border-primary hover:text-primary"
+                  ? "border-primary text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
               }`}
             >
               {c}
@@ -227,15 +225,18 @@ const StoreHome = () => {
         {filtered.length === 0 ? (
           <p className="text-center text-sm text-muted-foreground py-12">Ainda não há produtos nesta categoria.</p>
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
             {filtered.map((p: any) => (
-              <Link key={p.id} to={`/loja/${store.storeSlug}/produto/${p.id}`} className="group">
-                <div className="aspect-square overflow-hidden rounded-xl border border-border mb-3">
-                  <img src={p.image} alt={p.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+              <Link key={p.id} to={`/loja/${store.storeSlug}/produto/${p.id}`} className="group block">
+                <div className="relative aspect-square overflow-hidden bg-secondary/50 mb-5 transition-all duration-500 group-hover:shadow-[0_30px_60px_-20px_rgba(17,17,17,0.18)]">
+                  <img src={p.image} alt={p.name} loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-105" />
+                  <span className="absolute top-3 right-3 h-9 w-9 rounded-full bg-white/85 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Heart className="h-4 w-4 text-foreground" />
+                  </span>
                 </div>
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{p.category}</p>
-                <h3 className="font-display text-lg leading-tight mt-1 group-hover:text-primary transition-colors">{p.name}</h3>
-                <p className="text-primary font-medium mt-1">{formatBRL(p.resellerPrice)}</p>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{p.category}</p>
+                <h3 className="font-display text-xl font-light leading-tight mt-1.5 group-hover:text-primary transition-colors duration-300">{p.name}</h3>
+                <p className="mt-2 text-[15px] font-light tracking-wide" style={{ color: "hsl(var(--primary-deep))" }}>{formatBRL(p.resellerPrice)}</p>
               </Link>
             ))}
           </div>

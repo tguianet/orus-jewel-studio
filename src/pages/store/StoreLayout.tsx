@@ -92,15 +92,15 @@ const StoreLayout = () => {
     );
   }
 
-  const accent = theme.accentColor || "#f4a78a";
+  const accent = theme.accentColor || "hsl(36 45% 60%)";
 
   return (
     <div className="store-light min-h-screen flex flex-col bg-background text-foreground" style={themeCssVars(theme.primaryColor, theme.secondaryColor)}>
-      {/* Top bar estilo Vivara */}
-      <div className="w-full text-[12px]" style={{ background: accent, color: "#3a1f12" }}>
+      {/* Top bar minimalista premium */}
+      <div className="w-full text-[11px] tracking-[0.18em] uppercase border-b border-border/60" style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}>
         <div className="container grid grid-cols-3 items-center py-2.5 text-center">
-          <div className="flex items-center justify-start gap-2">
-            <MessageCircle className="h-3.5 w-3.5" />
+          <div className="flex items-center justify-start gap-2 opacity-80">
+            <MessageCircle className="h-3 w-3" />
             <EditableText
               field="topBarLeftText"
               value={theme.topBarLeftText || "Atendimento ao cliente"}
@@ -109,21 +109,22 @@ const StoreLayout = () => {
           </div>
           <EditableText
             field="topBarCenterText"
-            value={theme.topBarCenterText || "Frete cortesia em todas as compras... Aproveite!"}
-            className="font-medium tracking-wide"
+            value={theme.topBarCenterText || "Frete cortesia em todas as compras"}
+            className="font-light"
             as="div"
           />
-          <div className="flex items-center justify-end gap-2">
+          <div className="flex items-center justify-end gap-2 opacity-80">
             <EditableText
               field="topBarRightText"
-              value={theme.topBarRightText || "Acessibilidade"}
+              value={theme.topBarRightText || "Entrega segura"}
               className="hidden md:inline"
             />
           </div>
         </div>
       </div>
 
-      <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/75 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/60">
+
         {/* Linha 1: CEP / Logo central / Buscar Account Bag */}
         <div className="container grid grid-cols-[1fr_auto_1fr] items-center gap-4 py-5">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -137,7 +138,7 @@ const StoreLayout = () => {
             {theme.logoUrl ? (
               <img src={theme.logoUrl} alt={store.storeName} className="h-20 sm:h-24 lg:h-28 max-w-[280px] object-contain" />
             ) : (
-              <span className="font-display text-3xl sm:text-5xl tracking-[0.18em] uppercase leading-none font-light text-foreground">
+              <span className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-[0.32em] uppercase leading-none font-light text-foreground">
                 {store.storeName}
               </span>
             )}
@@ -170,17 +171,17 @@ const StoreLayout = () => {
         </div>
 
         <nav className="border-t border-border/70">
-          <div className="container flex items-center justify-center gap-6 sm:gap-10 py-3 text-[12px] sm:text-[13px] uppercase tracking-[0.22em] text-foreground/85 overflow-x-auto">
-            <a href={`/loja/${store.storeSlug}#vitrine`} className="hover:text-foreground transition-colors whitespace-nowrap">Joias</a>
-            <a href={`/loja/${store.storeSlug}#colecoes`} className="hover:text-foreground transition-colors whitespace-nowrap">Coleções</a>
-            <a href={`/loja/${store.storeSlug}#vitrine`} className="hover:text-foreground transition-colors whitespace-nowrap hidden sm:inline">Novidades</a>
-            <a href={`/loja/${store.storeSlug}#sobre`} className="hover:text-foreground transition-colors whitespace-nowrap">Sobre</a>
+          <div className="container flex items-center justify-center gap-8 sm:gap-12 py-3.5 text-[11px] sm:text-[12px] uppercase tracking-[0.32em] text-foreground/80 overflow-x-auto font-light">
+            <a href={`/loja/${store.storeSlug}#vitrine`} className="relative whitespace-nowrap hover:text-foreground transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Joias</a>
+            <a href={`/loja/${store.storeSlug}#colecoes`} className="relative whitespace-nowrap hover:text-foreground transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Coleções</a>
+            <a href={`/loja/${store.storeSlug}#vitrine`} className="relative whitespace-nowrap hover:text-foreground transition-colors hidden sm:inline after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Novidades</a>
+            <a href={`/loja/${store.storeSlug}#sobre`} className="relative whitespace-nowrap hover:text-foreground transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-primary after:transition-all hover:after:w-full">Sobre</a>
             <a
               href={`/loja/${store.storeSlug}#vitrine`}
-              className="font-semibold whitespace-nowrap"
-              style={{ color: accent }}
+              className="font-medium whitespace-nowrap"
+              style={{ color: "hsl(var(--primary))" }}
             >
-              SALE
+              Sale
             </a>
           </div>
         </nav>

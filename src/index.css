@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -128,25 +128,66 @@
     background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.5), transparent);
   }
 
-  /* Tema claro (estilo Monte Carlo) aplicado apenas à loja pública */
+  /* Tema premium luxury (estilo Vivara/Cartier) — só na loja pública */
   .store-light {
-    --background: 0 0% 100%;
-    --foreground: 30 12% 12%;
+    --background: 40 20% 97%;          /* #f8f7f5 */
+    --foreground: 0 0% 7%;             /* #111111 */
     --card: 0 0% 100%;
-    --card-foreground: 30 12% 12%;
+    --card-foreground: 0 0% 7%;
     --popover: 0 0% 100%;
-    --popover-foreground: 30 12% 12%;
-    --secondary: 40 30% 96%;
-    --secondary-foreground: 30 12% 15%;
-    --muted: 40 25% 95%;
-    --muted-foreground: 30 8% 40%;
-    --accent: 42 65% 55%;
-    --accent-foreground: 30 20% 8%;
-    --border: 35 20% 88%;
-    --input: 35 20% 92%;
-    background: hsl(0 0% 100%);
+    --popover-foreground: 0 0% 7%;
+    --primary: 36 45% 60%;             /* #c8a46b dourado refinado */
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 36 50% 72%;
+    --primary-deep: 36 40% 45%;
+    --secondary: 38 18% 91%;           /* #ece8e1 */
+    --secondary-foreground: 0 0% 12%;
+    --muted: 40 15% 94%;
+    --muted-foreground: 30 6% 38%;
+    --accent: 36 45% 60%;
+    --accent-foreground: 0 0% 100%;
+    --border: 35 12% 88%;
+    --input: 35 14% 93%;
+    --ring: 36 45% 60%;
+    --radius: 0.25rem;
+    background: hsl(40 20% 97%);
     background-image: none;
-    color: hsl(30 12% 12%);
+    color: hsl(0 0% 7%);
+    font-family: 'Inter', system-ui, sans-serif;
   }
-  .store-light body { background: hsl(0 0% 100%); }
+  .store-light body { background: hsl(40 20% 97%); }
+  .store-light h1, .store-light h2, .store-light h3, .store-light h4,
+  .store-light h5, .store-light h6, .store-light .font-display {
+    font-family: 'Playfair Display', 'Cormorant Garamond', serif;
+    font-weight: 300;
+    letter-spacing: 0.01em;
+  }
+
+  /* Reveal suave ao aparecer */
+  @keyframes luxe-rise {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .store-light .luxe-rise { animation: luxe-rise 900ms cubic-bezier(0.22,1,0.36,1) both; }
+
+  /* Botão dourado com hover preenchido */
+  .store-light .btn-luxe {
+    @apply inline-flex items-center justify-center gap-2 px-7 py-3 text-[11px] uppercase tracking-[0.28em] font-medium border transition-all duration-500;
+    border-color: hsl(var(--primary));
+    color: hsl(var(--primary-deep));
+    background: transparent;
+  }
+  .store-light .btn-luxe:hover {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    box-shadow: 0 10px 30px -12px hsl(var(--primary) / 0.5);
+  }
+  .store-light .btn-luxe-dark {
+    @apply inline-flex items-center justify-center gap-2 px-7 py-3 text-[11px] uppercase tracking-[0.28em] font-medium transition-all duration-500;
+    background: hsl(var(--foreground));
+    color: hsl(var(--background));
+  }
+  .store-light .btn-luxe-dark:hover {
+    background: hsl(var(--primary));
+  }
 }
