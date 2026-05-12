@@ -12,6 +12,29 @@ export type StoreTheme = {
   instagram?: string;
   primaryColor?: string;
   secondaryColor?: string;
+  // Hero
+  heroEyebrow?: string;
+  heroTitle1?: string;
+  heroTitleHighlight?: string;
+  heroPromoText?: string;
+  heroCtaPrimary?: string;
+  heroCtaSecondary?: string;
+  // Benefícios (faixa abaixo do hero)
+  benefits?: string[];
+  // Sobre
+  aboutEyebrow?: string;
+  aboutTitle?: string;
+  aboutText?: string;
+  aboutText2?: string;
+  // CTA final
+  finalCtaEyebrow?: string;
+  finalCtaTitle?: string;
+  // Seções visíveis
+  showCollections?: boolean;
+  showMaterials?: boolean;
+  showCare?: boolean;
+  showGuarantee?: boolean;
+  showFinalCta?: boolean;
 };
 
 export type StoreCustomization = {
