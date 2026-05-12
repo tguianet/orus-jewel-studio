@@ -261,6 +261,44 @@ const StoreLayout = () => {
         </nav>
       </header>
 
+      <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl font-light">
+              Resultados para "{searchQuery}"
+            </DialogTitle>
+            <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+              {searchResults.length} {searchResults.length === 1 ? "peça encontrada" : "peças encontradas"}
+            </p>
+          </DialogHeader>
+          <div className="overflow-y-auto -mx-2 px-2">
+            {searchResults.length === 0 ? (
+              <p className="text-center text-sm text-muted-foreground py-12">
+                Nenhuma peça encontrada para "{searchQuery}".
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 py-4">
+                {searchResults.map((p: any) => (
+                  <Link
+                    key={p.id}
+                    to={`/loja/${store.storeSlug}/produto/${p.id}`}
+                    onClick={() => setSearchOpen(false)}
+                    className="group block"
+                  >
+                    <div className="aspect-square overflow-hidden bg-secondary/50 mb-3 rounded">
+                      <img src={p.image} alt={p.name} loading="lazy" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    </div>
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{p.category}</p>
+                    <h3 className="font-display text-sm font-light leading-tight mt-1 group-hover:text-primary transition-colors line-clamp-2">{p.name}</h3>
+                    <p className="mt-1 text-sm font-light" style={{ color: "hsl(var(--primary-deep))" }}>{formatBRL(p.resellerPrice)}</p>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <main className="flex-1">
         <Outlet context={ctx} />
       </main>
