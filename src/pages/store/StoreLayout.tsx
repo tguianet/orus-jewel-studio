@@ -100,13 +100,24 @@ const StoreLayout = () => {
         <div className="container grid grid-cols-3 items-center py-2.5 text-center">
           <div className="flex items-center justify-start gap-2">
             <MessageCircle className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">{theme.topBarLeftText || "Atendimento ao cliente"}</span>
+            <EditableText
+              field="topBarLeftText"
+              value={theme.topBarLeftText || "Atendimento ao cliente"}
+              className="hidden sm:inline"
+            />
           </div>
-          <div className="font-medium tracking-wide">
-            {theme.topBarCenterText || "Frete cortesia em todas as compras... Aproveite!"}
-          </div>
+          <EditableText
+            field="topBarCenterText"
+            value={theme.topBarCenterText || "Frete cortesia em todas as compras... Aproveite!"}
+            className="font-medium tracking-wide"
+            as="div"
+          />
           <div className="flex items-center justify-end gap-2">
-            <span className="hidden md:inline">{theme.topBarRightText || "Acessibilidade"}</span>
+            <EditableText
+              field="topBarRightText"
+              value={theme.topBarRightText || "Acessibilidade"}
+              className="hidden md:inline"
+            />
           </div>
         </div>
       </div>
