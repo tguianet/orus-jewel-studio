@@ -133,15 +133,20 @@ const StoreHome = () => {
       </section>
 
       {/* Benefits strip estilo Monte Carlo */}
-      <section className="border-b border-border bg-secondary/40">
-        <div className="container flex flex-wrap items-center justify-center gap-x-8 gap-y-2 divide-x divide-border py-4 text-[13px] text-foreground/80">
-          <span className="px-4 font-medium">Frete Grátis*</span>
-          <span className="px-4 font-medium">Parcele em até 10x sem juros</span>
-          <span className="px-4 font-medium hidden md:inline">Bônus em todas as compras*</span>
-          <span className="px-4 font-medium hidden lg:inline">5% OFF com PIX</span>
-          <span className="px-4 font-medium hidden lg:inline">Atendimento personalizado</span>
-        </div>
-      </section>
+      {(() => {
+        const benefits = (t.benefits && t.benefits.length)
+          ? t.benefits
+          : ["Frete Grátis*", "Parcele em até 10x sem juros", "Bônus em todas as compras*", "5% OFF com PIX", "Atendimento personalizado"];
+        return (
+          <section className="border-b border-border bg-secondary/40">
+            <div className="container flex flex-wrap items-center justify-center gap-x-8 gap-y-2 divide-x divide-border py-4 text-[13px] text-foreground/80">
+              {benefits.map((b, i) => (
+                <span key={i} className={`px-4 font-medium ${i >= 2 ? "hidden md:inline" : ""} ${i >= 3 ? "lg:inline" : ""}`}>{b}</span>
+              ))}
+            </div>
+          </section>
+        );
+      })()}
 
       {/* Coleções */}
       <section id="colecoes" className="container py-14 scroll-mt-20">
