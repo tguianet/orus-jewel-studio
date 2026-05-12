@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Switch } from "@/components/ui/switch";
 import { Check, ExternalLink, ImagePlus, Loader2, Plus, Trash2, Upload } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SellerLayout } from "@/layouts/SellerLayout";
