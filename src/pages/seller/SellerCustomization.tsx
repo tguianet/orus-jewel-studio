@@ -428,6 +428,57 @@ const SellerCustomization = () => {
                 </div>
               </div>
             </div>
+            <div>
+              <Label>Cor de destaque (faixa superior / CTA)</Label>
+              <div className="flex items-center gap-2 mt-1.5">
+                <Input
+                  type="color"
+                  value={theme.accentColor || "#f4a78a"}
+                  onChange={(e) => setTheme({ ...theme, accentColor: e.target.value })}
+                  className="h-10 w-14 p-1"
+                />
+                <Input
+                  value={theme.accentColor || "#f4a78a"}
+                  onChange={(e) => setTheme({ ...theme, accentColor: e.target.value })}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Faixa superior (top bar) */}
+          <div className="rounded-xl border border-border bg-card p-6 space-y-3">
+            <h3 className="font-display text-xl">Faixa superior (top bar)</h3>
+            <p className="text-xs text-muted-foreground -mt-1">A barra colorida que aparece acima do header.</p>
+            <div className="grid sm:grid-cols-3 gap-3">
+              <div>
+                <Label>Texto à esquerda</Label>
+                <Input value={theme.topBarLeftText || ""} onChange={(e) => setTheme({ ...theme, topBarLeftText: e.target.value })} placeholder="Atendimento ao cliente" maxLength={40} className="mt-1.5" />
+              </div>
+              <div>
+                <Label>Texto central (promoção)</Label>
+                <Input value={theme.topBarCenterText || ""} onChange={(e) => setTheme({ ...theme, topBarCenterText: e.target.value })} placeholder="Frete cortesia em todas as compras..." maxLength={80} className="mt-1.5" />
+              </div>
+              <div>
+                <Label>Texto à direita</Label>
+                <Input value={theme.topBarRightText || ""} onChange={(e) => setTheme({ ...theme, topBarRightText: e.target.value })} placeholder="Acessibilidade" maxLength={40} className="mt-1.5" />
+              </div>
+            </div>
+          </div>
+
+          {/* Categorias (estilo Vivara) */}
+          <div className="rounded-xl border border-border bg-card p-6 space-y-3">
+            <h3 className="font-display text-xl">Seção "Escolha por categorias"</h3>
+            <p className="text-xs text-muted-foreground -mt-1">Título da grade circular de categorias logo abaixo do hero.</p>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <Label>Título</Label>
+                <Input value={theme.categoriesTitle || ""} onChange={(e) => setTheme({ ...theme, categoriesTitle: e.target.value })} placeholder={`Joias ${name}`} maxLength={60} className="mt-1.5" />
+              </div>
+              <div>
+                <Label>Subtítulo</Label>
+                <Input value={theme.categoriesSubtitle || ""} onChange={(e) => setTheme({ ...theme, categoriesSubtitle: e.target.value })} placeholder="Escolha por categorias" maxLength={60} className="mt-1.5" />
+              </div>
+            </div>
           </div>
 
           {/* Hero / Banner principal */}
