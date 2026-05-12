@@ -1,10 +1,11 @@
 import { Link, Outlet, useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { ShoppingBag, Search, Heart, Instagram, MessageCircle, ShieldAlert, ArrowRight, X } from "lucide-react";
-import { getStoreBySlug } from "@/lib/mockData";
+import { getStoreBySlug, getStoreProducts, formatBRL } from "@/lib/mockData";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
-import { loadPublicStore } from "@/lib/cloudStore";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { CloudStoreProduct, loadPublicStore, loadStoreProducts } from "@/lib/cloudStore";
 import { DEFAULT_BANNER, StoreTheme, defaultTheme, loadStoreThemeBySlug } from "@/lib/storeTheme";
 import { waLink } from "@/lib/whatsapp";
 import { themeCssVars } from "@/lib/colorUtils";
