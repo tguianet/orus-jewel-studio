@@ -659,52 +659,22 @@ const SellerCustomization = () => {
           </Button>
         </div>
 
-        {/* Preview */}
+        {/* Preview ao vivo da loja */}
         <div className="lg:sticky lg:top-6 self-start space-y-3">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-primary">Preview</p>
-          <div className="rounded-xl border border-border overflow-hidden bg-background">
-            <div className="relative aspect-[16/7]">
-              <img src={banner} alt="" className="absolute inset-0 w-full h-full object-cover" />
-              <div className="absolute inset-0" style={{ background: `linear-gradient(to top, hsl(var(--background)) 5%, transparent 70%)` }} />
-            </div>
-            <div className="px-5 -mt-10 relative">
-              <div
-                className="h-20 w-20 rounded-2xl border-2 overflow-hidden bg-card flex items-center justify-center"
-                style={{ borderColor: primary }}
-              >
-                {theme.logoUrl ? (
-                  <img src={theme.logoUrl} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <OrusLogo showWord={false} size="lg" />
-                )}
-              </div>
-              <div className="mt-3 pb-5">
-                <p className="text-[10px] uppercase tracking-[0.3em]" style={{ color: primary }}>
-                  loja virtual
-                </p>
-                <h2 className="font-display text-2xl mt-1">{name || "Sua loja"}</h2>
-                {theme.description && (
-                  <p className="text-sm text-muted-foreground mt-2">{theme.description}</p>
-                )}
-                <div className="flex flex-wrap gap-2 mt-4">
-                  <span
-                    className="inline-flex items-center text-xs px-3 py-1 rounded-full font-medium"
-                    style={{ background: primary, color: "#1a1410" }}
-                  >
-                    Comprar agora
-                  </span>
-                  <span
-                    className="inline-flex items-center text-xs px-3 py-1 rounded-full"
-                    style={{ background: secondary, color: "#1a1410" }}
-                  >
-                    Coleção
-                  </span>
-                </div>
-              </div>
-            </div>
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] uppercase tracking-[0.3em] text-primary">Preview ao vivo</p>
+            <p className="text-xs text-muted-foreground">/loja/<span className="font-mono">{store.storeSlug}</span></p>
           </div>
-          <p className="text-xs text-muted-foreground">
-            URL pública: <span className="font-mono">/loja/{slug}</span>
+          <div className="rounded-xl border border-border overflow-hidden bg-background shadow-sm">
+            <iframe
+              ref={previewRef}
+              title="Preview da loja"
+              src={`/loja/${store.storeSlug}?preview=1`}
+              className="w-full h-[calc(100vh-200px)] min-h-[600px] bg-background"
+            />
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            Cores, textos e seções atualizam em tempo real. Imagens (banner/logo) e nome da loja aparecem assim que você salvar.
           </p>
         </div>
       </div>
