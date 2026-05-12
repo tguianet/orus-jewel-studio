@@ -526,6 +526,76 @@ const SellerCustomization = () => {
             </div>
           </div>
 
+          {/* Cores do Header / Menu */}
+          <div className="rounded-xl border border-border bg-card p-6 space-y-3">
+            <h3 className="font-display text-xl">Cores do menu (header)</h3>
+            <p className="text-xs text-muted-foreground -mt-1">Altera o fundo e a cor dos textos da barra do menu (logo, links, busca e ícones).</p>
+
+            <div>
+              <Label>Cor de fundo do menu</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {[
+                  { name: "Padrão", value: "" },
+                  { name: "Branco suave", value: "#f8f7f5" },
+                  { name: "Areia", value: "#f1ece2" },
+                  { name: "Champanhe", value: "#f5ead2" },
+                  { name: "Rosé", value: "#f7e6df" },
+                  { name: "Cinza claro", value: "#ece8e1" },
+                  { name: "Preto", value: "#111111" },
+                  { name: "Nude escuro", value: "#1a1410" },
+                ].map((c) => {
+                  const active = (theme.headerBgColor || "") === c.value;
+                  return (
+                    <button
+                      key={c.name}
+                      type="button"
+                      onClick={() => setTheme({ ...theme, headerBgColor: c.value || undefined })}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs transition-colors ${active ? "border-primary ring-1 ring-primary" : "border-border hover:border-primary/40"}`}
+                    >
+                      <span className="h-4 w-4 rounded-full border border-border" style={{ background: c.value || "transparent" }} />
+                      {c.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex items-center gap-2 mt-3">
+                <Input type="color" value={theme.headerBgColor || "#f8f7f5"} onChange={(e) => setTheme({ ...theme, headerBgColor: e.target.value })} className="h-10 w-14 p-1" />
+                <Input value={theme.headerBgColor || ""} onChange={(e) => setTheme({ ...theme, headerBgColor: e.target.value || undefined })} placeholder="#f8f7f5 (vazio = padrão)" />
+              </div>
+            </div>
+
+            <div>
+              <Label>Cor dos textos do menu</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {[
+                  { name: "Padrão", value: "" },
+                  { name: "Preto", value: "#111111" },
+                  { name: "Grafite", value: "#2a2a2a" },
+                  { name: "Marrom", value: "#5a4630" },
+                  { name: "Dourado", value: "#c8a46b" },
+                  { name: "Branco", value: "#ffffff" },
+                ].map((c) => {
+                  const active = (theme.headerTextColor || "") === c.value;
+                  return (
+                    <button
+                      key={c.name}
+                      type="button"
+                      onClick={() => setTheme({ ...theme, headerTextColor: c.value || undefined })}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs transition-colors ${active ? "border-primary ring-1 ring-primary" : "border-border hover:border-primary/40"}`}
+                    >
+                      <span className="h-4 w-4 rounded-full border border-border" style={{ background: c.value || "transparent" }} />
+                      {c.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex items-center gap-2 mt-3">
+                <Input type="color" value={theme.headerTextColor || "#111111"} onChange={(e) => setTheme({ ...theme, headerTextColor: e.target.value })} className="h-10 w-14 p-1" />
+                <Input value={theme.headerTextColor || ""} onChange={(e) => setTheme({ ...theme, headerTextColor: e.target.value || undefined })} placeholder="#111111 (vazio = padrão)" />
+              </div>
+            </div>
+          </div>
+
           {/* Hero / Banner principal */}
           <div className="rounded-xl border border-border bg-card p-6 space-y-4">
             <div className="flex items-baseline justify-between">
