@@ -138,7 +138,7 @@ const StoreLayout = () => {
             {theme.logoUrl ? (
               <img src={theme.logoUrl} alt={store.storeName} className="h-20 sm:h-24 lg:h-28 max-w-[280px] object-contain" />
             ) : (
-              <span className="font-display text-3xl sm:text-5xl tracking-[0.18em] uppercase leading-none font-light text-foreground">
+              <span className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-[0.32em] uppercase leading-none font-light text-foreground">
                 {store.storeName}
               </span>
             )}
