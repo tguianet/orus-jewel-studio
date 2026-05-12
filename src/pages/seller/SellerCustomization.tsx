@@ -144,42 +144,6 @@ const SellerCustomization = () => {
   const primary = theme.primaryColor || defaultTheme.primaryColor!;
   const secondary = theme.secondaryColor || defaultTheme.secondaryColor!;
 
-  // iframe ao vivo (hooks devem ficar antes de qualquer return condicional)
-  const previewRef = useRef<HTMLIFrameElement>(null);
-  const previewReady = useRef(false);
-  useEffect(() => {
-    const onMsg = (e: MessageEvent) => {
-      if ((e.data as any)?.type === "lovable-preview-ready") {
-        previewReady.current = true;
-        previewRef.current?.contentWindow?.postMessage({ type: "lovable-preview-theme", theme }, "*");
-        previewRef.current?.contentWindow?.postMessage({
-          type: "lovable-preview-store",
-          store: { storeName: name, phone, storeSlug: slug },
-        }, "*");
-      }
-      if ((e.data as any)?.type === "lovable-edit-field") {
-        const { field, value } = e.data as { field: string; value: string };
-        setTheme((prev) => ({ ...prev, [field]: value }));
-      }
-    };
-    window.addEventListener("message", onMsg);
-    return () => window.removeEventListener("message", onMsg);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (!previewReady.current) return;
-    previewRef.current?.contentWindow?.postMessage({ type: "lovable-preview-theme", theme }, "*");
-  }, [theme]);
-
-  useEffect(() => {
-    if (!previewReady.current) return;
-    previewRef.current?.contentWindow?.postMessage({
-      type: "lovable-preview-store",
-      store: { storeName: name, phone, storeSlug: slug },
-    }, "*");
-  }, [name, phone, slug]);
-
   if (loading) {
     return (
       <SellerLayout>
@@ -201,20 +165,20 @@ const SellerCustomization = () => {
   return (
     <SellerLayout>
       <PageHeader
-        eyebrow="Editor ao vivo"
+        eyebrow="Personalização"
         title="Personalizar loja"
-        description="Edite os campos à esquerda e veja sua loja mudando à direita em tempo real."
+        description="Edite os textos, imagens e cores. Clique em 'Abrir loja' para ver o resultado."
         actions={
           <Link to={`/loja/${store.storeSlug}`} target="_blank">
-            <Button variant="outline" size="sm"><ExternalLink className="h-4 w-4" /> Abrir loja real</Button>
+            <Button variant="outline" size="sm"><ExternalLink className="h-4 w-4" /> Abrir loja</Button>
           </Link>
         }
       />
 
-      <div className="grid lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] gap-5">
+      <div className="space-y-5 max-w-3xl">
 
         {/* Form */}
-        <div className="space-y-5 lg:max-h-[calc(100vh-180px)] lg:overflow-y-auto lg:pr-2 lg:-mr-2">
+        <div className="space-y-5">
 
           {/* Banner */}
           <div className="rounded-xl border border-border bg-card p-6 space-y-3">
@@ -662,24 +626,6 @@ const SellerCustomization = () => {
           </Button>
         </div>
 
-        {/* Preview ao vivo da loja */}
-        <div className="lg:sticky lg:top-6 self-start space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-primary">Preview ao vivo</p>
-            <p className="text-xs text-muted-foreground">/loja/<span className="font-mono">{store.storeSlug}</span></p>
-          </div>
-          <div className="rounded-xl border border-border overflow-hidden bg-background shadow-sm">
-            <iframe
-              ref={previewRef}
-              title="Preview da loja"
-              src={`/loja/${store.storeSlug}?preview=1`}
-              className="w-full h-[calc(100vh-200px)] min-h-[600px] bg-background"
-            />
-          </div>
-          <p className="text-[11px] text-muted-foreground">
-            Cores, textos e seções atualizam em tempo real. Imagens (banner/logo) e nome da loja aparecem assim que você salvar.
-          </p>
-        </div>
       </div>
     </SellerLayout>
   );
