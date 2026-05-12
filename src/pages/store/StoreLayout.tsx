@@ -102,7 +102,7 @@ const StoreLayout = () => {
 
           <Link to={`/loja/${store.storeSlug}`} className="flex flex-col items-center justify-center">
             {theme.logoUrl ? (
-              <img src={theme.logoUrl} alt={store.storeName} className="h-10 sm:h-12 object-contain" />
+              <img src={theme.logoUrl} alt={store.storeName} className="h-20 sm:h-24 lg:h-28 max-w-[280px] object-contain" />
             ) : (
               <span className="font-display text-3xl sm:text-5xl tracking-[0.18em] uppercase leading-none font-light text-foreground">
                 {store.storeName}
