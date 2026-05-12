@@ -20,6 +20,7 @@ export type StoreTheme = {
   // Categorias destaque (estilo Vivara)
   categoriesTitle?: string;
   categoriesSubtitle?: string;
+  categoriesBgColor?: string; // Cor de fundo da seção "Joias [Loja]"
   categoryImages?: Record<string, string>;
   // Hero
   heroEyebrow?: string;
