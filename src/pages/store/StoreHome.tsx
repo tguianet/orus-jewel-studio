@@ -69,15 +69,19 @@ const StoreHome = () => {
         <div className="container relative py-20 lg:py-32">
           <div className="max-w-xl">
             <p className="text-[10px] uppercase tracking-[0.4em] mb-4" style={{ color: t.primaryColor }}>
-              Coleção Atual
+              {t.heroEyebrow || "Coleção Atual"}
             </p>
             <h1 className="font-display text-5xl sm:text-7xl font-light leading-[1] uppercase tracking-tight">
-              Especial<br/>
-              <span style={{ color: t.primaryColor }}>Joias</span>
+              {t.heroTitle1 || "Especial"}<br/>
+              <span style={{ color: t.primaryColor }}>{t.heroTitleHighlight || "Joias"}</span>
             </h1>
             <div className="h-px w-24 my-6" style={{ background: t.primaryColor }} />
             <p className="text-2xl sm:text-3xl font-display font-light text-foreground/80">
-              até <span className="font-medium" style={{ color: t.primaryColor }}>20% OFF</span> em peças selecionadas
+              {t.heroPromoText ? (
+                <span dangerouslySetInnerHTML={{ __html: t.heroPromoText }} />
+              ) : (
+                <>até <span className="font-medium" style={{ color: t.primaryColor }}>20% OFF</span> em peças selecionadas</>
+              )}
             </p>
             <p className="mt-3 text-sm text-muted-foreground max-w-md">
               {t.description || `Curadoria exclusiva de ${store.storeName}. Peças folheadas a ouro, selecionadas com carinho para você brilhar todos os dias.`}
@@ -89,10 +93,10 @@ const StoreHome = () => {
                 className="text-primary-foreground rounded-none px-10 hover:brightness-110"
                 style={{ background: t.primaryColor }}
               >
-                <a href="#vitrine">comprar</a>
+                <a href="#vitrine">{t.heroCtaPrimary || "comprar"}</a>
               </Button>
               <Button variant="outline" size="xl" asChild className="rounded-none">
-                <a href="#sobre">Sobre a loja</a>
+                <a href="#sobre">{t.heroCtaSecondary || "Sobre a loja"}</a>
               </Button>
             </div>
           </div>
