@@ -155,7 +155,8 @@ const StoreHome = () => {
 
       {/* Coleções estilo Vivara — JOIAS [LOJA] / ESCOLHA POR CATEGORIAS */}
       {(t.showCollections ?? true) && (
-        <section id="colecoes" className="container py-16 scroll-mt-20">
+        <section id="colecoes" className="scroll-mt-20" style={t.categoriesBgColor ? { background: t.categoriesBgColor } : undefined}>
+          <div className="container py-16">
           <div className="text-center mb-10">
             <EditableText
               field="categoriesTitle"
@@ -195,6 +196,7 @@ const StoreHome = () => {
               })}
             </div>
           )}
+          </div>
         </section>
       )}
 
