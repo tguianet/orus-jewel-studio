@@ -594,7 +594,6 @@ const SellerCustomization = () => {
               />
             </div>
           </div>
-          </div>
 
           {/* Cores do Header / Menu */}
           <div className="rounded-xl border border-border bg-card p-6 space-y-3">
