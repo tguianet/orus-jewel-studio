@@ -162,20 +162,54 @@ const SellerCustomization = () => {
     );
   }
 
+  // iframe ao vivo
+  const previewRef = useRef<HTMLIFrameElement>(null);
+  const previewReady = useRef(false);
+  useEffect(() => {
+    const onMsg = (e: MessageEvent) => {
+      if ((e.data as any)?.type === "lovable-preview-ready") {
+        previewReady.current = true;
+        // empurra estado atual assim que carrega
+        previewRef.current?.contentWindow?.postMessage({ type: "lovable-preview-theme", theme }, "*");
+        previewRef.current?.contentWindow?.postMessage({
+          type: "lovable-preview-store",
+          store: { storeName: name, phone, storeSlug: slug },
+        }, "*");
+      }
+    };
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!previewReady.current) return;
+    previewRef.current?.contentWindow?.postMessage({ type: "lovable-preview-theme", theme }, "*");
+  }, [theme]);
+
+  useEffect(() => {
+    if (!previewReady.current) return;
+    previewRef.current?.contentWindow?.postMessage({
+      type: "lovable-preview-store",
+      store: { storeName: name, phone, storeSlug: slug },
+    }, "*");
+  }, [name, phone, slug]);
+
   return (
     <SellerLayout>
       <PageHeader
-        eyebrow="Identidade"
+        eyebrow="Editor ao vivo"
         title="Personalizar loja"
-        description="Deixe sua loja virtual com a sua cara — banner, logo, cores e dados de contato."
+        description="Edite os campos à esquerda e veja sua loja mudando à direita em tempo real."
         actions={
           <Link to={`/loja/${store.storeSlug}`} target="_blank">
-            <Button variant="outline" size="sm"><ExternalLink className="h-4 w-4" /> Ver loja</Button>
+            <Button variant="outline" size="sm"><ExternalLink className="h-4 w-4" /> Abrir loja real</Button>
           </Link>
         }
       />
 
-      <div className="grid lg:grid-cols-2 gap-5">
+      <div className="grid lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] gap-5">
+
         {/* Form */}
         <div className="space-y-5">
           {/* Banner */}
