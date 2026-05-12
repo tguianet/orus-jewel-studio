@@ -51,11 +51,13 @@ const StoreHome = () => {
 
   const collections = cats.filter((c) => c !== "Todos").slice(0, 6);
 
+  const accent = t.accentColor || "#f4a78a";
+
   return (
     <>
-      {/* Hero estilo Monte Carlo */}
-      <section className="relative overflow-hidden bg-secondary/40 border-b border-border">
-        <div className="absolute inset-0">
+      {/* Hero edge-to-edge estilo Vivara */}
+      <section className="relative overflow-hidden bg-secondary/30">
+        <div className="relative w-full h-[68vh] min-h-[460px] max-h-[820px]">
           {banners.map((b, i) => (
             <img
               key={b + i}
@@ -64,117 +66,116 @@ const StoreHome = () => {
               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1200ms] ${i === bannerIdx ? "opacity-100" : "opacity-0"}`}
             />
           ))}
-          <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/70 to-transparent" />
-        </div>
-        <div className="container relative py-20 lg:py-32">
-          <div className="max-w-xl">
-            <p className="text-[10px] uppercase tracking-[0.4em] mb-4" style={{ color: t.primaryColor }}>
-              {t.heroEyebrow || "Coleção Atual"}
-            </p>
-            <h1 className="font-display text-5xl sm:text-7xl font-light leading-[1] uppercase tracking-tight">
-              {t.heroTitle1 || "Especial"}<br/>
-              <span style={{ color: t.primaryColor }}>{t.heroTitleHighlight || "Joias"}</span>
-            </h1>
-            <div className="h-px w-24 my-6" style={{ background: t.primaryColor }} />
-            <p className="text-2xl sm:text-3xl font-display font-light text-foreground/80">
-              {t.heroPromoText ? (
-                <span dangerouslySetInnerHTML={{ __html: t.heroPromoText }} />
-              ) : (
-                <>até <span className="font-medium" style={{ color: t.primaryColor }}>20% OFF</span> em peças selecionadas</>
-              )}
-            </p>
-            <p className="mt-3 text-sm text-muted-foreground max-w-md">
-              {t.description || `Curadoria exclusiva de ${store.storeName}. Peças folheadas a ouro, selecionadas com carinho para você brilhar todos os dias.`}
-            </p>
-            <div className="flex flex-wrap gap-3 mt-7">
-              <Button
-                size="xl"
-                asChild
-                className="text-primary-foreground rounded-none px-10 hover:brightness-110"
-                style={{ background: t.primaryColor }}
-              >
-                <a href="#vitrine">{t.heroCtaPrimary || "comprar"}</a>
-              </Button>
-              <Button variant="outline" size="xl" asChild className="rounded-none">
-                <a href="#sobre">{t.heroCtaSecondary || "Sobre a loja"}</a>
-              </Button>
+
+          {/* Texto sobreposto à esquerda */}
+          <div className="absolute inset-0">
+            <div className="container h-full flex items-center">
+              <div className="max-w-md text-foreground">
+                <p className="text-[10px] uppercase tracking-[0.4em] mb-3" style={{ color: accent }}>
+                  {t.heroEyebrow || "Coleção Atual"}
+                </p>
+                <h1 className="font-display text-6xl sm:text-7xl lg:text-8xl font-light leading-[0.95] tracking-tight">
+                  {t.heroTitle1 || store.storeName}
+                </h1>
+                {t.heroTitleHighlight && (
+                  <p className="font-display italic text-3xl sm:text-4xl mt-2 text-foreground/80">
+                    {t.heroTitleHighlight}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
+
+          {/* CTA EXPLORAR à direita */}
+          <a
+            href="#vitrine"
+            className="hidden md:flex absolute right-10 lg:right-20 top-1/2 -translate-y-1/2 flex-col items-center gap-2 group"
+          >
+            <span className="font-display text-2xl tracking-[0.3em] uppercase text-foreground">
+              {t.heroCtaPrimary || "Explorar"}
+            </span>
+            <span className="h-[2px] w-16 transition-all group-hover:w-24" style={{ background: accent }} />
+          </a>
+
+          {banners.length > 1 && (
+            <>
+              <button
+                onClick={() => setBannerIdx((i) => (i - 1 + banners.length) % banners.length)}
+                aria-label="Banner anterior"
+                className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/80 backdrop-blur border border-border flex items-center justify-center hover:bg-background transition-colors"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => setBannerIdx((i) => (i + 1) % banners.length)}
+                aria-label="Próximo banner"
+                className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/80 backdrop-blur border border-border flex items-center justify-center hover:bg-background transition-colors"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+              <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                {banners.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setBannerIdx(i)}
+                    aria-label={`Banner ${i + 1}`}
+                    className={`h-1.5 rounded-full transition-all ${i === bannerIdx ? "w-8" : "w-3 opacity-60 hover:opacity-100"}`}
+                    style={{ background: accent }}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
-        {banners.length > 1 && (
-          <>
-            <button
-              onClick={() => setBannerIdx((i) => (i - 1 + banners.length) % banners.length)}
-              aria-label="Banner anterior"
-              className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/80 backdrop-blur border border-border flex items-center justify-center hover:bg-background transition-colors"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button
-              onClick={() => setBannerIdx((i) => (i + 1) % banners.length)}
-              aria-label="Próximo banner"
-              className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/80 backdrop-blur border border-border flex items-center justify-center hover:bg-background transition-colors"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-              {banners.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setBannerIdx(i)}
-                  aria-label={`Banner ${i + 1}`}
-                  className={`h-1.5 rounded-full transition-all ${i === bannerIdx ? "w-8" : "w-3 opacity-60 hover:opacity-100"}`}
-                  style={{ background: t.primaryColor }}
-                />
-              ))}
-            </div>
-          </>
-        )}
       </section>
 
-      {/* Benefits strip estilo Monte Carlo */}
+      {/* Benefits strip */}
       {(() => {
         const benefits = (t.benefits && t.benefits.length)
           ? t.benefits
           : ["Frete Grátis*", "Parcele em até 10x sem juros", "Bônus em todas as compras*", "5% OFF com PIX", "Atendimento personalizado"];
         return (
-          <section className="border-b border-border bg-secondary/40">
-            <div className="container flex flex-wrap items-center justify-center gap-x-8 gap-y-2 divide-x divide-border py-4 text-[13px] text-foreground/80">
+          <section className="border-b border-border bg-background">
+            <div className="container flex flex-wrap items-center justify-center gap-x-10 gap-y-2 py-4 text-[12px] text-foreground/80 uppercase tracking-wider">
               {benefits.map((b, i) => (
-                <span key={i} className={`px-4 font-medium ${i >= 2 ? "hidden md:inline" : ""} ${i >= 3 ? "lg:inline" : ""}`}>{b}</span>
+                <span key={i} className={`font-medium ${i >= 2 ? "hidden md:inline" : ""}`}>{b}</span>
               ))}
             </div>
           </section>
         );
       })()}
 
-      {/* Coleções */}
+      {/* Coleções estilo Vivara — JOIAS [LOJA] / ESCOLHA POR CATEGORIAS */}
       {(t.showCollections ?? true) && (
-        <section id="colecoes" className="container py-14 scroll-mt-20">
-          <div className="text-center mb-8">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Coleções</p>
-            <h2 className="font-display text-3xl sm:text-4xl font-light">Explore por categoria</h2>
+        <section id="colecoes" className="container py-16 scroll-mt-20">
+          <div className="text-center mb-10">
+            <h2 className="font-display text-4xl sm:text-5xl font-light tracking-wide uppercase">
+              {t.categoriesTitle || `Joias ${store.storeName}`}
+            </h2>
+            <p className="mt-3 text-[11px] uppercase tracking-[0.4em] text-muted-foreground">
+              {t.categoriesSubtitle || "Escolha por categorias"}
+            </p>
+            <div className="mx-auto mt-3 h-[2px] w-12" style={{ background: accent }} />
           </div>
           {collections.length === 0 ? (
             <p className="text-center text-sm text-muted-foreground">Em breve novas coleções por aqui.</p>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
               {collections.map((c) => {
                 const sample = allProducts.find((p: any) => p.category === c);
+                const img = (t.categoryImages || {})[c] || sample?.image;
                 return (
                   <button
                     key={c}
                     onClick={() => { setActiveCat(c); document.getElementById("vitrine")?.scrollIntoView({ behavior: "smooth" }); }}
-                    className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-border text-left"
+                    className="group flex flex-col items-center text-center"
                   >
-                    {sample?.image && (
-                      <img src={sample.image} alt={c} loading="lazy" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
-                    <div className="absolute bottom-4 left-4">
-                      <p className="text-[10px] uppercase tracking-[0.25em] text-primary">Coleção</p>
-                      <h3 className="font-display text-xl">{c}</h3>
+                    <div className="aspect-square w-full overflow-hidden rounded-full bg-secondary/40 border border-border transition-all group-hover:border-foreground">
+                      {img && (
+                        <img src={img} alt={c} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                      )}
                     </div>
+                    <h3 className="mt-3 text-[12px] uppercase tracking-[0.18em] font-medium">{c}</h3>
                   </button>
                 );
               })}
