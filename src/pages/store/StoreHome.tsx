@@ -199,21 +199,22 @@ const StoreHome = () => {
       )}
 
       {/* Vitrine */}
-      <section id="vitrine" className="container py-8 scroll-mt-20">
-        <div className="text-center mb-8">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Vitrine</p>
+      <section id="vitrine" className="container py-20 scroll-mt-20">
+        <div className="text-center mb-12">
+          <p className="text-[10px] uppercase tracking-[0.4em] text-primary mb-3">Vitrine</p>
           <h2 className="font-display text-4xl sm:text-5xl font-light">Selecionadas para você</h2>
+          <div className="mx-auto mt-4 h-px w-12 bg-primary/60" />
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-4 -mx-4 px-4 mb-6 justify-start sm:justify-center">
+        <div className="flex gap-1 overflow-x-auto pb-6 -mx-4 px-4 mb-10 justify-start sm:justify-center">
           {cats.map((c) => (
             <button
               key={c}
               onClick={() => setActiveCat(c)}
-              className={`shrink-0 rounded-full border px-4 py-1.5 text-sm transition-colors ${
+              className={`shrink-0 px-5 py-2 text-[11px] uppercase tracking-[0.28em] font-light transition-all duration-300 border-b ${
                 activeCat === c
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:border-primary hover:text-primary"
+                  ? "border-primary text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
               }`}
             >
               {c}
@@ -224,15 +225,18 @@ const StoreHome = () => {
         {filtered.length === 0 ? (
           <p className="text-center text-sm text-muted-foreground py-12">Ainda não há produtos nesta categoria.</p>
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
             {filtered.map((p: any) => (
-              <Link key={p.id} to={`/loja/${store.storeSlug}/produto/${p.id}`} className="group">
-                <div className="aspect-square overflow-hidden rounded-xl border border-border mb-3">
-                  <img src={p.image} alt={p.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+              <Link key={p.id} to={`/loja/${store.storeSlug}/produto/${p.id}`} className="group block">
+                <div className="relative aspect-square overflow-hidden bg-secondary/50 mb-5 transition-all duration-500 group-hover:shadow-[0_30px_60px_-20px_rgba(17,17,17,0.18)]">
+                  <img src={p.image} alt={p.name} loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-105" />
+                  <span className="absolute top-3 right-3 h-9 w-9 rounded-full bg-white/85 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Heart className="h-4 w-4 text-foreground" />
+                  </span>
                 </div>
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{p.category}</p>
-                <h3 className="font-display text-lg leading-tight mt-1 group-hover:text-primary transition-colors">{p.name}</h3>
-                <p className="text-primary font-medium mt-1">{formatBRL(p.resellerPrice)}</p>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{p.category}</p>
+                <h3 className="font-display text-xl font-light leading-tight mt-1.5 group-hover:text-primary transition-colors duration-300">{p.name}</h3>
+                <p className="mt-2 text-[15px] font-light tracking-wide" style={{ color: "hsl(var(--primary-deep))" }}>{formatBRL(p.resellerPrice)}</p>
               </Link>
             ))}
           </div>
