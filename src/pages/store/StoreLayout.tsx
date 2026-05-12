@@ -70,53 +70,63 @@ const StoreLayout = () => {
     );
   }
 
+  const accent = theme.accentColor || "#f4a78a";
+
   return (
     <div className="store-light min-h-screen flex flex-col bg-background text-foreground" style={themeCssVars(theme.primaryColor, theme.secondaryColor)}>
-      {/* Top promo bar */}
-      <div className="w-full text-[12px] text-primary-foreground" style={{ background: theme.primaryColor || "hsl(var(--primary))" }}>
-        <div className="container flex items-center justify-center gap-3 py-2 text-center tracking-wide">
-          <span className="hidden sm:inline opacity-90">FRETE GRÁTIS PARA TODO BRASIL</span>
-          <span className="hidden sm:inline opacity-60">•</span>
-          <span>10% OFF NA PRIMEIRA COMPRA</span>
-          <span className="opacity-60">•</span>
-          <span className="font-medium">CUPOM: BEMVINDO10</span>
+      {/* Top bar estilo Vivara */}
+      <div className="w-full text-[12px]" style={{ background: accent, color: "#3a1f12" }}>
+        <div className="container grid grid-cols-3 items-center py-2.5 text-center">
+          <div className="flex items-center justify-start gap-2">
+            <MessageCircle className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{theme.topBarLeftText || "Atendimento ao cliente"}</span>
+          </div>
+          <div className="font-medium tracking-wide">
+            {theme.topBarCenterText || "Frete cortesia em todas as compras... Aproveite!"}
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            <span className="hidden md:inline">{theme.topBarRightText || "Acessibilidade"}</span>
+          </div>
         </div>
       </div>
 
       <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-xl">
-        <div className="container grid grid-cols-3 items-center gap-4 py-4">
+        {/* Linha 1: CEP / Logo central / Buscar Account Bag */}
+        <div className="container grid grid-cols-[1fr_auto_1fr] items-center gap-4 py-5">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            {theme.instagram && (
-              <a href={`https://instagram.com/${theme.instagram}`} target="_blank" rel="noreferrer">
-                <Button variant="ghost" size="icon" className="h-8 w-8"><Instagram className="h-4 w-4" /></Button>
-              </a>
-            )}
-            <span className="hidden md:inline">Atendimento: {theme.whatsapp || store.phone || "—"}</span>
+            <span className="hidden md:inline-flex items-center gap-1.5">
+              <span className="inline-block h-3 w-3 rounded-full" style={{ background: accent }} />
+              Informar meu CEP
+            </span>
           </div>
 
           <Link to={`/loja/${store.storeSlug}`} className="flex flex-col items-center justify-center">
             {theme.logoUrl ? (
-              <img src={theme.logoUrl} alt={store.storeName} className="h-12 object-contain" />
+              <img src={theme.logoUrl} alt={store.storeName} className="h-10 sm:h-12 object-contain" />
             ) : (
-              <>
-                <span className="font-display text-2xl sm:text-3xl tracking-[0.2em] uppercase leading-none">
-                  {store.storeName}
-                </span>
-                <span className="mt-1 text-[10px] tracking-[0.4em] uppercase text-muted-foreground">Joalheria</span>
-              </>
+              <span className="font-display text-3xl sm:text-5xl tracking-[0.18em] uppercase leading-none font-light text-foreground">
+                {store.storeName}
+              </span>
             )}
           </Link>
 
-          <div className="flex items-center justify-end gap-1">
-            <Button variant="ghost" size="icon" className="h-9 w-9"><Search className="h-4 w-4" /></Button>
+          <div className="flex items-center justify-end gap-2">
+            <div className="hidden md:flex items-center rounded-full border border-border bg-secondary/50 px-3 h-9 w-56">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <input
+                placeholder="Buscar por nome ou código"
+                className="bg-transparent outline-none text-sm px-2 w-full placeholder:text-muted-foreground"
+              />
+            </div>
+            <Button variant="ghost" size="icon" className="h-9 w-9 md:hidden"><Search className="h-4 w-4" /></Button>
             <Button variant="ghost" size="icon" className="h-9 w-9 hidden sm:inline-flex"><Heart className="h-4 w-4" /></Button>
             <Link to={`/loja/${store.storeSlug}/carrinho`}>
               <Button variant="ghost" size="icon" className="h-9 w-9 relative">
                 <ShoppingBag className="h-4 w-4" />
                 {count > 0 && (
                   <span
-                    className="absolute -top-1 -right-1 h-4 min-w-[1rem] px-1 rounded-full text-[10px] flex items-center justify-center font-medium text-primary-foreground"
-                    style={{ background: theme.primaryColor || "hsl(var(--primary))" }}
+                    className="absolute -top-1 -right-1 h-4 min-w-[1rem] px-1 rounded-full text-[10px] flex items-center justify-center font-medium text-white"
+                    style={{ background: accent }}
                   >
                     {count}
                   </span>
@@ -127,17 +137,17 @@ const StoreLayout = () => {
         </div>
 
         <nav className="border-t border-border/70">
-          <div className="container flex items-center justify-center gap-6 sm:gap-8 py-3 text-[12px] sm:text-[13px] uppercase tracking-[0.18em] text-foreground/80 overflow-x-auto">
-            <a href={`/loja/${store.storeSlug}#vitrine`} className="hover:text-primary transition-colors whitespace-nowrap">Joias</a>
-            <a href={`/loja/${store.storeSlug}#colecoes`} className="hover:text-primary transition-colors whitespace-nowrap">Coleções</a>
-            <a href={`/loja/${store.storeSlug}#vitrine`} className="hover:text-primary transition-colors whitespace-nowrap hidden sm:inline">Novidades</a>
-            <a href={`/loja/${store.storeSlug}#sobre`} className="hover:text-primary transition-colors whitespace-nowrap">Sobre</a>
+          <div className="container flex items-center justify-center gap-6 sm:gap-10 py-3 text-[12px] sm:text-[13px] uppercase tracking-[0.22em] text-foreground/85 overflow-x-auto">
+            <a href={`/loja/${store.storeSlug}#vitrine`} className="hover:text-foreground transition-colors whitespace-nowrap">Joias</a>
+            <a href={`/loja/${store.storeSlug}#colecoes`} className="hover:text-foreground transition-colors whitespace-nowrap">Coleções</a>
+            <a href={`/loja/${store.storeSlug}#vitrine`} className="hover:text-foreground transition-colors whitespace-nowrap hidden sm:inline">Novidades</a>
+            <a href={`/loja/${store.storeSlug}#sobre`} className="hover:text-foreground transition-colors whitespace-nowrap">Sobre</a>
             <a
               href={`/loja/${store.storeSlug}#vitrine`}
-              className="rounded-sm px-3 py-1 text-primary-foreground whitespace-nowrap"
-              style={{ background: theme.primaryColor || "hsl(var(--primary))" }}
+              className="font-semibold whitespace-nowrap"
+              style={{ color: accent }}
             >
-              OFF
+              SALE
             </a>
           </div>
         </nav>
