@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import heroImg from "@/assets/hero-jewelry.jpg";
 import { CloudStoreProduct, loadStoreProducts } from "@/lib/cloudStore";
 import { DEFAULT_BANNER, StoreTheme, defaultTheme } from "@/lib/storeTheme";
+import { EditableText } from "@/components/preview/EditableText";
 
 type StoreCtx = { store: Sacoleira; theme?: StoreTheme; banner?: string };
 
