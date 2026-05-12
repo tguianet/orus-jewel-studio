@@ -430,6 +430,143 @@ const SellerCustomization = () => {
             </div>
           </div>
 
+          {/* Hero / Banner principal */}
+          <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+            <div className="flex items-baseline justify-between">
+              <h3 className="font-display text-xl">Hero (banner principal)</h3>
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground">textos do topo</span>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <Label>Eyebrow (linha pequena)</Label>
+                <Input value={theme.heroEyebrow || ""} onChange={(e) => setTheme({ ...theme, heroEyebrow: e.target.value })} placeholder="Coleção Atual" maxLength={40} className="mt-1.5" />
+              </div>
+              <div>
+                <Label>Título — linha 1</Label>
+                <Input value={theme.heroTitle1 || ""} onChange={(e) => setTheme({ ...theme, heroTitle1: e.target.value })} placeholder="Especial" maxLength={30} className="mt-1.5" />
+              </div>
+              <div>
+                <Label>Título — destaque (cor primária)</Label>
+                <Input value={theme.heroTitleHighlight || ""} onChange={(e) => setTheme({ ...theme, heroTitleHighlight: e.target.value })} placeholder="Joias" maxLength={30} className="mt-1.5" />
+              </div>
+              <div>
+                <Label>Texto promocional</Label>
+                <Input value={theme.heroPromoText || ""} onChange={(e) => setTheme({ ...theme, heroPromoText: e.target.value })} placeholder="até 20% OFF em peças selecionadas" maxLength={120} className="mt-1.5" />
+              </div>
+              <div>
+                <Label>Botão primário</Label>
+                <Input value={theme.heroCtaPrimary || ""} onChange={(e) => setTheme({ ...theme, heroCtaPrimary: e.target.value })} placeholder="comprar" maxLength={30} className="mt-1.5" />
+              </div>
+              <div>
+                <Label>Botão secundário</Label>
+                <Input value={theme.heroCtaSecondary || ""} onChange={(e) => setTheme({ ...theme, heroCtaSecondary: e.target.value })} placeholder="Sobre a loja" maxLength={30} className="mt-1.5" />
+              </div>
+            </div>
+          </div>
+
+          {/* Faixa de benefícios */}
+          <div className="rounded-xl border border-border bg-card p-6 space-y-3">
+            <div className="flex items-baseline justify-between">
+              <h3 className="font-display text-xl">Faixa de benefícios</h3>
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground">{(theme.benefits || []).length} itens</span>
+            </div>
+            <p className="text-xs text-muted-foreground -mt-1">Aparecem logo abaixo do banner principal.</p>
+            <div className="space-y-2">
+              {(theme.benefits && theme.benefits.length ? theme.benefits : ["Frete Grátis*", "Parcele em até 10x sem juros", "Bônus em todas as compras*", "5% OFF com PIX", "Atendimento personalizado"]).map((b, i) => (
+                <div key={i} className="flex gap-2">
+                  <Input
+                    value={b}
+                    onChange={(e) => {
+                      const list = [...((theme.benefits && theme.benefits.length) ? theme.benefits! : ["Frete Grátis*", "Parcele em até 10x sem juros", "Bônus em todas as compras*", "5% OFF com PIX", "Atendimento personalizado"])];
+                      list[i] = e.target.value;
+                      setTheme({ ...theme, benefits: list });
+                    }}
+                    maxLength={60}
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      const list = [...((theme.benefits && theme.benefits.length) ? theme.benefits! : ["Frete Grátis*", "Parcele em até 10x sem juros", "Bônus em todas as compras*", "5% OFF com PIX", "Atendimento personalizado"])];
+                      list.splice(i, 1);
+                      setTheme({ ...theme, benefits: list });
+                    }}
+                    aria-label="Remover"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                const list = [...((theme.benefits && theme.benefits.length) ? theme.benefits! : [])];
+                list.push("Novo benefício");
+                setTheme({ ...theme, benefits: list });
+              }}
+            >
+              <Plus className="h-4 w-4" /> Adicionar benefício
+            </Button>
+          </div>
+
+          {/* Sobre a loja */}
+          <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+            <h3 className="font-display text-xl">Seção "Sobre a loja"</h3>
+            <div>
+              <Label>Eyebrow</Label>
+              <Input value={theme.aboutEyebrow || ""} onChange={(e) => setTheme({ ...theme, aboutEyebrow: e.target.value })} placeholder="Sobre a loja" maxLength={40} className="mt-1.5" />
+            </div>
+            <div>
+              <Label>Título</Label>
+              <Input value={theme.aboutTitle || ""} onChange={(e) => setTheme({ ...theme, aboutTitle: e.target.value })} placeholder={name || "Nome da loja"} maxLength={80} className="mt-1.5" />
+            </div>
+            <div>
+              <Label>Texto principal</Label>
+              <Textarea value={theme.aboutText || ""} onChange={(e) => setTheme({ ...theme, aboutText: e.target.value })} rows={4} maxLength={600} placeholder="Conte a história da sua loja..." className="mt-1.5" />
+            </div>
+            <div>
+              <Label>Texto complementar (opcional)</Label>
+              <Textarea value={theme.aboutText2 || ""} onChange={(e) => setTheme({ ...theme, aboutText2: e.target.value })} rows={3} maxLength={600} placeholder="Diferenciais, fornecedores, missão..." className="mt-1.5" />
+            </div>
+          </div>
+
+          {/* CTA final */}
+          <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+            <h3 className="font-display text-xl">Chamada final</h3>
+            <div>
+              <Label>Eyebrow</Label>
+              <Input value={theme.finalCtaEyebrow || ""} onChange={(e) => setTheme({ ...theme, finalCtaEyebrow: e.target.value })} placeholder="Atendimento personalizado" maxLength={40} className="mt-1.5" />
+            </div>
+            <div>
+              <Label>Título</Label>
+              <Textarea value={theme.finalCtaTitle || ""} onChange={(e) => setTheme({ ...theme, finalCtaTitle: e.target.value })} rows={2} maxLength={200} placeholder="Não encontrou o que procurava? Fale comigo..." className="mt-1.5" />
+            </div>
+          </div>
+
+          {/* Seções visíveis */}
+          <div className="rounded-xl border border-border bg-card p-6 space-y-3">
+            <h3 className="font-display text-xl">Seções visíveis</h3>
+            <p className="text-xs text-muted-foreground -mt-1">Mostre ou esconda blocos da sua loja.</p>
+            {[
+              { key: "showCollections", label: "Coleções (categorias em destaque)" },
+              { key: "showMaterials", label: "Materiais (Ouro, Prata, Folheado)" },
+              { key: "showCare", label: "Cuidados com as joias" },
+              { key: "showGuarantee", label: "Garantia, troca e pagamento" },
+              { key: "showFinalCta", label: "Chamada final (WhatsApp/Instagram)" },
+            ].map((s) => {
+              const value = (theme as any)[s.key];
+              const checked = value === undefined ? true : !!value;
+              return (
+                <div key={s.key} className="flex items-center justify-between py-1.5 border-b border-border last:border-0">
+                  <span className="text-sm">{s.label}</span>
+                  <Switch checked={checked} onCheckedChange={(v) => setTheme({ ...theme, [s.key]: v } as StoreTheme)} />
+                </div>
+              );
+            })}
+          </div>
+
           <Button variant="gold" size="lg" className="w-full" onClick={handleSave} disabled={saving}>
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             Salvar personalização
