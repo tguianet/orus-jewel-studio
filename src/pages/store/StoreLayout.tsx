@@ -201,7 +201,7 @@ const StoreLayout = () => {
 
           {/* Busca + ícones à direita */}
           <div className="flex items-center justify-end gap-2">
-            <form onSubmit={submitSearch} className="hidden md:flex items-center rounded-full border border-border bg-secondary/50 px-3 h-9 w-56 focus-within:border-primary transition-colors">
+            <form onSubmit={submitSearch} className="hidden md:flex items-center rounded-full border border-border bg-white px-3 h-9 w-56 focus-within:border-primary transition-colors text-foreground">
               <button type="submit" aria-label="Buscar" className="text-muted-foreground hover:text-foreground transition-colors">
                 <Search className="h-4 w-4" />
               </button>
@@ -241,7 +241,7 @@ const StoreLayout = () => {
         {mobileSearchOpen && (
           <div className="md:hidden border-t border-border/70">
             <form onSubmit={submitSearch} className="container py-3 flex items-center gap-2">
-              <div className="flex-1 flex items-center rounded-full border border-border bg-secondary/50 px-3 h-10">
+              <div className="flex-1 flex items-center rounded-full border border-border bg-white px-3 h-10 text-foreground">
                 <Search className="h-4 w-4 text-muted-foreground" />
                 <input
                   autoFocus
