@@ -196,6 +196,7 @@ const StoreHome = () => {
               })}
             </div>
           )}
+          </div>
         </section>
       )}
 
