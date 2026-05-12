@@ -437,10 +437,19 @@ const StoreHome = () => {
         {/* CTA final */}
         {(t.showFinalCta ?? true) && (
         <div className="rounded-2xl border border-primary/30 bg-gradient-gold-soft p-8 lg:p-10 text-center">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">{t.finalCtaEyebrow || "Atendimento personalizado"}</p>
-          <h3 className="font-display text-2xl sm:text-3xl font-light max-w-2xl mx-auto">
-            {t.finalCtaTitle || "Não encontrou o que procurava? Fale comigo e eu ajudo a escolher a joia perfeita."}
-          </h3>
+          <EditableText
+            field="finalCtaEyebrow"
+            value={t.finalCtaEyebrow || "Atendimento personalizado"}
+            as="p"
+            className="block text-[10px] uppercase tracking-[0.3em] text-primary mb-2"
+          />
+          <EditableText
+            field="finalCtaTitle"
+            value={t.finalCtaTitle || "Não encontrou o que procurava? Fale comigo e eu ajudo a escolher a joia perfeita."}
+            as="h3"
+            multiline
+            className="block font-display text-2xl sm:text-3xl font-light max-w-2xl mx-auto"
+          />
           <div className="flex flex-wrap gap-3 mt-6 justify-center">
             {t.whatsapp || store.phone ? (
               <a
