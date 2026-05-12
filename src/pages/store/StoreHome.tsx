@@ -69,15 +69,19 @@ const StoreHome = () => {
         <div className="container relative py-20 lg:py-32">
           <div className="max-w-xl">
             <p className="text-[10px] uppercase tracking-[0.4em] mb-4" style={{ color: t.primaryColor }}>
-              Coleção Atual
+              {t.heroEyebrow || "Coleção Atual"}
             </p>
             <h1 className="font-display text-5xl sm:text-7xl font-light leading-[1] uppercase tracking-tight">
-              Especial<br/>
-              <span style={{ color: t.primaryColor }}>Joias</span>
+              {t.heroTitle1 || "Especial"}<br/>
+              <span style={{ color: t.primaryColor }}>{t.heroTitleHighlight || "Joias"}</span>
             </h1>
             <div className="h-px w-24 my-6" style={{ background: t.primaryColor }} />
             <p className="text-2xl sm:text-3xl font-display font-light text-foreground/80">
-              até <span className="font-medium" style={{ color: t.primaryColor }}>20% OFF</span> em peças selecionadas
+              {t.heroPromoText ? (
+                <span dangerouslySetInnerHTML={{ __html: t.heroPromoText }} />
+              ) : (
+                <>até <span className="font-medium" style={{ color: t.primaryColor }}>20% OFF</span> em peças selecionadas</>
+              )}
             </p>
             <p className="mt-3 text-sm text-muted-foreground max-w-md">
               {t.description || `Curadoria exclusiva de ${store.storeName}. Peças folheadas a ouro, selecionadas com carinho para você brilhar todos os dias.`}
@@ -89,10 +93,10 @@ const StoreHome = () => {
                 className="text-primary-foreground rounded-none px-10 hover:brightness-110"
                 style={{ background: t.primaryColor }}
               >
-                <a href="#vitrine">comprar</a>
+                <a href="#vitrine">{t.heroCtaPrimary || "comprar"}</a>
               </Button>
               <Button variant="outline" size="xl" asChild className="rounded-none">
-                <a href="#sobre">Sobre a loja</a>
+                <a href="#sobre">{t.heroCtaSecondary || "Sobre a loja"}</a>
               </Button>
             </div>
           </div>
@@ -129,48 +133,55 @@ const StoreHome = () => {
       </section>
 
       {/* Benefits strip estilo Monte Carlo */}
-      <section className="border-b border-border bg-secondary/40">
-        <div className="container flex flex-wrap items-center justify-center gap-x-8 gap-y-2 divide-x divide-border py-4 text-[13px] text-foreground/80">
-          <span className="px-4 font-medium">Frete Grátis*</span>
-          <span className="px-4 font-medium">Parcele em até 10x sem juros</span>
-          <span className="px-4 font-medium hidden md:inline">Bônus em todas as compras*</span>
-          <span className="px-4 font-medium hidden lg:inline">5% OFF com PIX</span>
-          <span className="px-4 font-medium hidden lg:inline">Atendimento personalizado</span>
-        </div>
-      </section>
+      {(() => {
+        const benefits = (t.benefits && t.benefits.length)
+          ? t.benefits
+          : ["Frete Grátis*", "Parcele em até 10x sem juros", "Bônus em todas as compras*", "5% OFF com PIX", "Atendimento personalizado"];
+        return (
+          <section className="border-b border-border bg-secondary/40">
+            <div className="container flex flex-wrap items-center justify-center gap-x-8 gap-y-2 divide-x divide-border py-4 text-[13px] text-foreground/80">
+              {benefits.map((b, i) => (
+                <span key={i} className={`px-4 font-medium ${i >= 2 ? "hidden md:inline" : ""} ${i >= 3 ? "lg:inline" : ""}`}>{b}</span>
+              ))}
+            </div>
+          </section>
+        );
+      })()}
 
       {/* Coleções */}
-      <section id="colecoes" className="container py-14 scroll-mt-20">
-        <div className="text-center mb-8">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Coleções</p>
-          <h2 className="font-display text-3xl sm:text-4xl font-light">Explore por categoria</h2>
-        </div>
-        {collections.length === 0 ? (
-          <p className="text-center text-sm text-muted-foreground">Em breve novas coleções por aqui.</p>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {collections.map((c) => {
-              const sample = allProducts.find((p: any) => p.category === c);
-              return (
-                <button
-                  key={c}
-                  onClick={() => { setActiveCat(c); document.getElementById("vitrine")?.scrollIntoView({ behavior: "smooth" }); }}
-                  className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-border text-left"
-                >
-                  {sample?.image && (
-                    <img src={sample.image} alt={c} loading="lazy" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
-                  <div className="absolute bottom-4 left-4">
-                    <p className="text-[10px] uppercase tracking-[0.25em] text-primary">Coleção</p>
-                    <h3 className="font-display text-xl">{c}</h3>
-                  </div>
-                </button>
-              );
-            })}
+      {(t.showCollections ?? true) && (
+        <section id="colecoes" className="container py-14 scroll-mt-20">
+          <div className="text-center mb-8">
+            <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Coleções</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-light">Explore por categoria</h2>
           </div>
-        )}
-      </section>
+          {collections.length === 0 ? (
+            <p className="text-center text-sm text-muted-foreground">Em breve novas coleções por aqui.</p>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {collections.map((c) => {
+                const sample = allProducts.find((p: any) => p.category === c);
+                return (
+                  <button
+                    key={c}
+                    onClick={() => { setActiveCat(c); document.getElementById("vitrine")?.scrollIntoView({ behavior: "smooth" }); }}
+                    className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-border text-left"
+                  >
+                    {sample?.image && (
+                      <img src={sample.image} alt={c} loading="lazy" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+                    <div className="absolute bottom-4 left-4">
+                      <p className="text-[10px] uppercase tracking-[0.25em] text-primary">Coleção</p>
+                      <h3 className="font-display text-xl">{c}</h3>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Vitrine */}
       <section id="vitrine" className="container py-8 scroll-mt-20">
@@ -219,17 +230,19 @@ const StoreHome = () => {
         <div className="rounded-2xl border border-primary/20 bg-gradient-gold-soft p-10 lg:p-14">
           <div className="grid lg:grid-cols-2 gap-10 items-center">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-3">Sobre a loja</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-3">{t.aboutEyebrow || "Sobre a loja"}</p>
               <h3 className="font-display text-3xl sm:text-4xl font-light">
-                {store.storeName}
+                {t.aboutTitle || store.storeName}
               </h3>
-              <p className="mt-4 text-muted-foreground leading-relaxed">
-                {t.description ||
+              <p className="mt-4 text-muted-foreground leading-relaxed whitespace-pre-line">
+                {t.aboutText || t.description ||
                   `${store.storeName} é uma curadoria autoral de joias em prata 925, ouro 18k e folheados a ouro de alta qualidade. Cada peça é escolhida pensando em quem usa — para acompanhar você nos dias comuns e nos momentos que merecem brilho.`}
               </p>
-              <p className="mt-3 text-muted-foreground leading-relaxed">
-                Trabalhamos com fornecedores reconhecidos no Brasil, priorizando acabamento impecável, design atemporal e durabilidade. Mais do que vender joias, queremos fazer parte da sua história.
-              </p>
+              {(t.aboutText2 || (!t.aboutText && !t.description)) && (
+                <p className="mt-3 text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {t.aboutText2 || "Trabalhamos com fornecedores reconhecidos no Brasil, priorizando acabamento impecável, design atemporal e durabilidade. Mais do que vender joias, queremos fazer parte da sua história."}
+                </p>
+              )}
               <div className="flex flex-wrap gap-3 mt-6">
                 {t.whatsapp || store.phone ? (
                   <a
@@ -269,6 +282,7 @@ const StoreHome = () => {
         </div>
 
         {/* Materiais */}
+        {(t.showMaterials ?? true) && (
         <div>
           <div className="text-center mb-8">
             <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Materiais</p>
@@ -324,8 +338,10 @@ const StoreHome = () => {
             </div>
           </div>
         </div>
+        )}
 
         {/* Cuidados */}
+        {(t.showCare ?? true) && (
         <div className="rounded-2xl border border-border bg-secondary/20 p-8 lg:p-10">
           <div className="text-center mb-8">
             <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Cuidados</p>
@@ -362,8 +378,10 @@ const StoreHome = () => {
             </div>
           </div>
         </div>
+        )}
 
         {/* Compra & garantia */}
+        {(t.showGuarantee ?? true) && (
         <div className="grid md:grid-cols-3 gap-5">
           <div className="rounded-2xl border border-border bg-card p-6">
             <Award className="h-6 w-6 text-primary mb-3" />
@@ -381,12 +399,14 @@ const StoreHome = () => {
             <p className="text-sm text-muted-foreground">Pix, cartão em até 6x e combinação direto pelo WhatsApp.</p>
           </div>
         </div>
+        )}
 
         {/* CTA final */}
+        {(t.showFinalCta ?? true) && (
         <div className="rounded-2xl border border-primary/30 bg-gradient-gold-soft p-8 lg:p-10 text-center">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Atendimento personalizado</p>
+          <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">{t.finalCtaEyebrow || "Atendimento personalizado"}</p>
           <h3 className="font-display text-2xl sm:text-3xl font-light max-w-2xl mx-auto">
-            Não encontrou o que procurava? Fale comigo e eu ajudo a escolher a joia perfeita.
+            {t.finalCtaTitle || "Não encontrou o que procurava? Fale comigo e eu ajudo a escolher a joia perfeita."}
           </h3>
           <div className="flex flex-wrap gap-3 mt-6 justify-center">
             {t.whatsapp || store.phone ? (
@@ -405,6 +425,7 @@ const StoreHome = () => {
             )}
           </div>
         </div>
+        )}
       </section>
     </>
   );
