@@ -157,6 +157,10 @@ const SellerCustomization = () => {
           store: { storeName: name, phone, storeSlug: slug },
         }, "*");
       }
+      if ((e.data as any)?.type === "lovable-edit-field") {
+        const { field, value } = e.data as { field: string; value: string };
+        setTheme((prev) => ({ ...prev, [field]: value }));
+      }
     };
     window.addEventListener("message", onMsg);
     return () => window.removeEventListener("message", onMsg);
