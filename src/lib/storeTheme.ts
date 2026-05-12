@@ -21,6 +21,8 @@ export type StoreTheme = {
   categoriesTitle?: string;
   categoriesSubtitle?: string;
   categoriesBgColor?: string; // Cor de fundo da seção "Joias [Loja]"
+  headerBgColor?: string; // Cor de fundo do header (menu)
+  headerTextColor?: string; // Cor dos textos/links do header
   categoryImages?: Record<string, string>;
   // Hero
   heroEyebrow?: string;
