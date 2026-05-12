@@ -594,6 +594,44 @@ const SellerCustomization = () => {
                 <Input value={theme.headerTextColor || ""} onChange={(e) => setTheme({ ...theme, headerTextColor: e.target.value || undefined })} placeholder="#111111 (vazio = padrão)" />
               </div>
             </div>
+
+            <div>
+              <Label>Formato da letra (fonte do menu)</Label>
+              <p className="text-[11px] text-muted-foreground mt-1">Escolha o estilo tipográfico aplicado à logo, links e textos do header.</p>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {[
+                  { name: "Padrão", value: "" },
+                  { name: "Serif clássica", value: "'Playfair Display', Georgia, serif" },
+                  { name: "Serif moderna", value: "'Cormorant Garamond', Georgia, serif" },
+                  { name: "Sans elegante", value: "'Inter', system-ui, sans-serif" },
+                  { name: "Sans geométrica", value: "'Montserrat', system-ui, sans-serif" },
+                  { name: "Sans humanista", value: "'Poppins', system-ui, sans-serif" },
+                  { name: "Caligráfica", value: "'Great Vibes', cursive" },
+                  { name: "Display luxo", value: "'Bodoni Moda', 'Didot', serif" },
+                  { name: "Monoespaçada", value: "'JetBrains Mono', monospace" },
+                ].map((f) => {
+                  const active = (theme.headerFontFamily || "") === f.value;
+                  return (
+                    <button
+                      key={f.name}
+                      type="button"
+                      onClick={() => setTheme({ ...theme, headerFontFamily: f.value || undefined })}
+                      className={`px-3 py-1.5 rounded-full border text-xs transition-colors ${active ? "border-primary ring-1 ring-primary" : "border-border hover:border-primary/40"}`}
+                      style={f.value ? { fontFamily: f.value } : undefined}
+                    >
+                      {f.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <Input
+                className="mt-3"
+                value={theme.headerFontFamily || ""}
+                onChange={(e) => setTheme({ ...theme, headerFontFamily: e.target.value || undefined })}
+                placeholder="Personalizada (ex.: 'Playfair Display', serif)"
+              />
+            </div>
+          </div>
           </div>
 
           {/* Hero / Banner principal */}
