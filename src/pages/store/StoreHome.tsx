@@ -156,7 +156,7 @@ const StoreHome = () => {
       {/* Coleções estilo Vivara — JOIAS [LOJA] / ESCOLHA POR CATEGORIAS */}
       {(t.showCollections ?? true) && (
         <section id="colecoes" className="scroll-mt-20" style={t.categoriesBgColor ? { background: t.categoriesBgColor } : undefined}>
-          <div className="container py-16">
+          <div className="container pt-16 pb-24">
           <div className="text-center mb-10">
             <EditableText
               field="categoriesTitle"
@@ -201,7 +201,7 @@ const StoreHome = () => {
       )}
 
       {/* Vitrine */}
-      <section id="vitrine" className="container py-20 scroll-mt-20">
+      <section id="vitrine" className="container pt-4 pb-20 scroll-mt-20">
         <div className="text-center mb-12">
           <p className="text-[10px] uppercase tracking-[0.4em] text-primary mb-3">Vitrine</p>
           <h2 className="font-display text-4xl sm:text-5xl font-light">Selecionadas para você</h2>
