@@ -164,7 +164,15 @@ const StoreHome = () => {
 
       {/* Coleções estilo Vivara — JOIAS [LOJA] / ESCOLHA POR CATEGORIAS */}
       {(t.showCollections ?? true) && (
-        <section id="colecoes" className="scroll-mt-20" style={t.categoriesBgColor ? { background: t.categoriesBgColor } : undefined}>
+        <section
+          id="colecoes"
+          className="scroll-mt-20"
+          style={{
+            ...(t.categoriesBgColor ? { background: t.categoriesBgColor } : {}),
+            ...(t.categoriesTextColor ? { color: t.categoriesTextColor } : {}),
+            ...(t.categoriesFontFamily ? { fontFamily: t.categoriesFontFamily } : {}),
+          }}
+        >
           <div className="container pt-16 pb-24">
           <div className="text-center mb-10">
             <EditableText
@@ -172,12 +180,13 @@ const StoreHome = () => {
               value={t.categoriesTitle || `Joias ${store.storeName}`}
               as="h2"
               className="block font-display text-4xl sm:text-5xl font-light tracking-wide uppercase"
+              style={t.categoriesFontFamily ? { fontFamily: t.categoriesFontFamily } : undefined}
             />
             <EditableText
               field="categoriesSubtitle"
               value={t.categoriesSubtitle || "Escolha por categorias"}
               as="p"
-              className="block mt-3 text-[11px] uppercase tracking-[0.4em] text-muted-foreground"
+              className="block mt-3 text-[11px] uppercase tracking-[0.4em] opacity-70"
             />
             <div className="mx-auto mt-3 h-[2px] w-12" style={{ background: accent }} />
           </div>

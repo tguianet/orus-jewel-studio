@@ -524,6 +524,75 @@ const SellerCustomization = () => {
                 />
               </div>
             </div>
+
+            <div>
+              <Label>Cor do texto desta seção</Label>
+              <p className="text-[11px] text-muted-foreground mt-1">Cor do título "Joias {name}" e do subtítulo.</p>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {[
+                  { name: "Padrão", value: "" },
+                  { name: "Preto", value: "#111111" },
+                  { name: "Grafite", value: "#2a2a2a" },
+                  { name: "Marrom", value: "#5a4630" },
+                  { name: "Dourado", value: "#c8a46b" },
+                  { name: "Branco", value: "#ffffff" },
+                ].map((c) => {
+                  const active = (theme.categoriesTextColor || "") === c.value;
+                  return (
+                    <button
+                      key={c.name}
+                      type="button"
+                      onClick={() => setTheme({ ...theme, categoriesTextColor: c.value || undefined })}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs transition-colors ${active ? "border-primary ring-1 ring-primary" : "border-border hover:border-primary/40"}`}
+                    >
+                      <span className="h-4 w-4 rounded-full border border-border" style={{ background: c.value || "transparent" }} />
+                      {c.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex items-center gap-2 mt-3">
+                <Input type="color" value={theme.categoriesTextColor || "#111111"} onChange={(e) => setTheme({ ...theme, categoriesTextColor: e.target.value })} className="h-10 w-14 p-1" />
+                <Input value={theme.categoriesTextColor || ""} onChange={(e) => setTheme({ ...theme, categoriesTextColor: e.target.value || undefined })} placeholder="#111111 (vazio = padrão)" />
+              </div>
+            </div>
+
+            <div>
+              <Label>Formato da letra (fonte da seção)</Label>
+              <p className="text-[11px] text-muted-foreground mt-1">Aplica o estilo tipográfico ao título e ao subtítulo desta seção.</p>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {[
+                  { name: "Padrão", value: "" },
+                  { name: "Serif clássica", value: "'Playfair Display', Georgia, serif" },
+                  { name: "Serif moderna", value: "'Cormorant Garamond', Georgia, serif" },
+                  { name: "Sans elegante", value: "'Inter', system-ui, sans-serif" },
+                  { name: "Sans geométrica", value: "'Montserrat', system-ui, sans-serif" },
+                  { name: "Sans humanista", value: "'Poppins', system-ui, sans-serif" },
+                  { name: "Caligráfica", value: "'Great Vibes', cursive" },
+                  { name: "Display luxo", value: "'Bodoni Moda', 'Didot', serif" },
+                  { name: "Monoespaçada", value: "'JetBrains Mono', monospace" },
+                ].map((f) => {
+                  const active = (theme.categoriesFontFamily || "") === f.value;
+                  return (
+                    <button
+                      key={f.name}
+                      type="button"
+                      onClick={() => setTheme({ ...theme, categoriesFontFamily: f.value || undefined })}
+                      className={`px-3 py-1.5 rounded-full border text-xs transition-colors ${active ? "border-primary ring-1 ring-primary" : "border-border hover:border-primary/40"}`}
+                      style={f.value ? { fontFamily: f.value } : undefined}
+                    >
+                      {f.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <Input
+                className="mt-3"
+                value={theme.categoriesFontFamily || ""}
+                onChange={(e) => setTheme({ ...theme, categoriesFontFamily: e.target.value || undefined })}
+                placeholder="Personalizada (ex.: 'Playfair Display', serif)"
+              />
+            </div>
           </div>
 
           {/* Cores do Header / Menu */}
