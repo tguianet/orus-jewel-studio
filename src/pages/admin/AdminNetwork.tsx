@@ -1,12 +1,65 @@
+import { useEffect, useState } from "react";
 import { Network, Users, Crown } from "lucide-react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
-import { commissionRules, formatBRL, getCommissionByLevel, getNetwork, getNetworkLevels, sacoleiras } from "@/lib/mockData";
+import { commissionRules, formatBRL } from "@/lib/mockData";
+import { supabase } from "@/integrations/supabase/client";
+
+type Reseller = {
+  id: string;
+  display_name: string | null;
+  parent_id: string | null;
+  status: string | null;
+};
+
+type Commission = {
+  reseller_id: string;
+  level: number;
+  amount: number;
+  status: string | null;
+};
 
 const AdminNetwork = () => {
-  const approved = sacoleiras.filter((s) => s.status === "approved");
-  const totalAvailable = sacoleiras.reduce((sum, s) => sum + s.walletAvailable, 0);
+  const [resellers, setResellers] = useState<Reseller[]>([]);
+  const [commissions, setCommissions] = useState<Commission[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      const [{ data: rs }, { data: cs }] = await Promise.all([
+        supabase.from("resellers").select("id, display_name, parent_id, status").order("created_at"),
+        supabase.from("commissions").select("reseller_id, level, amount, status"),
+      ]);
+      setResellers((rs as Reseller[]) || []);
+      setCommissions((cs as Commission[]) || []);
+      setLoading(false);
+    })();
+  }, []);
+
+  const approved = resellers.filter((r) => r.status === "approved");
+  const directOf = (id: string) => resellers.filter((r) => r.parent_id === id);
+  const levelsOf = (id: string) => {
+    const l1 = resellers.filter((r) => r.parent_id === id);
+    const l2 = resellers.filter((r) => l1.some((p) => p.id === r.parent_id));
+    const l3 = resellers.filter((r) => l2.some((p) => p.id === r.parent_id));
+    return [
+      { level: 1 as const, label: "Nível 1", members: l1 },
+      { level: 2 as const, label: "Nível 2", members: l2 },
+      { level: 3 as const, label: "Nível 3", members: l3 },
+    ];
+  };
+  const earningsOf = (id: string) =>
+    commissionRules.map((rule) => ({
+      ...rule,
+      amount: commissions
+        .filter((c) => c.reseller_id === id && c.level === rule.level && c.status === "available")
+        .reduce((sum, c) => sum + Number(c.amount || 0), 0),
+    }));
+
+  const totalAvailable = commissions
+    .filter((c) => c.status === "available")
+    .reduce((sum, c) => sum + Number(c.amount || 0), 0);
 
   return (
     <AdminLayout>
@@ -18,7 +71,7 @@ const AdminNetwork = () => {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         <StatCard label="Revendedoras aprovadas" value={String(approved.length)} icon={Users} />
-        <StatCard label="Rede total" value={String(sacoleiras.length)} icon={Network} hint="inclui pendentes" />
+        <StatCard label="Rede total" value={String(resellers.length)} icon={Network} hint="inclui pendentes" />
         <StatCard label="Comissões disponíveis" value={formatBRL(totalAvailable)} icon={Crown} />
         <StatCard label="Níveis ativos" value="3" icon={Network} hint="10% · 5% · 2%" />
       </div>
@@ -30,21 +83,26 @@ const AdminNetwork = () => {
             <p className="text-xs text-muted-foreground">Cada linha mostra patrocinadora, indicadas diretas e alcance da rede multinível.</p>
           </div>
           <div className="divide-y divide-border">
-            {sacoleiras.map((s) => {
-              const parent = sacoleiras.find((item) => item.id === s.parentId);
-              const direct = getNetwork(s.id);
-              const levels = getNetworkLevels(s.id);
-              const earnings = getCommissionByLevel(s.id);
+            {loading && <p className="px-5 py-6 text-sm text-muted-foreground">Carregando rede…</p>}
+            {!loading && resellers.length === 0 && (
+              <p className="px-5 py-6 text-sm text-muted-foreground">Nenhuma sacoleira cadastrada.</p>
+            )}
+            {resellers.map((s) => {
+              const parent = resellers.find((item) => item.id === s.parent_id);
+              const direct = directOf(s.id);
+              const levels = levelsOf(s.id);
+              const earnings = earningsOf(s.id);
+              const networkSize = levels.reduce((sum, l) => sum + l.members.length, 0);
               return (
                 <div key={s.id} className="px-5 py-4 space-y-3">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
-                    <p className="font-medium">{s.storeName}</p>
-                    <p className="text-xs text-muted-foreground">Patrocinadora: {parent?.storeName || "Raiz da rede"}</p>
+                      <p className="font-medium">{s.display_name || "Sem nome"}</p>
+                      <p className="text-xs text-muted-foreground">Patrocinadora: {parent?.display_name || "Raiz da rede"}</p>
                     </div>
                     <div className="flex gap-4 text-sm">
-                    <span><b className="text-primary">{direct.length}</b> diretas</span>
-                    <span><b className="text-primary">{s.networkSize}</b> na rede</span>
+                      <span><b className="text-primary">{direct.length}</b> diretas</span>
+                      <span><b className="text-primary">{networkSize}</b> na rede</span>
                     </div>
                   </div>
                   <div className="grid gap-2 sm:grid-cols-3">
