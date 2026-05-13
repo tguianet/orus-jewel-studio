@@ -188,7 +188,14 @@ const StoreHome = () => {
               as="p"
               className="block mt-3 text-[11px] uppercase tracking-[0.4em] opacity-70"
             />
-            <div className="mx-auto mt-3 h-[2px] w-12" style={{ background: accent }} />
+            <div
+              className="mx-auto mt-3"
+              style={{
+                background: t.categoriesDividerColor || accent,
+                width: `${t.categoriesDividerWidth ?? 48}px`,
+                height: `${t.categoriesDividerHeight ?? 2}px`,
+              }}
+            />
           </div>
           {collections.length === 0 ? (
             <p className="text-center text-sm text-muted-foreground">Em breve novas coleções por aqui.</p>

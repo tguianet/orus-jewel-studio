@@ -23,6 +23,9 @@ export type StoreTheme = {
   categoriesBgColor?: string; // Cor de fundo da seção "Joias [Loja]"
   categoriesTextColor?: string; // Cor do texto (título e subtítulo) da seção
   categoriesFontFamily?: string; // Família tipográfica da seção
+  categoriesDividerColor?: string; // Cor do risco abaixo do título
+  categoriesDividerWidth?: number; // Largura (px) do risco
+  categoriesDividerHeight?: number; // Espessura (px) do risco
   headerBgColor?: string; // Cor de fundo do header (menu)
   headerTextColor?: string; // Cor dos textos/links do header
   headerFontFamily?: string; // Família tipográfica dos textos do header

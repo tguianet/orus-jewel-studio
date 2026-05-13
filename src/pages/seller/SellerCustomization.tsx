@@ -593,6 +593,55 @@ const SellerCustomization = () => {
                 placeholder="Personalizada (ex.: 'Playfair Display', serif)"
               />
             </div>
+
+            {/* Risco decorativo abaixo do título */}
+            <div className="pt-2 border-t border-border/60">
+              <Label>Risco abaixo do título</Label>
+              <p className="text-[11px] text-muted-foreground mt-1">Ajuste a cor, largura e espessura do traço decorativo.</p>
+
+              <div className="grid sm:grid-cols-3 gap-3 mt-3">
+                <div>
+                  <Label className="text-xs">Cor do risco</Label>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    <Input
+                      type="color"
+                      value={theme.categoriesDividerColor || theme.accentColor || "#f4a78a"}
+                      onChange={(e) => setTheme({ ...theme, categoriesDividerColor: e.target.value })}
+                      className="h-10 w-14 p-1"
+                    />
+                    <Input
+                      value={theme.categoriesDividerColor || ""}
+                      onChange={(e) => setTheme({ ...theme, categoriesDividerColor: e.target.value || undefined })}
+                      placeholder="(vazio = padrão)"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Largura (px): {theme.categoriesDividerWidth ?? 48}</Label>
+                  <Input
+                    type="range"
+                    min={10}
+                    max={400}
+                    step={1}
+                    value={theme.categoriesDividerWidth ?? 48}
+                    onChange={(e) => setTheme({ ...theme, categoriesDividerWidth: Number(e.target.value) })}
+                    className="mt-1.5"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Espessura (px): {theme.categoriesDividerHeight ?? 2}</Label>
+                  <Input
+                    type="range"
+                    min={1}
+                    max={20}
+                    step={1}
+                    value={theme.categoriesDividerHeight ?? 2}
+                    onChange={(e) => setTheme({ ...theme, categoriesDividerHeight: Number(e.target.value) })}
+                    className="mt-1.5"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Cores do Header / Menu */}
