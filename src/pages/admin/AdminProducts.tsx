@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NewProductModal } from "@/components/NewProductModal";
+import { BulkUploadModal } from "@/components/BulkUploadModal";
 import { formatBRL, Product } from "@/lib/mockData";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -109,7 +110,7 @@ const AdminProducts = () => {
         eyebrow="Catálogo do atacado"
         title="Produtos"
         description="Gerencie o estoque que ficará disponível para suas sacoleiras revenderem."
-        actions={<NewProductModal onCreate={loadProducts} />}
+        actions={<><BulkUploadModal onDone={loadProducts} /><NewProductModal onCreate={loadProducts} /></>}
       />
 
     <div className="mb-5 flex flex-col sm:flex-row gap-3">
