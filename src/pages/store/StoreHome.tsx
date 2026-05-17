@@ -66,7 +66,14 @@ const StoreHome = () => {
   return (
     <>
       {/* Hero cinematográfico premium */}
-      <section className="relative overflow-hidden bg-secondary/30">
+      <section
+        className="relative overflow-hidden bg-secondary/30"
+        style={{
+          ...(t.heroBgColor ? { background: t.heroBgColor } : {}),
+          ...(t.heroTextColor ? { color: t.heroTextColor } : {}),
+          ...(t.heroFontFamily ? { fontFamily: t.heroFontFamily } : {}),
+        }}
+      >
         <div className="relative w-full h-[78vh] min-h-[520px] max-h-[860px]">
           {banners.map((b, i) => (
             <img
