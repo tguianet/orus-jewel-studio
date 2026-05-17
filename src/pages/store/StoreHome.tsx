@@ -293,7 +293,15 @@ const StoreHome = () => {
       </section>
 
       {/* Sobre */}
-      <section id="sobre" className="container py-16 scroll-mt-20 space-y-10">
+      <section
+        id="sobre"
+        className="container py-16 scroll-mt-20 space-y-10"
+        style={{
+          ...(t.aboutBgColor ? { background: t.aboutBgColor } : {}),
+          ...(t.aboutTextColor ? { color: t.aboutTextColor } : {}),
+          ...(t.aboutFontFamily ? { fontFamily: t.aboutFontFamily } : {}),
+        }}
+      >
         {/* Hero do sobre */}
         <div className="rounded-2xl border border-primary/20 bg-gradient-gold-soft p-10 lg:p-14">
           <div className="grid lg:grid-cols-2 gap-10 items-center">
