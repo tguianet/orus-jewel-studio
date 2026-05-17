@@ -150,8 +150,7 @@ export const BulkUploadModal = ({ onDone }: BulkUploadModalProps) => {
                       </button>
                     )}
                     <div className="px-2 py-1 text-[10px] truncate">{f.file.name}</div>
-                    <div className="absolute bottom-0 left-0 right-0 px-2 py-0.5 text-[10px] text-center backdrop-blur-sm
-                      ${f.status === 'done' ? 'bg-success/30' : f.status === 'error' ? 'bg-destructive/40' : f.status === 'uploading' ? 'bg-primary/30' : ''}">
+                    <div className={`absolute bottom-0 left-0 right-0 px-2 py-0.5 text-[10px] text-center backdrop-blur-sm ${f.status === 'done' ? 'bg-success/30' : f.status === 'error' ? 'bg-destructive/40' : f.status === 'uploading' ? 'bg-primary/30' : ''}`}>
                       {f.status === "uploading" && <span className="inline-flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Enviando</span>}
                       {f.status === "done" && <span>OK</span>}
                       {f.status === "error" && <span>Erro</span>}
