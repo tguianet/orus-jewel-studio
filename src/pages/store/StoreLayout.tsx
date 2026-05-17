@@ -176,7 +176,24 @@ const StoreLayout = () => {
       >
         <div className="container grid grid-cols-[auto_1fr_auto] items-center gap-6 py-4">
           {/* Logo à esquerda */}
-          <Link to={`/loja/${store.storeSlug}`} className="flex items-center">
+          <div className="flex items-center gap-3">
+            {!isStoreHome && (
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Voltar"
+                onClick={() => navigate(-1)}
+                className="h-9 w-9 shrink-0"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            )}
+            <Link to={`/loja/${store.storeSlug}`} className="flex items-center"></Link>
+          </div>
+          {/* Logo à esquerda */}
+          <Link to={`/loja/${store.storeSlug}`} className="flex items-center" style={{ display: "none" }}></Link>
+          <Link to={`/loja/${store.storeSlug}`} className="flex items-center" style={{ display: "contents" }}></Link>
+          <Link to={`/loja/${store.storeSlug}`} className="flex items-center"></Link>
             {theme.logoUrl ? (
               <img src={theme.logoUrl} alt={store.storeName} className={`h-12 sm:h-14 lg:h-16 object-contain ${theme.logoFormat === "wide" ? "max-w-[360px]" : "max-w-[220px]"}`} />
             ) : (
