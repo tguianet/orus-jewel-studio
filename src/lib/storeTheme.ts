@@ -7,6 +7,7 @@ export type StoreTheme = {
   bannerUrl?: string;
   bannerUrls?: string[];
   logoUrl?: string;
+  logoFormat?: "square" | "wide"; // "square" = 400x400, "wide" = 800x400
   description?: string;
   whatsapp?: string;
   instagram?: string;
