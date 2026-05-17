@@ -159,8 +159,15 @@ const StoreHome = () => {
           ? t.benefits
           : ["Frete Grátis*", "Parcele em até 10x sem juros", "Bônus em todas as compras*", "5% OFF com PIX", "Atendimento personalizado"];
         return (
-          <section className="border-b border-border bg-background">
-            <div className="container flex flex-wrap items-center justify-center gap-x-10 gap-y-2 py-4 text-[12px] text-foreground/80 uppercase tracking-wider">
+          <section
+            className="border-b border-border bg-background"
+            style={{
+              ...(t.benefitsBgColor ? { background: t.benefitsBgColor } : {}),
+              ...(t.benefitsTextColor ? { color: t.benefitsTextColor } : {}),
+              ...(t.benefitsFontFamily ? { fontFamily: t.benefitsFontFamily } : {}),
+            }}
+          >
+            <div className="container flex flex-wrap items-center justify-center gap-x-10 gap-y-2 py-4 text-[12px] uppercase tracking-wider">
               {benefits.map((b, i) => (
                 <span key={i} className={`font-medium ${i >= 2 ? "hidden md:inline" : ""}`}>{b}</span>
               ))}
