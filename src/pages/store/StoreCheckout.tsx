@@ -84,8 +84,9 @@ const StoreCheckout = () => {
       const id = await createOrder(method);
       setOrderId(id);
       setStep("success");
-    } catch (err) {
-      toast.error("Erro ao registrar pagamento");
+    } catch (err: any) {
+      console.error("[checkout] erro ao registrar pagamento:", err);
+      toast.error(`Erro ao registrar pagamento: ${err?.message ?? "desconhecido"}`);
       setStep("payment");
     }
   };
