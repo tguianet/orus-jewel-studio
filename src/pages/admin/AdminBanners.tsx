@@ -169,11 +169,6 @@ const AdminBanners = () => {
               <button
                 type="button"
                 onClick={() => setPreviewUrl(b.imageUrl)}
-                className="flex items-center justify-center w-full h-64 bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-              <button
-                type="button"
-                onClick={() => setPreviewUrl(b.imageUrl)}
                 className="relative flex items-center justify-center w-full h-64 bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <img
