@@ -494,7 +494,14 @@ const StoreHome = () => {
 
         {/* CTA final */}
         {(t.showFinalCta ?? true) && (
-        <div className="rounded-2xl border border-primary/30 bg-gradient-gold-soft p-8 lg:p-10 text-center">
+        <div
+          className="rounded-2xl border border-primary/30 bg-gradient-gold-soft p-8 lg:p-10 text-center"
+          style={{
+            ...(t.finalCtaBgColor ? { background: t.finalCtaBgColor } : {}),
+            ...(t.finalCtaTextColor ? { color: t.finalCtaTextColor } : {}),
+            ...(t.finalCtaFontFamily ? { fontFamily: t.finalCtaFontFamily } : {}),
+          }}
+        >
           <EditableText
             field="finalCtaEyebrow"
             value={t.finalCtaEyebrow || "Atendimento personalizado"}
