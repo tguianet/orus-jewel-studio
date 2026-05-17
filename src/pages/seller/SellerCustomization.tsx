@@ -233,15 +233,42 @@ const SellerCustomization = () => {
           </div>
 
           {/* 2. Logo */}
-          <div className="rounded-xl border border-border bg-card p-6 space-y-3">
+          <div className="rounded-xl border border-border bg-card p-6 space-y-4">
             <div className="flex items-baseline justify-between">
               <h3 className="font-display text-xl">2. Logo</h3>
-              <span className="text-[10px] uppercase tracking-widest text-muted-foreground">400 × 400 px</span>
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                {theme.logoFormat === "wide" ? "800 × 400 px" : "400 × 400 px"}
+              </span>
             </div>
+
+            <div>
+              <Label className="text-xs">Formato da logo</Label>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setTheme({ ...theme, logoFormat: "square" })}
+                  className={`rounded-lg border p-3 text-left transition ${(theme.logoFormat ?? "square") === "square" ? "border-primary ring-2 ring-primary/30 bg-primary/5" : "border-border hover:border-primary/40"}`}
+                >
+                  <div className="mx-auto mb-2 h-10 w-10 rounded border border-border bg-muted" />
+                  <p className="text-xs font-medium">Quadrada</p>
+                  <p className="text-[10px] text-muted-foreground">400 × 400 px</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTheme({ ...theme, logoFormat: "wide" })}
+                  className={`rounded-lg border p-3 text-left transition ${theme.logoFormat === "wide" ? "border-primary ring-2 ring-primary/30 bg-primary/5" : "border-border hover:border-primary/40"}`}
+                >
+                  <div className="mx-auto mb-2 h-6 w-16 rounded border border-border bg-muted" />
+                  <p className="text-xs font-medium">Larga (horizontal)</p>
+                  <p className="text-[10px] text-muted-foreground">800 × 400 px</p>
+                </button>
+              </div>
+            </div>
+
             <div className="flex items-center gap-4">
-              <div className="h-24 w-24 rounded-xl overflow-hidden border border-border bg-muted flex items-center justify-center">
+              <div className={`${theme.logoFormat === "wide" ? "h-16 w-32" : "h-24 w-24"} rounded-xl overflow-hidden border border-border bg-muted flex items-center justify-center`}>
                 {theme.logoUrl ? (
-                  <img src={theme.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                  <img src={theme.logoUrl} alt="Logo" className="w-full h-full object-contain" />
                 ) : (
                   <OrusLogo showWord={false} size="lg" />
                 )}
