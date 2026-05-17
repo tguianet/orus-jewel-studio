@@ -37,16 +37,35 @@ export type StoreTheme = {
   heroPromoText?: string;
   heroCtaPrimary?: string;
   heroCtaSecondary?: string;
+  heroBgColor?: string;
+  heroTextColor?: string;
+  heroFontFamily?: string;
   // Benefícios (faixa abaixo do hero)
   benefits?: string[];
+  benefitsBgColor?: string;
+  benefitsTextColor?: string;
+  benefitsFontFamily?: string;
   // Sobre
   aboutEyebrow?: string;
   aboutTitle?: string;
   aboutText?: string;
   aboutText2?: string;
+  aboutBgColor?: string;
+  aboutTextColor?: string;
+  aboutFontFamily?: string;
   // CTA final
   finalCtaEyebrow?: string;
   finalCtaTitle?: string;
+  finalCtaBgColor?: string;
+  finalCtaTextColor?: string;
+  finalCtaFontFamily?: string;
+  // Rodapé (footer)
+  footerAbout?: string;
+  footerLinks?: { label: string; url: string }[];
+  footerCopyright?: string;
+  footerBgColor?: string;
+  footerTextColor?: string;
+  footerFontFamily?: string;
   // Seções visíveis
   showCollections?: boolean;
   showMaterials?: boolean;
