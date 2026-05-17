@@ -110,14 +110,32 @@ const StoreHome = () => {
                     className="block font-display italic text-2xl sm:text-3xl mt-3 text-white/85"
                     placeholder="Subtítulo"
                   />
+                {(t.heroPromoText || isPreview()) && (
+                  <EditableText
+                    field="heroPromoText"
+                    value={t.heroPromoText || ""}
+                    as="p"
+                    className="block text-sm sm:text-base mt-6 text-white/90 max-w-md"
+                    placeholder="Texto promocional"
+                  />
                 )}
-                <a
-                  href="#vitrine"
-                  className="mt-10 inline-flex items-center gap-3 px-8 py-3.5 text-[11px] uppercase tracking-[0.32em] font-medium border border-white/80 text-white hover:bg-white hover:text-foreground transition-all duration-500"
-                >
-                  {t.heroCtaPrimary || "Descobrir coleção"}
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </a>
+                <div className="mt-10 flex flex-wrap items-center gap-3">
+                  <a
+                    href="#vitrine"
+                    className="inline-flex items-center gap-3 px-8 py-3.5 text-[11px] uppercase tracking-[0.32em] font-medium border border-white/80 text-white hover:bg-white hover:text-foreground transition-all duration-500"
+                  >
+                    {t.heroCtaPrimary || "Descobrir coleção"}
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </a>
+                  {(t.heroCtaSecondary || isPreview()) && (
+                    <a
+                      href="#sobre"
+                      className="inline-flex items-center gap-3 px-8 py-3.5 text-[11px] uppercase tracking-[0.32em] font-medium text-white/90 hover:text-white border border-transparent hover:border-white/40 transition-all duration-500"
+                    >
+                      {t.heroCtaSecondary || "Sobre a loja"}
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
           </div>
