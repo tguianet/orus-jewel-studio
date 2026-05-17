@@ -57,10 +57,21 @@ const StoreCheckout = () => {
     };
     const { error } = await supabase.from("orders").insert(orderPayload);
     if (error) throw error;
+    const candidateIds = items
+      .map((i) => i.product.id)
+      .filter((id) => /^[0-9a-f-]{36}$/i.test(id));
+    let validIds = new Set<string>();
+    if (candidateIds.length > 0) {
+      const { data: existing } = await supabase
+        .from("products")
+        .select("id")
+        .in("id", candidateIds);
+      validIds = new Set((existing ?? []).map((p) => p.id));
+    }
     const { error: itemsError } = await supabase.from("order_items").insert(items.map((i) => ({
       order_id: newOrderId,
       seller_store_id: store.id,
-      product_id: /^[0-9a-f-]{36}$/i.test(i.product.id) ? i.product.id : null,
+      product_id: validIds.has(i.product.id) ? i.product.id : null,
       product_name: i.product.name,
       quantity: i.qty,
       unit_price: i.price,
