@@ -472,8 +472,14 @@ const SellerCustomization = () => {
               <div>
                 <Label>Botão secundário</Label>
                 <Input value={theme.heroCtaSecondary || ""} onChange={(e) => setTheme({ ...theme, heroCtaSecondary: e.target.value })} placeholder="Sobre a loja" maxLength={30} className="mt-1.5" />
-              </div>
             </div>
+            <SectionStyleControls
+              bg={theme.heroBgColor}
+              text={theme.heroTextColor}
+              font={theme.heroFontFamily}
+              onChange={(p) => setTheme({ ...theme, ...(p.bg !== undefined ? { heroBgColor: p.bg } : {}), ...(p.text !== undefined ? { heroTextColor: p.text } : {}), ...(p.font !== undefined ? { heroFontFamily: p.font } : {}) })}
+            />
+          </div>
           </div>
 
           {/* 7. Faixa de benefícios */}
