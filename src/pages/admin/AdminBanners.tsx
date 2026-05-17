@@ -30,6 +30,7 @@ const AdminBanners = () => {
   const [title, setTitle] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [dims, setDims] = useState<Record<string, { w: number; h: number }>>({});
 
   const currentFormat = useMemo(
     () => formats.find((f) => f.slug === formatSlug) || null,
@@ -168,19 +169,29 @@ const AdminBanners = () => {
               <button
                 type="button"
                 onClick={() => setPreviewUrl(b.imageUrl)}
-                className="flex items-center justify-center w-full h-64 bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="relative flex items-center justify-center w-full h-64 bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <img
                   src={b.imageUrl}
                   alt={b.title || "Banner"}
                   className="max-w-full max-h-full object-contain cursor-zoom-in"
+                  onLoad={(e) => {
+                    const img = e.currentTarget;
+                    setDims((d) => d[b.id] ? d : { ...d, [b.id]: { w: img.naturalWidth, h: img.naturalHeight } });
+                  }}
                 />
+                {dims[b.id] && (
+                  <span className="absolute bottom-2 right-2 rounded-md bg-background/80 backdrop-blur px-2 py-0.5 text-[10px] font-medium text-foreground border border-border">
+                    {dims[b.id].w} × {dims[b.id].h} px
+                  </span>
+                )}
               </button>
               <div className="px-4 py-3 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-medium truncate">{b.title || "Sem título"}</p>
                   <p className="text-xs text-muted-foreground truncate">
                     {b.active ? "Ativa" : "Pausada"}
+                    {dims[b.id] && <> · {dims[b.id].w}×{dims[b.id].h}px</>}
                     {!currentFormat && b.formatId && (
                       <> · {formats.find((f) => f.id === b.formatId)?.name || "—"}</>
                     )}
