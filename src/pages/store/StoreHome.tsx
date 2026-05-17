@@ -110,6 +110,7 @@ const StoreHome = () => {
                     className="block font-display italic text-2xl sm:text-3xl mt-3 text-white/85"
                     placeholder="Subtítulo"
                   />
+                )}
                 {(t.heroPromoText || isPreview()) && (
                   <EditableText
                     field="heroPromoText"
