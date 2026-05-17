@@ -731,6 +731,12 @@ const SellerCustomization = () => {
               <Label>Texto complementar (opcional)</Label>
               <Textarea value={theme.aboutText2 || ""} onChange={(e) => setTheme({ ...theme, aboutText2: e.target.value })} rows={3} maxLength={600} placeholder="Diferenciais, fornecedores, missão..." className="mt-1.5" />
             </div>
+            <SectionStyleControls
+              bg={theme.aboutBgColor}
+              text={theme.aboutTextColor}
+              font={theme.aboutFontFamily}
+              onChange={(p) => setTheme({ ...theme, ...(p.bg !== undefined ? { aboutBgColor: p.bg } : {}), ...(p.text !== undefined ? { aboutTextColor: p.text } : {}), ...(p.font !== undefined ? { aboutFontFamily: p.font } : {}) })}
+            />
           </div>
 
           {/* 10. CTA final */}
@@ -744,6 +750,103 @@ const SellerCustomization = () => {
               <Label>Título</Label>
               <Textarea value={theme.finalCtaTitle || ""} onChange={(e) => setTheme({ ...theme, finalCtaTitle: e.target.value })} rows={2} maxLength={200} placeholder="Não encontrou o que procurava? Fale comigo..." className="mt-1.5" />
             </div>
+            <SectionStyleControls
+              bg={theme.finalCtaBgColor}
+              text={theme.finalCtaTextColor}
+              font={theme.finalCtaFontFamily}
+              onChange={(p) => setTheme({ ...theme, ...(p.bg !== undefined ? { finalCtaBgColor: p.bg } : {}), ...(p.text !== undefined ? { finalCtaTextColor: p.text } : {}), ...(p.font !== undefined ? { finalCtaFontFamily: p.font } : {}) })}
+            />
+          </div>
+
+          {/* 10b. Rodapé (footer) */}
+          <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+            <h3 className="font-display text-xl">11. Rodapé da loja</h3>
+            <p className="text-xs text-muted-foreground -mt-2">Textos e links que aparecem no final da sua loja.</p>
+            <div>
+              <Label>Texto sobre a loja (footer)</Label>
+              <Textarea
+                value={theme.footerAbout || ""}
+                onChange={(e) => setTheme({ ...theme, footerAbout: e.target.value })}
+                rows={3}
+                maxLength={300}
+                placeholder="Pequena descrição que aparece no rodapé (ex.: AURA é joias autorais para o dia a dia)."
+                className="mt-1.5"
+              />
+            </div>
+            <div>
+              <Label>Texto de copyright</Label>
+              <Input
+                value={theme.footerCopyright || ""}
+                onChange={(e) => setTheme({ ...theme, footerCopyright: e.target.value })}
+                placeholder={`© ${new Date().getFullYear()} ${name} — todos os direitos reservados`}
+                maxLength={120}
+                className="mt-1.5"
+              />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <Label>Links do rodapé</Label>
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">{(theme.footerLinks || []).length} links</span>
+              </div>
+              <div className="space-y-2">
+                {(theme.footerLinks || []).map((lnk, i) => (
+                  <div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2">
+                    <Input
+                      value={lnk.label}
+                      onChange={(e) => {
+                        const list = [...(theme.footerLinks || [])];
+                        list[i] = { ...list[i], label: e.target.value };
+                        setTheme({ ...theme, footerLinks: list });
+                      }}
+                      placeholder="Rótulo (ex.: Política de troca)"
+                      maxLength={40}
+                    />
+                    <Input
+                      value={lnk.url}
+                      onChange={(e) => {
+                        const list = [...(theme.footerLinks || [])];
+                        list[i] = { ...list[i], url: e.target.value };
+                        setTheme({ ...theme, footerLinks: list });
+                      }}
+                      placeholder="https://..."
+                      maxLength={200}
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        const list = [...(theme.footerLinks || [])];
+                        list.splice(i, 1);
+                        setTheme({ ...theme, footerLinks: list });
+                      }}
+                      aria-label="Remover link"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              <Button
+                variant="outline"
+                className="w-full mt-2"
+                onClick={() => {
+                  const list = [...(theme.footerLinks || [])];
+                  list.push({ label: "Novo link", url: "https://" });
+                  setTheme({ ...theme, footerLinks: list });
+                }}
+              >
+                <Plus className="h-4 w-4" /> Adicionar link
+              </Button>
+              <p className="text-[11px] text-muted-foreground mt-2">
+                Dica: você pode reutilizar WhatsApp e Instagram que já estão em "Dados da loja" — eles aparecem automaticamente no rodapé.
+              </p>
+            </div>
+            <SectionStyleControls
+              bg={theme.footerBgColor}
+              text={theme.footerTextColor}
+              font={theme.footerFontFamily}
+              onChange={(p) => setTheme({ ...theme, ...(p.bg !== undefined ? { footerBgColor: p.bg } : {}), ...(p.text !== undefined ? { footerTextColor: p.text } : {}), ...(p.font !== undefined ? { footerFontFamily: p.font } : {}) })}
+            />
           </div>
 
           {/* 11. Paleta global de cores */}
