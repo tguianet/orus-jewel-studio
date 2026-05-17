@@ -41,7 +41,11 @@ const StoreCheckout = () => {
   };
 
   const createOrder = async (paymentMethod: "pix" | "card") => {
+    const newOrderId = (typeof crypto !== "undefined" && "randomUUID" in crypto)
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
     const orderPayload: TablesInsert<"orders"> = {
+      id: newOrderId,
       seller_store_id: store.id,
       customer_name: form.name,
       customer_phone: form.phone,
@@ -51,10 +55,10 @@ const StoreCheckout = () => {
       total,
       status: "paid",
     };
-    const { data: order, error } = await supabase.from("orders").insert(orderPayload).select("id").single();
-    if (error || !order) throw error;
+    const { error } = await supabase.from("orders").insert(orderPayload);
+    if (error) throw error;
     const { error: itemsError } = await supabase.from("order_items").insert(items.map((i) => ({
-      order_id: order.id,
+      order_id: newOrderId,
       seller_store_id: store.id,
       product_id: /^[0-9a-f-]{36}$/i.test(i.product.id) ? i.product.id : null,
       product_name: i.product.name,
@@ -63,7 +67,7 @@ const StoreCheckout = () => {
       total: i.price * i.qty,
     })));
     if (itemsError) throw itemsError;
-    return order.id;
+    return newOrderId;
   };
 
   const handlePay = async () => {
