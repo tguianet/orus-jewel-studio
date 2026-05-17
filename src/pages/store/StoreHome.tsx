@@ -66,7 +66,14 @@ const StoreHome = () => {
   return (
     <>
       {/* Hero cinematográfico premium */}
-      <section className="relative overflow-hidden bg-secondary/30">
+      <section
+        className="relative overflow-hidden bg-secondary/30"
+        style={{
+          ...(t.heroBgColor ? { background: t.heroBgColor } : {}),
+          ...(t.heroTextColor ? { color: t.heroTextColor } : {}),
+          ...(t.heroFontFamily ? { fontFamily: t.heroFontFamily } : {}),
+        }}
+      >
         <div className="relative w-full h-[78vh] min-h-[520px] max-h-[860px]">
           {banners.map((b, i) => (
             <img
@@ -152,8 +159,15 @@ const StoreHome = () => {
           ? t.benefits
           : ["Frete Grátis*", "Parcele em até 10x sem juros", "Bônus em todas as compras*", "5% OFF com PIX", "Atendimento personalizado"];
         return (
-          <section className="border-b border-border bg-background">
-            <div className="container flex flex-wrap items-center justify-center gap-x-10 gap-y-2 py-4 text-[12px] text-foreground/80 uppercase tracking-wider">
+          <section
+            className="border-b border-border bg-background"
+            style={{
+              ...(t.benefitsBgColor ? { background: t.benefitsBgColor } : {}),
+              ...(t.benefitsTextColor ? { color: t.benefitsTextColor } : {}),
+              ...(t.benefitsFontFamily ? { fontFamily: t.benefitsFontFamily } : {}),
+            }}
+          >
+            <div className="container flex flex-wrap items-center justify-center gap-x-10 gap-y-2 py-4 text-[12px] uppercase tracking-wider">
               {benefits.map((b, i) => (
                 <span key={i} className={`font-medium ${i >= 2 ? "hidden md:inline" : ""}`}>{b}</span>
               ))}
@@ -279,7 +293,15 @@ const StoreHome = () => {
       </section>
 
       {/* Sobre */}
-      <section id="sobre" className="container py-16 scroll-mt-20 space-y-10">
+      <section
+        id="sobre"
+        className="container py-16 scroll-mt-20 space-y-10"
+        style={{
+          ...(t.aboutBgColor ? { background: t.aboutBgColor } : {}),
+          ...(t.aboutTextColor ? { color: t.aboutTextColor } : {}),
+          ...(t.aboutFontFamily ? { fontFamily: t.aboutFontFamily } : {}),
+        }}
+      >
         {/* Hero do sobre */}
         <div className="rounded-2xl border border-primary/20 bg-gradient-gold-soft p-10 lg:p-14">
           <div className="grid lg:grid-cols-2 gap-10 items-center">
@@ -472,7 +494,14 @@ const StoreHome = () => {
 
         {/* CTA final */}
         {(t.showFinalCta ?? true) && (
-        <div className="rounded-2xl border border-primary/30 bg-gradient-gold-soft p-8 lg:p-10 text-center">
+        <div
+          className="rounded-2xl border border-primary/30 bg-gradient-gold-soft p-8 lg:p-10 text-center"
+          style={{
+            ...(t.finalCtaBgColor ? { background: t.finalCtaBgColor } : {}),
+            ...(t.finalCtaTextColor ? { color: t.finalCtaTextColor } : {}),
+            ...(t.finalCtaFontFamily ? { fontFamily: t.finalCtaFontFamily } : {}),
+          }}
+        >
           <EditableText
             field="finalCtaEyebrow"
             value={t.finalCtaEyebrow || "Atendimento personalizado"}

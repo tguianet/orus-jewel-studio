@@ -326,12 +326,60 @@ const StoreLayout = () => {
         </a>
       )}
 
-      <footer className="border-t border-border/50 mt-16 py-8">
-        <div className="container text-center space-y-2">
+      <footer
+        className="border-t border-border/50 mt-16 py-10"
+        style={{
+          ...(theme.footerBgColor ? { background: theme.footerBgColor } : {}),
+          ...(theme.footerTextColor ? { color: theme.footerTextColor } : {}),
+          ...(theme.footerFontFamily ? { fontFamily: theme.footerFontFamily } : {}),
+        }}
+      >
+        <div className="container text-center space-y-3">
           <p className="font-display text-xl">{store.storeName}</p>
-          {theme.description && <p className="text-sm text-muted-foreground max-w-md mx-auto">{theme.description}</p>}
-          <p className="text-xs text-muted-foreground">Atendimento pelo WhatsApp · {theme.whatsapp || store.phone}</p>
-          <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground pt-3">Powered by Aura Store Suite</p>
+          {(theme.footerAbout || theme.description) && (
+            <p className="text-sm opacity-80 max-w-md mx-auto">{theme.footerAbout || theme.description}</p>
+          )}
+          {(theme.footerLinks && theme.footerLinks.length > 0) && (
+            <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 pt-1 text-xs">
+              {theme.footerLinks.map((lnk, i) => (
+                <a
+                  key={i}
+                  href={lnk.url}
+                  target={lnk.url?.startsWith("http") ? "_blank" : undefined}
+                  rel="noreferrer"
+                  className="hover:underline"
+                >
+                  {lnk.label}
+                </a>
+              ))}
+            </nav>
+          )}
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs opacity-80 pt-1">
+            {(theme.whatsapp || store.phone) && (
+              <a
+                href={`https://wa.me/${(theme.whatsapp || store.phone).replace(/\D/g, "")}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 hover:underline"
+              >
+                <MessageCircle className="h-3.5 w-3.5" /> {theme.whatsapp || store.phone}
+              </a>
+            )}
+            {theme.instagram && (
+              <a
+                href={`https://instagram.com/${theme.instagram}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 hover:underline"
+              >
+                <Instagram className="h-3.5 w-3.5" /> @{theme.instagram}
+              </a>
+            )}
+          </div>
+          <p className="text-[11px] opacity-70 pt-2">
+            {theme.footerCopyright || `© ${new Date().getFullYear()} ${store.storeName} — todos os direitos reservados`}
+          </p>
+          <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 pt-1">Powered by Aura Store Suite</p>
         </div>
       </footer>
     </div>
