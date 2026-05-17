@@ -527,6 +527,12 @@ const SellerCustomization = () => {
             >
               <Plus className="h-4 w-4" /> Adicionar benefício
             </Button>
+            <SectionStyleControls
+              bg={theme.benefitsBgColor}
+              text={theme.benefitsTextColor}
+              font={theme.benefitsFontFamily}
+              onChange={(p) => setTheme({ ...theme, ...(p.bg !== undefined ? { benefitsBgColor: p.bg } : {}), ...(p.text !== undefined ? { benefitsTextColor: p.text } : {}), ...(p.font !== undefined ? { benefitsFontFamily: p.font } : {}) })}
+            />
           </div>
 
           {/* 8. Seção "Escolha por categorias" */}
