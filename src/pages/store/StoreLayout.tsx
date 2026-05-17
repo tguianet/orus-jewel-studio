@@ -1,4 +1,4 @@
-import { Link, Outlet, useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Outlet, useParams, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { ShoppingBag, Search, Heart, Instagram, MessageCircle, ShieldAlert, ArrowRight, X } from "lucide-react";
 import { getStoreBySlug, getStoreProducts, formatBRL } from "@/lib/mockData";
