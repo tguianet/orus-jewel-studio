@@ -1,6 +1,6 @@
-import { Link, Outlet, useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Outlet, useParams, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { ShoppingBag, Search, Heart, Instagram, MessageCircle, ShieldAlert, ArrowRight, X } from "lucide-react";
+import { ShoppingBag, Search, Heart, Instagram, MessageCircle, ShieldAlert, ArrowRight, ArrowLeft, X } from "lucide-react";
 import { getStoreBySlug, getStoreProducts, formatBRL } from "@/lib/mockData";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,8 @@ import { EditableText } from "@/components/preview/EditableText";
 const StoreLayout = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isStoreHome = location.pathname === `/loja/${slug}` || location.pathname === `/loja/${slug}/`;
   const [searchParams] = useSearchParams();
   const { profile, loading: authLoading } = useAuth();
   const [store, setStore] = useState(() => getStoreBySlug(slug));
@@ -174,15 +176,28 @@ const StoreLayout = () => {
       >
         <div className="container grid grid-cols-[auto_1fr_auto] items-center gap-6 py-4">
           {/* Logo à esquerda */}
-          <Link to={`/loja/${store.storeSlug}`} className="flex items-center">
-            {theme.logoUrl ? (
-              <img src={theme.logoUrl} alt={store.storeName} className={`h-12 sm:h-14 lg:h-16 object-contain ${theme.logoFormat === "wide" ? "max-w-[360px]" : "max-w-[220px]"}`} />
-            ) : (
-              <span className="font-display text-xl sm:text-2xl lg:text-3xl tracking-[0.3em] uppercase leading-none font-light text-foreground">
-                {store.storeName}
-              </span>
+          <div className="flex items-center gap-3">
+            {!isStoreHome && (
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Voltar"
+                onClick={() => navigate(-1)}
+                className="h-9 w-9 shrink-0"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
             )}
-          </Link>
+            <Link to={`/loja/${store.storeSlug}`} className="flex items-center">
+              {theme.logoUrl ? (
+                <img src={theme.logoUrl} alt={store.storeName} className={`h-12 sm:h-14 lg:h-16 object-contain ${theme.logoFormat === "wide" ? "max-w-[360px]" : "max-w-[220px]"}`} />
+              ) : (
+                <span className="font-display text-xl sm:text-2xl lg:text-3xl tracking-[0.3em] uppercase leading-none font-light text-foreground">
+                  {store.storeName}
+                </span>
+              )}
+            </Link>
+          </div>
 
           {/* Menu centralizado */}
           <nav className="hidden lg:flex items-center justify-center gap-8 xl:gap-12 text-[11px] sm:text-[12px] uppercase tracking-[0.32em] font-light">
