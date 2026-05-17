@@ -19,6 +19,7 @@ import {
   saveStoreCustomization,
   uploadStoreAsset,
 } from "@/lib/storeTheme";
+import { SectionStyleControls } from "@/components/seller/SectionStyleControls";
 
 type Palette = { name: string; primary: string; secondary: string; custom?: boolean };
 
