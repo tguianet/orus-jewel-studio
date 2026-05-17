@@ -113,6 +113,7 @@ export const loadCatalogForStore = async (storeId: string): Promise<CatalogProdu
       .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,category_name,status")
       .eq("status", "active")
       .is("seller_store_id", null)
+      .or("category_name.is.null,category_name.neq.Cadastro em massa")
       .order("created_at", { ascending: false }),
     supabase
       .from("store_products")
