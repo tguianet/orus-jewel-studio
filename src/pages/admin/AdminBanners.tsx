@@ -30,6 +30,7 @@ const AdminBanners = () => {
   const [title, setTitle] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [dims, setDims] = useState<Record<string, { w: number; h: number }>>({});
 
   const currentFormat = useMemo(
     () => formats.find((f) => f.slug === formatSlug) || null,
