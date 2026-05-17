@@ -67,7 +67,7 @@ const StoreCheckout = () => {
       total: i.price * i.qty,
     })));
     if (itemsError) throw itemsError;
-    return order.id;
+    return newOrderId;
   };
 
   const handlePay = async () => {
