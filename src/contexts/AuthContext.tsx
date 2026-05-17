@@ -105,8 +105,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     profile,
     signIn: async (email, password) => {
       clearAuthStorage();
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      return error ? { error: error.message } : {};
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) return { error: error.message };
+      // Hydrate profile synchronously so the navigation that follows sees a complete profile
+      // (avoids the "need to login twice" bug where ProtectedRoute redirected back before hydration).
+      if (data.session) {
+        setSession(data.session);
+        await hydrate(data.session);
+      }
+      return {};
     },
     signUp: async ({ email, password, displayName, phone, parentResellerId }) => {
       const redirectUrl = `${window.location.origin}/sacoleira`;
