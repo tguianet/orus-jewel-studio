@@ -15,6 +15,8 @@ import { EditableText } from "@/components/preview/EditableText";
 const StoreLayout = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isStoreHome = location.pathname === `/loja/${slug}` || location.pathname === `/loja/${slug}/`;
   const [searchParams] = useSearchParams();
   const { profile, loading: authLoading } = useAuth();
   const [store, setStore] = useState(() => getStoreBySlug(slug));
