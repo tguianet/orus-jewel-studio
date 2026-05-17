@@ -29,7 +29,18 @@ const AdminSellers = () => {
 
   return (
     <AdminLayout>
-      <PageHeader eyebrow="Rede de revenda" title="Sacoleiras" description="Aprove, bloqueie e acompanhe revendedoras." />
+      <PageHeader
+        eyebrow="Rede de revenda"
+        title="Sacoleiras"
+        description="Aprove, bloqueie e acompanhe revendedoras."
+        actions={
+          <div className="rounded-xl border border-primary/30 bg-gradient-gold-soft px-4 py-2 text-right">
+            <p className="text-[10px] uppercase tracking-[0.25em] text-primary">Cadastradas</p>
+            <p className="font-display text-2xl text-foreground leading-tight">{loading ? "…" : rows.length}</p>
+            <p className="text-[10px] text-muted-foreground">{rows.filter((r:any)=>r.status==="approved").length} aprovadas · {rows.filter((r:any)=>r.status==="pending").length} pendentes</p>
+          </div>
+        }
+      />
       {loading ? <div className="flex items-center justify-center h-40 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin mr-2"/> Carregando...</div> : (
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="overflow-x-auto">
