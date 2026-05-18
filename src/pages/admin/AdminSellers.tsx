@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
-import { Loader2, ExternalLink, Check, Ban, Eye } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Loader2, ExternalLink, Check, Ban, Eye, Search, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -18,6 +20,19 @@ const AdminSellers = () => {
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [previewStore, setPreviewStore] = useState<{ slug: string; name: string } | null>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return rows.filter((s: any) => {
+      if (statusFilter !== "all" && s.status !== statusFilter) return false;
+      if (!q) return true;
+      const store = s.seller_stores?.[0];
+      return [s.display_name, s.email, s.phone, store?.store_name, store?.store_slug]
+        .filter(Boolean).some((v: string) => v.toLowerCase().includes(q));
+    });
+  }, [rows, search, statusFilter]);
 
   const refresh = () => loadAllSellers().then((data) => { setRows(data); setLoading(false); });
   useEffect(() => { refresh(); }, []);
@@ -41,6 +56,32 @@ const AdminSellers = () => {
           </div>
         }
       />
+      <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-4">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome, email, telefone ou loja…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-9 pl-9"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="h-9 w-44"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os status</SelectItem>
+            <SelectItem value="approved">Aprovadas</SelectItem>
+            <SelectItem value="pending">Pendentes</SelectItem>
+            <SelectItem value="blocked">Bloqueadas</SelectItem>
+          </SelectContent>
+        </Select>
+        {(search || statusFilter !== "all") && (
+          <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setStatusFilter("all"); }}>
+            <X className="h-4 w-4 mr-1" /> Limpar
+          </Button>
+        )}
+        <div className="ml-auto text-xs text-muted-foreground">{filtered.length} resultado(s)</div>
+      </div>
       {loading ? <div className="flex items-center justify-center h-40 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin mr-2"/> Carregando...</div> : (
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="overflow-x-auto">
@@ -52,7 +93,7 @@ const AdminSellers = () => {
               <th className="px-5 py-3" />
             </tr></thead>
             <tbody className="divide-y divide-border">
-              {rows.map((s: any) => {
+              {filtered.map((s: any) => {
                 const store = s.seller_stores?.[0];
                 return (
                 <tr key={s.id} className="hover:bg-secondary/30">
@@ -83,7 +124,7 @@ const AdminSellers = () => {
                   </td>
                 </tr>);
               })}
-              {rows.length === 0 && <tr><td colSpan={4} className="px-5 py-10 text-center text-sm text-muted-foreground">Nenhuma sacoleira cadastrada ainda.</td></tr>}
+              {filtered.length === 0 && <tr><td colSpan={4} className="px-5 py-10 text-center text-sm text-muted-foreground">Nenhuma sacoleira encontrada.</td></tr>}
             </tbody>
           </table>
         </div>
