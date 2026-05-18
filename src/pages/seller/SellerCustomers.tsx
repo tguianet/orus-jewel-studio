@@ -67,18 +67,28 @@ const SellerCustomers = () => {
         <div className="px-5 py-4 border-b border-border"><h3 className="font-display text-xl">Histórico</h3></div>
         <div className="divide-y divide-border">
           {txs.length === 0 ? <div className="px-5 py-8 text-center text-sm text-muted-foreground">Nenhuma movimentação ainda. Comissões aparecem quando seus pedidos forem pagos.</div> :
-            txs.map((t) => (
-            <div key={t.id} className="px-5 py-4 flex items-center justify-between gap-4">
-              <div>
-                <p className="font-medium">{t.description}</p>
-                <p className="text-xs text-muted-foreground">{new Date(t.created_at).toLocaleDateString("pt-BR")}</p>
-              </div>
-              <div className="text-right">
-                <p className={t.amount >= 0 ? "font-medium text-primary" : "font-medium text-muted-foreground"}>{formatBRL(t.amount)}</p>
-                <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider border ${statusColors[t.status] || "border-border text-muted-foreground"}`}>{t.status}</span>
-              </div>
-            </div>
-          ))}
+            txs.map((t) => {
+              const src = t.commission_id ? sourceByCommission[t.commission_id] : undefined;
+              const isOwn = src && src.level === 1;
+              const label = src
+                ? (isOwn ? "Sua venda" : `Indicada: ${src.name} (nível ${src.level})`)
+                : null;
+              return (
+                <div key={t.id} className="px-5 py-4 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-medium">{t.description}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(t.created_at).toLocaleDateString("pt-BR")}
+                      {label && <> · <span className="text-foreground/80">{label}</span></>}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className={t.amount >= 0 ? "font-medium text-primary" : "font-medium text-muted-foreground"}>{formatBRL(t.amount)}</p>
+                    <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider border ${statusColors[t.status] || "border-border text-muted-foreground"}`}>{t.status}</span>
+                  </div>
+                </div>
+              );
+            })}
         </div>
       </div>
       </>)}
