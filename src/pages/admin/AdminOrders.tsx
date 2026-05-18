@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Loader2, X } from "lucide-react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { loadAllOrders, updateOrderStatus } from "@/lib/cloudStore";
 import { formatBRL, statusColors } from "@/lib/mockData";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -20,9 +23,22 @@ const STATUS_LABELS: Record<string, string> = {
 const AdminOrders = () => {
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
 
   const refresh = () => loadAllOrders().then((d) => { setRows(d); setLoading(false); });
   useEffect(() => { refresh(); }, []);
+
+  const filtered = useMemo(() => {
+    const fromTs = from ? new Date(from + "T00:00:00").getTime() : null;
+    const toTs = to ? new Date(to + "T23:59:59.999").getTime() : null;
+    return rows.filter((o) => {
+      const t = new Date(o.created_at).getTime();
+      if (fromTs && t < fromTs) return false;
+      if (toTs && t > toTs) return false;
+      return true;
+    });
+  }, [rows, from, to]);
 
   const change = async (id: string, status: string) => {
     try {
