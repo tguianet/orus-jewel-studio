@@ -254,14 +254,14 @@ export const updateOrderStatus = async (orderId: string, status: string) => {
 // ---------- Wallet ----------
 
 export type WalletSummary = { pending: number; available: number; paid: number; total: number };
-export type WalletTx = { id: string; type: string; amount: number; status: string; description: string; created_at: string };
+export type WalletTx = { id: string; type: string; amount: number; status: string; description: string; created_at: string; commission_id: string | null };
 
 export const loadWalletForReseller = async (resellerId: string) => {
   const [{ data: summary }, { data: txs }] = await Promise.all([
     supabase.from("reseller_wallet_summary").select("*").eq("reseller_id", resellerId).maybeSingle(),
     supabase
       .from("wallet_transactions")
-      .select("id,type,amount,status,description,created_at")
+      .select("id,type,amount,status,description,created_at,commission_id")
       .eq("reseller_id", resellerId)
       .order("created_at", { ascending: false }),
   ]);

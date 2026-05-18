@@ -17,6 +17,8 @@ const SellerCustomers = () => {
   const [breakdown, setBreakdown] = useState<Breakdown>({ ownSales: 0, networkCommissions: 0 });
   const [loading, setLoading] = useState(true);
 
+  const [sourceByCommission, setSourceByCommission] = useState<Record<string, { name: string; level: number }>>({});
+
   useEffect(() => {
     if (!profile?.resellerId) { setLoading(false); return; }
     const resellerId = profile.resellerId;
@@ -24,7 +26,7 @@ const SellerCustomers = () => {
       loadWalletForReseller(resellerId),
       supabase
         .from("commissions")
-        .select("amount, level")
+        .select("id, amount, level, source_reseller_id, resellers!commissions_source_reseller_id_fkey(display_name)")
         .eq("reseller_id", resellerId),
     ]).then(([wallet, commRes]) => {
       setSummary(wallet.summary);
@@ -33,6 +35,14 @@ const SellerCustomers = () => {
       const ownSales = rows.filter((r: any) => r.level === 1).reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
       const networkCommissions = rows.filter((r: any) => r.level > 1).reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
       setBreakdown({ ownSales, networkCommissions });
+      const map: Record<string, { name: string; level: number }> = {};
+      rows.forEach((r: any) => {
+        map[r.id] = {
+          name: r.resellers?.display_name || "Indicada",
+          level: r.level,
+        };
+      });
+      setSourceByCommission(map);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [profile?.resellerId]);
@@ -57,18 +67,28 @@ const SellerCustomers = () => {
         <div className="px-5 py-4 border-b border-border"><h3 className="font-display text-xl">Histórico</h3></div>
         <div className="divide-y divide-border">
           {txs.length === 0 ? <div className="px-5 py-8 text-center text-sm text-muted-foreground">Nenhuma movimentação ainda. Comissões aparecem quando seus pedidos forem pagos.</div> :
-            txs.map((t) => (
-            <div key={t.id} className="px-5 py-4 flex items-center justify-between gap-4">
-              <div>
-                <p className="font-medium">{t.description}</p>
-                <p className="text-xs text-muted-foreground">{new Date(t.created_at).toLocaleDateString("pt-BR")}</p>
-              </div>
-              <div className="text-right">
-                <p className={t.amount >= 0 ? "font-medium text-primary" : "font-medium text-muted-foreground"}>{formatBRL(t.amount)}</p>
-                <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider border ${statusColors[t.status] || "border-border text-muted-foreground"}`}>{t.status}</span>
-              </div>
-            </div>
-          ))}
+            txs.map((t) => {
+              const src = t.commission_id ? sourceByCommission[t.commission_id] : undefined;
+              const isOwn = src && src.level === 1;
+              const label = src
+                ? (isOwn ? "Sua venda" : `Indicada: ${src.name} (nível ${src.level})`)
+                : null;
+              return (
+                <div key={t.id} className="px-5 py-4 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-medium">{t.description}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(t.created_at).toLocaleDateString("pt-BR")}
+                      {label && <> · <span className="text-foreground/80">{label}</span></>}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className={t.amount >= 0 ? "font-medium text-primary" : "font-medium text-muted-foreground"}>{formatBRL(t.amount)}</p>
+                    <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider border ${statusColors[t.status] || "border-border text-muted-foreground"}`}>{t.status}</span>
+                  </div>
+                </div>
+              );
+            })}
         </div>
       </div>
       </>)}
