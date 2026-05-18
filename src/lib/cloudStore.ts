@@ -254,7 +254,7 @@ export const updateOrderStatus = async (orderId: string, status: string) => {
 // ---------- Wallet ----------
 
 export type WalletSummary = { pending: number; available: number; paid: number; total: number };
-export type WalletTx = { id: string; type: string; amount: number; status: string; description: string; created_at: string };
+export type WalletTx = { id: string; type: string; amount: number; status: string; description: string; created_at: string; commission_id: string | null };
 
 export const loadWalletForReseller = async (resellerId: string) => {
   const [{ data: summary }, { data: txs }] = await Promise.all([
