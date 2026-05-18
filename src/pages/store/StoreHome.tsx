@@ -400,7 +400,6 @@ const StoreHome = () => {
             )}
           </DialogContent>
         </Dialog>
-        )}
       </section>
 
       {/* Sobre */}
