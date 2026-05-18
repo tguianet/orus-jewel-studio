@@ -5,6 +5,7 @@ import { getStoreBySlug, getStoreProducts, formatBRL } from "@/lib/mockData";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { CloudStoreProduct, loadPublicStore, loadStoreProducts } from "@/lib/cloudStore";
 import { DEFAULT_BANNER, StoreTheme, defaultTheme, loadStoreThemeBySlug } from "@/lib/storeTheme";
 import { waLink } from "@/lib/whatsapp";
