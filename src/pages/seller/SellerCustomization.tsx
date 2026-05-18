@@ -238,7 +238,10 @@ const SellerCustomization = () => {
           {/* 2. Logo */}
           <div className="rounded-xl border border-border bg-card p-6 space-y-4">
             <div className="flex items-baseline justify-between">
-              <h3 className="font-display text-xl">2. Logo</h3>
+              <div className="flex items-baseline gap-3 flex-wrap">
+                <h3 className="font-display text-xl">2. Logo</h3>
+                <span className="text-xs text-muted-foreground">Imagem da marca exibida no topo da loja.</span>
+              </div>
               <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
                 {theme.logoFormat === "wide" ? "800 × 400 px" : "400 × 400 px"}
               </span>
@@ -424,7 +427,10 @@ const SellerCustomization = () => {
           {/* 5. Banners da loja (hero) */}
           <div className="rounded-xl border border-border bg-card p-6 space-y-3">
             <div className="flex items-baseline justify-between">
-              <h3 className="font-display text-xl">5. Banners do hero</h3>
+              <div className="flex items-baseline gap-3 flex-wrap">
+                <h3 className="font-display text-xl">5. Banners do hero</h3>
+                <span className="text-xs text-muted-foreground">Imagens grandes que giram no topo da página inicial.</span>
+              </div>
               <span className="text-[10px] uppercase tracking-widest text-muted-foreground">1600 × 500 px · rotativo</span>
             </div>
             <p className="text-xs text-muted-foreground -mt-1">
@@ -475,7 +481,10 @@ const SellerCustomization = () => {
           {/* 6. Hero — textos */}
           <div className="rounded-xl border border-border bg-card p-6 space-y-4">
             <div className="flex items-baseline justify-between">
-              <h3 className="font-display text-xl">6. Hero — textos do banner</h3>
+              <div className="flex items-baseline gap-3 flex-wrap">
+                <h3 className="font-display text-xl">6. Hero — textos do banner</h3>
+                <span className="text-xs text-muted-foreground">Título, subtítulo e botões que aparecem sobre o banner.</span>
+              </div>
               <span className="text-[10px] uppercase tracking-widest text-muted-foreground">textos do topo</span>
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
@@ -515,7 +524,10 @@ const SellerCustomization = () => {
           {/* 7. Faixa de benefícios */}
           <div className="rounded-xl border border-border bg-card p-6 space-y-3">
             <div className="flex items-baseline justify-between">
-              <h3 className="font-display text-xl">7. Faixa de benefícios</h3>
+              <div className="flex items-baseline gap-3 flex-wrap">
+                <h3 className="font-display text-xl">7. Faixa de benefícios</h3>
+                <span className="text-xs text-muted-foreground">Lista curta logo abaixo do hero (ex.: frete grátis, parcelamento).</span>
+              </div>
               <span className="text-[10px] uppercase tracking-widest text-muted-foreground">{(theme.benefits || []).length} itens</span>
             </div>
             <p className="text-xs text-muted-foreground -mt-1">Aparecem logo abaixo do banner principal.</p>
@@ -744,7 +756,10 @@ const SellerCustomization = () => {
 
           {/* 9. Sobre a loja */}
           <div className="rounded-xl border border-border bg-card p-6 space-y-4">
-            <h3 className="font-display text-xl">9. Seção "Sobre a loja"</h3>
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <h3 className="font-display text-xl">9. Seção "Sobre a loja"</h3>
+              <span className="text-xs text-muted-foreground">Bloco institucional que conta a história e os diferenciais.</span>
+            </div>
             <div>
               <Label>Eyebrow</Label>
               <Input value={theme.aboutEyebrow || ""} onChange={(e) => setTheme({ ...theme, aboutEyebrow: e.target.value })} placeholder="Sobre a loja" maxLength={40} className="mt-1.5" />
@@ -771,7 +786,10 @@ const SellerCustomization = () => {
 
           {/* 10. CTA final */}
           <div className="rounded-xl border border-border bg-card p-6 space-y-4">
-            <h3 className="font-display text-xl">10. Chamada final</h3>
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <h3 className="font-display text-xl">10. Chamada final</h3>
+              <span className="text-xs text-muted-foreground">Bloco de incentivo no fim da página, antes do rodapé.</span>
+            </div>
             <div>
               <Label>Eyebrow</Label>
               <Input value={theme.finalCtaEyebrow || ""} onChange={(e) => setTheme({ ...theme, finalCtaEyebrow: e.target.value })} placeholder="Atendimento personalizado" maxLength={40} className="mt-1.5" />
@@ -882,7 +900,10 @@ const SellerCustomization = () => {
           {/* 11. Paleta global de cores */}
           <div className="rounded-xl border border-border bg-card p-6 space-y-4">
             <div className="flex items-baseline justify-between">
-              <h3 className="font-display text-xl">11. Paleta global de cores</h3>
+              <div className="flex items-baseline gap-3 flex-wrap">
+                <h3 className="font-display text-xl">11. Paleta global de cores</h3>
+                <span className="text-xs text-muted-foreground">Cores principais aplicadas a botões, destaques e detalhes da loja.</span>
+              </div>
               <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
                 {defaultPalettes.length + customPalettes.length} opções
               </span>
