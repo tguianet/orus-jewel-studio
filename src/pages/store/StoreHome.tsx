@@ -1,8 +1,9 @@
 import { Link, useOutletContext, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Sparkles, Instagram, MessageCircle, Heart, Truck, ShieldCheck, Gem, Crown, Award, Droplet, Sun, Sparkle, CheckCircle2, Package, RefreshCw, CreditCard, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, Sparkles, Instagram, MessageCircle, Heart, Truck, ShieldCheck, Gem, Crown, Award, Droplet, Sun, Sparkle, CheckCircle2, Package, RefreshCw, CreditCard, ChevronLeft, ChevronRight, Menu, Check } from "lucide-react";
 import { formatBRL, getStoreProducts, Sacoleira } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import heroImg from "@/assets/hero-jewelry.jpg";
 import { CloudStoreProduct, loadStoreProducts } from "@/lib/cloudStore";
 import { DEFAULT_BANNER, StoreTheme, defaultTheme } from "@/lib/storeTheme";
@@ -31,6 +32,7 @@ const StoreHome = () => {
   }, [banners.length]);
   const [cloudProducts, setCloudProducts] = useState<CloudStoreProduct[]>([]);
   const [activeCat, setActiveCat] = useState<string>("Todos");
+  const [catMenuOpen, setCatMenuOpen] = useState(false);
   const mockProducts = getStoreProducts(store.id);
   const allProducts: CloudStoreProduct[] | any[] = cloudProducts.length ? cloudProducts : mockProducts;
 
@@ -266,7 +268,19 @@ const StoreHome = () => {
           <div className="mx-auto mt-4 h-px w-12 bg-primary/60" />
         </div>
 
-        <div className="flex gap-1 overflow-x-auto pb-6 -mx-4 px-4 mb-10 justify-start sm:justify-center">
+        {/* Mobile: botão sanduíche de categorias */}
+        <div className="sm:hidden mb-6 flex justify-center">
+          <button
+            onClick={() => setCatMenuOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-[11px] uppercase tracking-[0.28em] font-light"
+          >
+            <Menu className="h-4 w-4" />
+            <span>{activeCat}</span>
+          </button>
+        </div>
+
+        {/* Desktop / tablet: barra horizontal */}
+        <div className="hidden sm:flex gap-1 overflow-x-auto pb-6 -mx-4 px-4 mb-10 justify-center">
           {cats.map((c) => (
             <button
               key={c}
@@ -281,6 +295,31 @@ const StoreHome = () => {
             </button>
           ))}
         </div>
+
+        <Sheet open={catMenuOpen} onOpenChange={setCatMenuOpen}>
+          <SheetContent side="right" className="w-[82%] max-w-sm p-0 bg-background text-foreground flex flex-col">
+            <SheetHeader className="px-6 pt-6 pb-4 border-b border-border/60 text-left">
+              <SheetTitle className="font-display text-xl tracking-[0.25em] uppercase font-light">
+                Categorias
+              </SheetTitle>
+            </SheetHeader>
+            <nav className="flex flex-col py-2">
+              {cats.map((c) => {
+                const active = activeCat === c;
+                return (
+                  <button
+                    key={c}
+                    onClick={() => { setActiveCat(c); setCatMenuOpen(false); }}
+                    className={`flex items-center justify-between px-6 py-4 border-b border-border/40 text-sm uppercase tracking-[0.3em] font-light text-left transition-colors ${active ? "text-foreground bg-muted/40" : "text-muted-foreground hover:bg-muted/30"}`}
+                  >
+                    <span>{c}</span>
+                    {active && <Check className="h-4 w-4" />}
+                  </button>
+                );
+              })}
+            </nav>
+          </SheetContent>
+        </Sheet>
 
         {query && (
           <p className="text-center text-xs uppercase tracking-[0.3em] text-muted-foreground mb-6">
