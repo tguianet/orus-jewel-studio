@@ -68,11 +68,12 @@ const StoreLayout = () => {
 
   useEffect(() => {
     let mounted = true;
-    loadPublicStore(slug).then((cloudStore) => {
-      if (mounted && cloudStore) setStore(cloudStore);
-    });
-    loadStoreThemeBySlug(slug).then((t) => {
-      if (mounted && t) setTheme({ ...defaultTheme, ...t });
+    setThemeLoaded(false);
+    Promise.all([loadPublicStore(slug), loadStoreThemeBySlug(slug)]).then(([cloudStore, t]) => {
+      if (!mounted) return;
+      if (cloudStore) setStore(cloudStore);
+      setTheme({ ...defaultTheme, ...(t || {}) });
+      setThemeLoaded(true);
     });
     return () => { mounted = false; };
   }, [slug]);
