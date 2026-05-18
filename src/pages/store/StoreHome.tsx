@@ -259,10 +259,10 @@ const StoreHome = () => {
       )}
 
       {/* Vitrine */}
-      <section id="vitrine" className="container pt-4 pb-20 scroll-mt-20">
-        <div className="text-center mb-12">
+      <section id="vitrine" className="container pt-4 pb-14 sm:pb-20 scroll-mt-20">
+        <div className="text-center mb-8 sm:mb-12">
           <p className="text-[10px] uppercase tracking-[0.4em] text-primary mb-3">Vitrine</p>
-          <h2 className="font-display text-4xl sm:text-5xl font-light">Selecionadas para você</h2>
+          <h2 className="font-display text-2xl sm:text-5xl font-light leading-tight">Selecionadas para você</h2>
           <div className="mx-auto mt-4 h-px w-12 bg-primary/60" />
         </div>
 
