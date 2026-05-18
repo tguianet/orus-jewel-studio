@@ -207,7 +207,7 @@ const StoreHome = () => {
           }}
         >
           <div className="container pt-10 pb-14 sm:pt-16 sm:pb-24">
-          <div className="text-center mb-10">
+          <div className="text-center mb-7 sm:mb-10">
             <EditableText
               field="categoriesTitle"
               value={t.categoriesTitle || `Joias ${store.storeName}`}
