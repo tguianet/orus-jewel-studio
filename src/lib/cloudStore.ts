@@ -196,6 +196,48 @@ export const loadOrdersForStore = async (storeId: string): Promise<SellerOrderRo
   }));
 };
 
+export type OrderDetail = {
+  id: string;
+  customer: string;
+  phone: string;
+  address: string | null;
+  notes: string | null;
+  subtotal: number;
+  discount: number;
+  total: number;
+  status: string;
+  date: string;
+  items: { id: string; productName: string; quantity: number; unitPrice: number; total: number }[];
+};
+
+export const loadOrderDetail = async (orderId: string): Promise<OrderDetail | null> => {
+  const { data } = await supabase
+    .from("orders")
+    .select("id,customer_name,customer_phone,customer_address,notes,subtotal,discount,total,status,created_at,order_items(id,product_name,quantity,unit_price,total)")
+    .eq("id", orderId)
+    .maybeSingle();
+  if (!data) return null;
+  return {
+    id: data.id,
+    customer: data.customer_name,
+    phone: data.customer_phone,
+    address: data.customer_address,
+    notes: data.notes,
+    subtotal: Number(data.subtotal || 0),
+    discount: Number(data.discount || 0),
+    total: Number(data.total || 0),
+    status: data.status,
+    date: data.created_at,
+    items: (data.order_items || []).map((i: any) => ({
+      id: i.id,
+      productName: i.product_name,
+      quantity: i.quantity,
+      unitPrice: Number(i.unit_price || 0),
+      total: Number(i.total || 0),
+    })),
+  };
+};
+
 export const loadAllOrders = async () => {
   const { data } = await supabase
     .from("orders")
