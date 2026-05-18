@@ -212,7 +212,7 @@ const StoreHome = () => {
               field="categoriesTitle"
               value={t.categoriesTitle || `Joias ${store.storeName}`}
               as="h2"
-              className="block font-display text-4xl sm:text-5xl font-light tracking-wide uppercase"
+              className="block font-display text-2xl sm:text-5xl font-light tracking-[0.08em] sm:tracking-wide uppercase leading-tight break-words"
               style={t.categoriesFontFamily ? { fontFamily: t.categoriesFontFamily } : undefined}
             />
             <EditableText
