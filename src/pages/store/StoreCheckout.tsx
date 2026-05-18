@@ -77,7 +77,11 @@ const StoreCheckout = () => {
       unit_price: i.price,
       total: i.price * i.qty,
     })));
-    if (itemsError) throw itemsError;
+    if (itemsError) {
+      console.error("[checkout] falha ao salvar itens, removendo pedido", itemsError);
+      await supabase.from("orders").delete().eq("id", newOrderId);
+      throw itemsError;
+    }
     return newOrderId;
   };
 
