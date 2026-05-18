@@ -97,26 +97,36 @@ const SellerNetwork = () => {
               <div key={lvl} className="px-5 py-4">
                 <p className="font-display text-lg mb-3">Nível {lvl}</p>
                 <div className="space-y-2">
-                  {byLevel(lvl).length ? byLevel(lvl).map((m) => (
-                    <div key={m.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background/50 px-3 py-2">
-                      <div className="min-w-0"><p className="font-medium truncate">{m.name}</p><p className="text-xs text-muted-foreground truncate">{m.email}</p></div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-xs text-muted-foreground hidden sm:inline">{m.status}</span>
-                        {m.phone && (
-                          <a
-                            href={waLink(
-                              m.phone,
-                              `Olá ${m.name}! Aqui é da sua mentora na Aura. Tudo bem? Passando pra te dar um apoio com a sua loja. ✨`,
-                            )}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            <Button variant="whatsapp" size="sm"><MessageCircle className="h-4 w-4"/></Button>
-                          </a>
-                        )}
+                  {byLevel(lvl).length ? byLevel(lvl).map((m) => {
+                    const monthAmount = monthBySource[m.id] || 0;
+                    return (
+                      <div key={m.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background/50 px-3 py-2">
+                        <div className="min-w-0">
+                          <p className="font-medium truncate">{m.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{m.email}</p>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <div className="text-right">
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Este mês</p>
+                            <p className={`font-display text-sm ${monthAmount > 0 ? "text-gold" : "text-muted-foreground"}`}>{formatBRL(monthAmount)}</p>
+                          </div>
+                          <span className="text-xs text-muted-foreground hidden sm:inline">{m.status}</span>
+                          {m.phone && (
+                            <a
+                              href={waLink(
+                                m.phone,
+                                `Olá ${m.name}! Aqui é da sua mentora na Aura. Tudo bem? Passando pra te dar um apoio com a sua loja. ✨`,
+                              )}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              <Button variant="whatsapp" size="sm"><MessageCircle className="h-4 w-4"/></Button>
+                            </a>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )) : <p className="text-sm text-muted-foreground">Nenhuma indicada neste nível.</p>}
+                    );
+                  }) : <p className="text-sm text-muted-foreground">Nenhuma indicada neste nível.</p>}
                 </div>
               </div>
             ))}
