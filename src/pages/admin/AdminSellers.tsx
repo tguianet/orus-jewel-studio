@@ -20,6 +20,19 @@ const AdminSellers = () => {
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [previewStore, setPreviewStore] = useState<{ slug: string; name: string } | null>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return rows.filter((s: any) => {
+      if (statusFilter !== "all" && s.status !== statusFilter) return false;
+      if (!q) return true;
+      const store = s.seller_stores?.[0];
+      return [s.display_name, s.email, s.phone, store?.store_name, store?.store_slug]
+        .filter(Boolean).some((v: string) => v.toLowerCase().includes(q));
+    });
+  }, [rows, search, statusFilter]);
 
   const refresh = () => loadAllSellers().then((data) => { setRows(data); setLoading(false); });
   useEffect(() => { refresh(); }, []);
