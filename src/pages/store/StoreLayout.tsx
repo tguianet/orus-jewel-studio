@@ -293,16 +293,46 @@ const StoreLayout = () => {
           </div>
         )}
 
-        {/* Menu mobile (visível apenas em telas pequenas) */}
-        <nav className="lg:hidden border-t border-border/70">
-          <div className="container flex items-center justify-center gap-6 sm:gap-10 py-3 text-[11px] uppercase tracking-[0.32em] overflow-x-auto font-light">
-            <a href={`/loja/${store.storeSlug}#vitrine`} className="whitespace-nowrap">Joias</a>
-            <a href={`/loja/${store.storeSlug}#colecoes`} className="whitespace-nowrap">Coleções</a>
-            <a href={`/loja/${store.storeSlug}#vitrine`} className="whitespace-nowrap">Novidades</a>
-            <a href={`/loja/${store.storeSlug}#sobre`} className="whitespace-nowrap">Sobre</a>
-            <a href={`/loja/${store.storeSlug}#vitrine`} className="whitespace-nowrap font-medium" style={{ color: "hsl(142 70% 35%)" }}>Sale</a>
-          </div>
-        </nav>
+        {/* Menu mobile (sanduíche) */}
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <SheetContent side="right" className="w-[82%] max-w-sm p-0 bg-background text-foreground flex flex-col">
+            <SheetHeader className="px-6 pt-6 pb-4 border-b border-border/60 text-left">
+              <SheetTitle className="font-display text-xl tracking-[0.25em] uppercase font-light">
+                {store.storeName}
+              </SheetTitle>
+            </SheetHeader>
+            <nav className="flex flex-col py-2">
+              {[
+                { label: "Joias", href: `/loja/${store.storeSlug}#vitrine` },
+                { label: "Coleções", href: `/loja/${store.storeSlug}#colecoes` },
+                { label: "Novidades", href: `/loja/${store.storeSlug}#vitrine` },
+                { label: "Sobre", href: `/loja/${store.storeSlug}#sobre` },
+              ].map((it) => (
+                <a
+                  key={it.label}
+                  href={it.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-6 py-4 border-b border-border/40 text-sm uppercase tracking-[0.3em] font-light hover:bg-muted/40 transition-colors"
+                >
+                  {it.label}
+                </a>
+              ))}
+              <a
+                href={`/loja/${store.storeSlug}#vitrine`}
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-6 py-4 border-b border-border/40 text-sm uppercase tracking-[0.3em] font-medium"
+                style={{ color: "hsl(142 70% 35%)" }}
+              >
+                Sale
+              </a>
+            </nav>
+            <div className="mt-auto px-6 py-5 border-t border-border/60 flex items-center gap-4 text-xs text-muted-foreground">
+              <Link to={`/loja/${store.storeSlug}/carrinho`} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 hover:text-foreground">
+                <ShoppingBag className="h-4 w-4" /> Carrinho{count > 0 ? ` (${count})` : ""}
+              </Link>
+            </div>
+          </SheetContent>
+        </Sheet>
       </header>
 
       <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
