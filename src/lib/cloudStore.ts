@@ -261,7 +261,7 @@ export const loadWalletForReseller = async (resellerId: string) => {
     supabase.from("reseller_wallet_summary").select("*").eq("reseller_id", resellerId).maybeSingle(),
     supabase
       .from("wallet_transactions")
-      .select("id,type,amount,status,description,created_at")
+      .select("id,type,amount,status,description,created_at,commission_id")
       .eq("reseller_id", resellerId)
       .order("created_at", { ascending: false }),
   ]);
