@@ -57,6 +57,22 @@ const AdminOrders = () => {
   return (
     <AdminLayout>
       <PageHeader eyebrow="Pedidos" title="Todos os pedidos" description="Acompanhe e mude o status. Pagamento gera comissões MLM." />
+      <div className="mb-4 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card p-4">
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="from" className="text-xs text-muted-foreground">De</Label>
+          <Input id="from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="h-9 w-44" />
+        </div>
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="to" className="text-xs text-muted-foreground">Até</Label>
+          <Input id="to" type="date" value={to} onChange={(e) => setTo(e.target.value)} className="h-9 w-44" />
+        </div>
+        {(from || to) && (
+          <Button variant="ghost" size="sm" onClick={() => { setFrom(""); setTo(""); }}>
+            <X className="h-4 w-4 mr-1" /> Limpar
+          </Button>
+        )}
+        <div className="ml-auto text-xs text-muted-foreground">{filtered.length} pedido(s)</div>
+      </div>
       {loading ? <div className="flex items-center justify-center h-40 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin mr-2"/> Carregando...</div> : (
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="overflow-x-auto">
