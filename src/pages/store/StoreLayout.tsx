@@ -22,6 +22,7 @@ const StoreLayout = () => {
   const { profile, loading: authLoading } = useAuth();
   const [store, setStore] = useState(() => getStoreBySlug(slug));
   const [theme, setTheme] = useState<StoreTheme>(defaultTheme);
+  const [themeLoaded, setThemeLoaded] = useState(false);
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
