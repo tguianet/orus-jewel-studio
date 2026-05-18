@@ -125,27 +125,52 @@ export const AdminPopupsSection = () => {
           <Textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={3} maxLength={400} placeholder="Mensagem que aparecerá no pop-up" className="mt-1.5" />
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <Label>Link do botão (opcional)</Label>
-            <Input value={ctaUrl} onChange={(e) => setCtaUrl(e.target.value)} placeholder="https://..." className="mt-1.5" />
-          </div>
-          <div>
-            <Label>Imagem (opcional)</Label>
-            <div className="flex items-center gap-2 mt-1.5">
-              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImage(e.target.files?.[0])} />
-              <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
-                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                {imageUrl ? "Trocar" : "Enviar"}
-              </Button>
-              {imageUrl && (
-                <>
-                  <img src={imageUrl} alt="" className="h-10 w-10 rounded object-cover border border-border" />
-                  <button type="button" onClick={() => setImageUrl("")} className="text-xs text-muted-foreground hover:text-destructive">Remover</button>
-                </>
-              )}
+        <div>
+          <Label>Link do botão (opcional)</Label>
+          <Input value={ctaUrl} onChange={(e) => setCtaUrl(e.target.value)} placeholder="https://..." className="mt-1.5" />
+        </div>
+
+        <div>
+          <Label>Imagem do pop-up (opcional)</Label>
+          <p className="text-[11px] text-muted-foreground mt-1">
+            Envie uma imagem do seu computador ou celular para ilustrar o aviso/promoção.
+          </p>
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImage(e.target.files?.[0])} />
+          {imageUrl ? (
+            <div className="mt-2 flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3">
+              <img src={imageUrl} alt="Pré-visualização" className="h-20 w-20 rounded object-cover border border-border" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium">Imagem enviada</p>
+                <p className="text-[11px] text-muted-foreground truncate">Será exibida no topo do pop-up.</p>
+              </div>
+              <div className="flex flex-col gap-1 shrink-0">
+                <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                  {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  Trocar imagem
+                </Button>
+                <button type="button" onClick={() => setImageUrl("")} className="text-[11px] text-muted-foreground hover:text-destructive">
+                  Remover
+                </button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+              className="mt-2 w-full flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border hover:border-primary/50 bg-muted/20 hover:bg-muted/40 transition-colors py-8 text-center"
+            >
+              {uploading ? (
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              ) : (
+                <Plus className="h-6 w-6 text-muted-foreground" />
+              )}
+              <span className="text-sm font-medium">
+                {uploading ? "Enviando..." : "Clique para enviar uma imagem"}
+              </span>
+              <span className="text-[11px] text-muted-foreground">PNG, JPG ou WEBP · máx 5MB</span>
+            </button>
+          )}
         </div>
 
         <div className="flex justify-end">
