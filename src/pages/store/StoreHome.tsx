@@ -206,20 +206,20 @@ const StoreHome = () => {
             ...(t.categoriesFontFamily ? { fontFamily: t.categoriesFontFamily } : {}),
           }}
         >
-          <div className="container pt-16 pb-24">
-          <div className="text-center mb-10">
+          <div className="container pt-10 pb-14 sm:pt-16 sm:pb-24">
+          <div className="text-center mb-7 sm:mb-10">
             <EditableText
               field="categoriesTitle"
               value={t.categoriesTitle || `Joias ${store.storeName}`}
               as="h2"
-              className="block font-display text-4xl sm:text-5xl font-light tracking-wide uppercase"
+              className="block font-display text-2xl sm:text-5xl font-light tracking-[0.08em] sm:tracking-wide uppercase leading-tight break-words"
               style={t.categoriesFontFamily ? { fontFamily: t.categoriesFontFamily } : undefined}
             />
             <EditableText
               field="categoriesSubtitle"
               value={t.categoriesSubtitle || "Escolha por categorias"}
               as="p"
-              className="block mt-3 text-[11px] uppercase tracking-[0.4em] opacity-70"
+              className="block mt-2 sm:mt-3 text-[10px] sm:text-[11px] uppercase tracking-[0.3em] sm:tracking-[0.4em] opacity-70"
             />
             <div
               className="mx-auto mt-3"
@@ -259,10 +259,10 @@ const StoreHome = () => {
       )}
 
       {/* Vitrine */}
-      <section id="vitrine" className="container pt-4 pb-20 scroll-mt-20">
-        <div className="text-center mb-12">
+      <section id="vitrine" className="container pt-4 pb-14 sm:pb-20 scroll-mt-20">
+        <div className="text-center mb-8 sm:mb-12">
           <p className="text-[10px] uppercase tracking-[0.4em] text-primary mb-3">Vitrine</p>
-          <h2 className="font-display text-4xl sm:text-5xl font-light">Selecionadas para você</h2>
+          <h2 className="font-display text-2xl sm:text-5xl font-light leading-tight">Selecionadas para você</h2>
           <div className="mx-auto mt-4 h-px w-12 bg-primary/60" />
         </div>
 
