@@ -133,7 +133,17 @@ ${orders.map((o: any) => `
           <TabsTrigger value="formatos">Formatos de imagem</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="geral" className="mt-6">
+        <TabsContent value="geral" className="mt-6 space-y-5">
+          <div className="rounded-xl border border-border bg-card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 max-w-4xl">
+            <div>
+              <h3 className="font-display text-xl">Pedidos do dia</h3>
+              <p className="text-xs text-muted-foreground mt-1">Gere uma folha imprimível com todos os pedidos feitos hoje.</p>
+            </div>
+            <Button variant="gold" onClick={printTodayOrders} disabled={printing}>
+              {printing ? <Loader2 className="h-4 w-4 animate-spin"/> : <Printer className="h-4 w-4"/>}
+              Imprimir pedidos de hoje
+            </Button>
+          </div>
           <div className="grid lg:grid-cols-2 gap-5">
             <div className="rounded-xl border border-border bg-card p-6 space-y-4">
               <h3 className="font-display text-xl">Marca</h3>
