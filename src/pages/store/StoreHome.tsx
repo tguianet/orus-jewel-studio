@@ -219,7 +219,7 @@ const StoreHome = () => {
               field="categoriesSubtitle"
               value={t.categoriesSubtitle || "Escolha por categorias"}
               as="p"
-              className="block mt-3 text-[11px] uppercase tracking-[0.4em] opacity-70"
+              className="block mt-2 sm:mt-3 text-[10px] sm:text-[11px] uppercase tracking-[0.3em] sm:tracking-[0.4em] opacity-70"
             />
             <div
               className="mx-auto mt-3"
