@@ -22,6 +22,7 @@ const StoreLayout = () => {
   const { profile, loading: authLoading } = useAuth();
   const [store, setStore] = useState(() => getStoreBySlug(slug));
   const [theme, setTheme] = useState<StoreTheme>(defaultTheme);
+  const [themeLoaded, setThemeLoaded] = useState(false);
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -67,11 +68,12 @@ const StoreLayout = () => {
 
   useEffect(() => {
     let mounted = true;
-    loadPublicStore(slug).then((cloudStore) => {
-      if (mounted && cloudStore) setStore(cloudStore);
-    });
-    loadStoreThemeBySlug(slug).then((t) => {
-      if (mounted && t) setTheme({ ...defaultTheme, ...t });
+    setThemeLoaded(false);
+    Promise.all([loadPublicStore(slug), loadStoreThemeBySlug(slug)]).then(([cloudStore, t]) => {
+      if (!mounted) return;
+      if (cloudStore) setStore(cloudStore);
+      setTheme({ ...defaultTheme, ...(t || {}) });
+      setThemeLoaded(true);
     });
     return () => { mounted = false; };
   }, [slug]);
@@ -137,6 +139,14 @@ const StoreLayout = () => {
   }
 
   const accent = theme.accentColor || "hsl(36 45% 60%)";
+
+  if (!themeLoaded || authLoading) {
+    return (
+      <div className="store-light min-h-screen flex items-center justify-center bg-background">
+        <div className="h-8 w-8 rounded-full border-2 border-muted border-t-foreground animate-spin" aria-label="Carregando loja" />
+      </div>
+    );
+  }
 
   return (
     <div className="store-light min-h-screen flex flex-col bg-background text-foreground" style={themeCssVars(theme.primaryColor, theme.secondaryColor)}>
