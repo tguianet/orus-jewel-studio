@@ -183,7 +183,10 @@ const SellerCustomization = () => {
 
           {/* 1. Identidade — Dados da loja */}
           <div className="rounded-xl border border-border bg-card p-6 space-y-4">
-            <h3 className="font-display text-xl">1. Dados da loja</h3>
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <h3 className="font-display text-xl">1. Dados da loja</h3>
+              <span className="text-xs text-muted-foreground">Nome, URL, contato e descrição que aparecem em toda a loja.</span>
+            </div>
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
                 <Label>Nome da loja</Label>
