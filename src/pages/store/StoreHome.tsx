@@ -1,5 +1,6 @@
-import { Link, useOutletContext, useSearchParams } from "react-router-dom";
+import { Link, useOutletContext, useSearchParams, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ArrowRight, Sparkles, Instagram, MessageCircle, Heart, Truck, ShieldCheck, Gem, Crown, Award, Droplet, Sun, Sparkle, CheckCircle2, Package, RefreshCw, CreditCard, ChevronLeft, ChevronRight, Menu, Check } from "lucide-react";
 import { formatBRL, getStoreProducts, Sacoleira } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,8 @@ const StoreHome = () => {
   const [cloudProducts, setCloudProducts] = useState<CloudStoreProduct[]>([]);
   const [activeCat, setActiveCat] = useState<string>("Todos");
   const [catMenuOpen, setCatMenuOpen] = useState(false);
+  const [quickProduct, setQuickProduct] = useState<any | null>(null);
+  const navigate = useNavigate();
   const mockProducts = getStoreProducts(store.id);
   const allProducts: CloudStoreProduct[] | any[] = cloudProducts.length ? cloudProducts : mockProducts;
 
@@ -332,7 +335,25 @@ const StoreHome = () => {
             {query ? `Nenhuma peça encontrada para "${query}".` : "Ainda não há produtos nesta categoria."}
           </p>
         ) : (
-          <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+          <>
+          <div className="grid grid-cols-3 gap-2 sm:hidden">
+            {filtered.map((p: any) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setQuickProduct(p)}
+                className="group block text-left"
+              >
+                <div className="relative aspect-square overflow-hidden bg-secondary/50 mb-2">
+                  <img src={p.image} alt={p.name} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+                </div>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground truncate">{p.category}</p>
+                <h3 className="font-display text-[12px] font-light leading-tight mt-0.5 line-clamp-2">{p.name}</h3>
+                <p className="mt-1 text-[12px] font-light" style={{ color: "hsl(var(--primary-deep))" }}>{formatBRL(p.resellerPrice)}</p>
+              </button>
+            ))}
+          </div>
+          <div className="hidden sm:grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
             {filtered.map((p: any) => (
               <Link key={p.id} to={`/loja/${store.storeSlug}/produto/${p.id}`} className="group block">
                 <div className="relative aspect-square overflow-hidden bg-secondary/50 mb-5 transition-all duration-500 group-hover:shadow-[0_30px_60px_-20px_rgba(17,17,17,0.18)]">
@@ -347,7 +368,38 @@ const StoreHome = () => {
               </Link>
             ))}
           </div>
+          </>
         )}
+
+        <Dialog open={!!quickProduct} onOpenChange={(o) => !o && setQuickProduct(null)}>
+          <DialogContent className="max-w-sm p-0 overflow-hidden">
+            {quickProduct && (
+              <div className="flex flex-col">
+                <div className="aspect-square bg-secondary/50">
+                  <img src={quickProduct.image} alt={quickProduct.name} className="w-full h-full object-cover" />
+                </div>
+                <div className="p-5 space-y-3">
+                  <DialogHeader className="space-y-1 text-left">
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{quickProduct.category}</p>
+                    <DialogTitle className="font-display text-xl font-light leading-tight">{quickProduct.name}</DialogTitle>
+                    {quickProduct.description && (
+                      <DialogDescription className="text-sm text-muted-foreground line-clamp-4">{quickProduct.description}</DialogDescription>
+                    )}
+                  </DialogHeader>
+                  <p className="text-xl font-light tracking-wide" style={{ color: "hsl(var(--primary-deep))" }}>{formatBRL(quickProduct.resellerPrice)}</p>
+                  <Button
+                    variant="gold"
+                    size="lg"
+                    className="w-full"
+                    onClick={() => { const id = quickProduct.id; setQuickProduct(null); navigate(`/loja/${store.storeSlug}/produto/${id}`); }}
+                  >
+                    Ver detalhes <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </section>
 
       {/* Sobre */}
