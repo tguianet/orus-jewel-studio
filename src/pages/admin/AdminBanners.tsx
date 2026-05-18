@@ -20,6 +20,7 @@ import {
   uploadMarketingBannerFile,
 } from "@/lib/marketingBanners";
 import { cn } from "@/lib/utils";
+import { AdminPopupsSection } from "@/components/admin/AdminPopupsSection";
 
 const AdminBanners = () => {
   const { formatSlug } = useParams<{ formatSlug?: string }>();
@@ -105,6 +106,7 @@ const AdminBanners = () => {
             : "As imagens enviadas aqui ficam disponíveis para todas as sacoleiras."
         }
       />
+      <AdminPopupsSection />
 
       {/* Tabs de formato */}
       <div className="flex flex-wrap gap-2 mb-6">
