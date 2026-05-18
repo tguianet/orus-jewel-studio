@@ -22,6 +22,9 @@ const SellerNetwork = () => {
   const [members, setMembers] = useState<NetworkMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [monthBySource, setMonthBySource] = useState<Record<string, number>>({});
+
+  const monthLabel = new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 
   const handleCopy = async () => {
     if (!profile?.resellerId) return;
@@ -37,7 +40,26 @@ const SellerNetwork = () => {
 
   useEffect(() => {
     if (!profile?.resellerId) { setLoading(false); return; }
-    loadNetwork(profile.resellerId).then((m) => { setMembers(m); setLoading(false); });
+    const resellerId = profile.resellerId;
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    Promise.all([
+      loadNetwork(resellerId),
+      supabase
+        .from("commissions")
+        .select("amount, source_reseller_id")
+        .eq("reseller_id", resellerId)
+        .gte("created_at", monthStart),
+    ]).then(([m, commRes]) => {
+      setMembers(m);
+      const map: Record<string, number> = {};
+      (commRes.data ?? []).forEach((r: any) => {
+        if (!r.source_reseller_id) return;
+        map[r.source_reseller_id] = (map[r.source_reseller_id] || 0) + Number(r.amount || 0);
+      });
+      setMonthBySource(map);
+      setLoading(false);
+    });
   }, [profile?.resellerId]);
 
   const byLevel = (lvl: number) => members.filter((m) => m.level === lvl);
