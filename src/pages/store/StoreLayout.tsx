@@ -140,6 +140,14 @@ const StoreLayout = () => {
 
   const accent = theme.accentColor || "hsl(36 45% 60%)";
 
+  if (!themeLoaded || authLoading) {
+    return (
+      <div className="store-light min-h-screen flex items-center justify-center bg-background">
+        <div className="h-8 w-8 rounded-full border-2 border-muted border-t-foreground animate-spin" aria-label="Carregando loja" />
+      </div>
+    );
+  }
+
   return (
     <div className="store-light min-h-screen flex flex-col bg-background text-foreground" style={themeCssVars(theme.primaryColor, theme.secondaryColor)}>
       {/* Top bar minimalista premium */}
