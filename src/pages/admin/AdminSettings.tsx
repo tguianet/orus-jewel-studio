@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2, Printer } from "lucide-react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { formatBRL } from "@/lib/mockData";
 import {
   ImageFormat,
   createImageFormat,
@@ -21,7 +23,61 @@ const AdminSettings = () => {
   const [formats, setFormats] = useState<ImageFormat[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [printing, setPrinting] = useState(false);
   const [draft, setDraft] = useState({ name: "", width: 1080, height: 1080, description: "" });
+
+  const printTodayOrders = async () => {
+    try {
+      setPrinting(true);
+      const start = new Date(); start.setHours(0, 0, 0, 0);
+      const end = new Date(); end.setHours(23, 59, 59, 999);
+      const { data, error } = await supabase
+        .from("orders")
+        .select("id, customer_name, customer_phone, customer_address, total, subtotal, discount, status, notes, created_at, seller_stores(store_name), order_items(product_name, quantity, unit_price, total)")
+        .gte("created_at", start.toISOString())
+        .lte("created_at", end.toISOString())
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      const orders = data || [];
+      if (orders.length === 0) { toast.info("Nenhum pedido hoje."); return; }
+      const today = new Date().toLocaleDateString("pt-BR");
+      const totalDay = orders.reduce((s: number, o: any) => s + Number(o.total || 0), 0);
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Pedidos ${today}</title>
+<style>
+  body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#111;padding:24px;}
+  h1{font-size:20px;margin:0 0 4px;} .muted{color:#666;font-size:12px;}
+  .order{border:1px solid #ddd;border-radius:8px;padding:14px;margin:14px 0;page-break-inside:avoid;}
+  .row{display:flex;justify-content:space-between;gap:12px;font-size:13px;}
+  table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px;}
+  th,td{border-bottom:1px solid #eee;padding:6px 4px;text-align:left;}
+  th:last-child,td:last-child{text-align:right;}
+  .total{margin-top:8px;text-align:right;font-weight:600;}
+  .summary{margin-top:24px;border-top:2px solid #111;padding-top:10px;font-weight:600;display:flex;justify-content:space-between;}
+  @media print{ .noprint{display:none;} }
+</style></head><body>
+<div class="noprint" style="text-align:right;margin-bottom:8px;"><button onclick="window.print()">Imprimir</button></div>
+<h1>Pedidos do dia</h1><p class="muted">${today} · ${orders.length} pedido(s)</p>
+${orders.map((o: any) => `
+  <div class="order">
+    <div class="row"><strong>${o.customer_name || "-"}</strong><span>${new Date(o.created_at).toLocaleTimeString("pt-BR")}</span></div>
+    <div class="row muted"><span>${o.customer_phone || ""}${o.seller_stores?.store_name ? " · " + o.seller_stores.store_name : ""}</span><span>Status: ${o.status}</span></div>
+    ${o.customer_address ? `<div class="muted" style="margin-top:4px;">${o.customer_address}</div>` : ""}
+    ${o.notes ? `<div class="muted" style="margin-top:4px;">Obs: ${o.notes}</div>` : ""}
+    <table><thead><tr><th>Produto</th><th>Qtd</th><th>Unit.</th><th>Total</th></tr></thead><tbody>
+      ${(o.order_items || []).map((it: any) => `<tr><td>${it.product_name}</td><td>${it.quantity}</td><td>${formatBRL(Number(it.unit_price||0))}</td><td>${formatBRL(Number(it.total||0))}</td></tr>`).join("")}
+    </tbody></table>
+    <div class="total">Total: ${formatBRL(Number(o.total||0))}</div>
+  </div>`).join("")}
+<div class="summary"><span>Total do dia</span><span>${formatBRL(totalDay)}</span></div>
+<script>window.onload=()=>setTimeout(()=>window.print(),300);</script>
+</body></html>`;
+      const w = window.open("", "_blank");
+      if (!w) { toast.error("Permita pop-ups para imprimir."); return; }
+      w.document.write(html); w.document.close();
+    } catch (e: any) {
+      toast.error("Falha ao gerar impressão", { description: e.message });
+    } finally { setPrinting(false); }
+  };
 
   const reload = async () => {
     setLoading(true);
@@ -77,7 +133,17 @@ const AdminSettings = () => {
           <TabsTrigger value="formatos">Formatos de imagem</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="geral" className="mt-6">
+        <TabsContent value="geral" className="mt-6 space-y-5">
+          <div className="rounded-xl border border-border bg-card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 max-w-4xl">
+            <div>
+              <h3 className="font-display text-xl">Pedidos do dia</h3>
+              <p className="text-xs text-muted-foreground mt-1">Gere uma folha imprimível com todos os pedidos feitos hoje.</p>
+            </div>
+            <Button variant="gold" onClick={printTodayOrders} disabled={printing}>
+              {printing ? <Loader2 className="h-4 w-4 animate-spin"/> : <Printer className="h-4 w-4"/>}
+              Imprimir pedidos de hoje
+            </Button>
+          </div>
           <div className="grid lg:grid-cols-2 gap-5">
             <div className="rounded-xl border border-border bg-card p-6 space-y-4">
               <h3 className="font-display text-xl">Marca</h3>
