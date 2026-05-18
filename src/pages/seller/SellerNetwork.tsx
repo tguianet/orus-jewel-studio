@@ -91,7 +91,10 @@ const SellerNetwork = () => {
       {loading ? <div className="flex items-center justify-center h-40 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin mr-2"/> Carregando...</div> : (
       <div className="grid lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 rounded-xl border border-border bg-card overflow-hidden">
-          <div className="px-5 py-4 border-b border-border"><h3 className="font-display text-xl">Sua rede</h3></div>
+          <div className="px-5 py-4 border-b border-border flex items-baseline justify-between gap-2">
+            <h3 className="font-display text-xl">Sua rede</h3>
+            <span className="text-xs text-muted-foreground capitalize">Comissões de {monthLabel}</span>
+          </div>
           <div className="divide-y divide-border">
             {[1,2,3].map((lvl) => (
               <div key={lvl} className="px-5 py-4">
