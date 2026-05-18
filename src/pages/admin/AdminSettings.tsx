@@ -33,7 +33,7 @@ const AdminSettings = () => {
       const end = new Date(); end.setHours(23, 59, 59, 999);
       const { data, error } = await supabase
         .from("orders")
-        .select("id, customer_name, customer_phone, customer_address, total, subtotal, discount, status, notes, created_at, seller_stores(store_name), order_items(product_name, quantity, unit_price, total)")
+        .select("id, customer_name, customer_phone, customer_address, total, subtotal, discount, status, notes, created_at, seller_stores(store_name), order_items(product_name, quantity, unit_price, total, products(code))")
         .gte("created_at", start.toISOString())
         .lte("created_at", end.toISOString())
         .order("created_at", { ascending: true });
