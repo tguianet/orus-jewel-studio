@@ -93,7 +93,7 @@ const AdminSellers = () => {
               <th className="px-5 py-3" />
             </tr></thead>
             <tbody className="divide-y divide-border">
-              {rows.map((s: any) => {
+              {filtered.map((s: any) => {
                 const store = s.seller_stores?.[0];
                 return (
                 <tr key={s.id} className="hover:bg-secondary/30">
