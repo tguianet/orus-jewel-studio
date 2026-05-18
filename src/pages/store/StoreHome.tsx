@@ -206,7 +206,7 @@ const StoreHome = () => {
             ...(t.categoriesFontFamily ? { fontFamily: t.categoriesFontFamily } : {}),
           }}
         >
-          <div className="container pt-16 pb-24">
+          <div className="container pt-10 pb-14 sm:pt-16 sm:pb-24">
           <div className="text-center mb-10">
             <EditableText
               field="categoriesTitle"
