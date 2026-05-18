@@ -11,6 +11,7 @@ import { waLink } from "@/lib/whatsapp";
 import { themeCssVars } from "@/lib/colorUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import { EditableText } from "@/components/preview/EditableText";
+import { StorePopup } from "@/components/store/StorePopup";
 
 const StoreLayout = () => {
   const { slug } = useParams();
@@ -324,6 +325,8 @@ const StoreLayout = () => {
       <main className="flex-1">
         <Outlet context={ctx} />
       </main>
+
+      <StorePopup />
 
       {(theme.whatsapp || store.phone) && (
         <a
