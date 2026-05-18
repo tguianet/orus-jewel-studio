@@ -63,8 +63,10 @@ ${orders.map((o: any) => `
     <div class="row muted"><span>${o.customer_phone || ""}${o.seller_stores?.store_name ? " · " + o.seller_stores.store_name : ""}</span><span>Status: ${o.status}</span></div>
     ${o.customer_address ? `<div class="muted" style="margin-top:4px;">${o.customer_address}</div>` : ""}
     ${o.notes ? `<div class="muted" style="margin-top:4px;">Obs: ${o.notes}</div>` : ""}
-    <table><thead><tr><th>Produto</th><th>Qtd</th><th>Unit.</th><th>Total</th></tr></thead><tbody>
-      ${(o.order_items || []).map((it: any) => `<tr><td>${it.product_name}</td><td>${it.quantity}</td><td>${formatBRL(Number(it.unit_price||0))}</td><td>${formatBRL(Number(it.total||0))}</td></tr>`).join("")}
+    <table><thead><tr><th>Código</th><th>Produto</th><th>Qtd</th><th>Unit.</th><th>Total</th></tr></thead><tbody>
+      ${(o.order_items || []).length === 0
+        ? `<tr><td colspan="5" style="text-align:center;color:#999;">Sem itens registrados</td></tr>`
+        : (o.order_items || []).map((it: any) => `<tr><td>${it.products?.code || "-"}</td><td>${it.product_name}</td><td>${it.quantity}</td><td>${formatBRL(Number(it.unit_price||0))}</td><td>${formatBRL(Number(it.total||0))}</td></tr>`).join("")}
     </tbody></table>
     <div class="total">Total: ${formatBRL(Number(o.total||0))}</div>
   </div>`).join("")}
