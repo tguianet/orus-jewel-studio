@@ -56,6 +56,32 @@ const AdminSellers = () => {
           </div>
         }
       />
+      <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-4">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome, email, telefone ou loja…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-9 pl-9"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="h-9 w-44"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os status</SelectItem>
+            <SelectItem value="approved">Aprovadas</SelectItem>
+            <SelectItem value="pending">Pendentes</SelectItem>
+            <SelectItem value="blocked">Bloqueadas</SelectItem>
+          </SelectContent>
+        </Select>
+        {(search || statusFilter !== "all") && (
+          <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setStatusFilter("all"); }}>
+            <X className="h-4 w-4 mr-1" /> Limpar
+          </Button>
+        )}
+        <div className="ml-auto text-xs text-muted-foreground">{filtered.length} resultado(s)</div>
+      </div>
       {loading ? <div className="flex items-center justify-center h-40 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin mr-2"/> Carregando...</div> : (
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="overflow-x-auto">
