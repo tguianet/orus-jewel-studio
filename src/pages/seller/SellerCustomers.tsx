@@ -17,6 +17,8 @@ const SellerCustomers = () => {
   const [breakdown, setBreakdown] = useState<Breakdown>({ ownSales: 0, networkCommissions: 0 });
   const [loading, setLoading] = useState(true);
 
+  const [sourceByCommission, setSourceByCommission] = useState<Record<string, { name: string; level: number }>>({});
+
   useEffect(() => {
     if (!profile?.resellerId) { setLoading(false); return; }
     const resellerId = profile.resellerId;
@@ -24,7 +26,7 @@ const SellerCustomers = () => {
       loadWalletForReseller(resellerId),
       supabase
         .from("commissions")
-        .select("amount, level")
+        .select("id, amount, level, source_reseller_id, resellers!commissions_source_reseller_id_fkey(display_name)")
         .eq("reseller_id", resellerId),
     ]).then(([wallet, commRes]) => {
       setSummary(wallet.summary);
@@ -33,6 +35,14 @@ const SellerCustomers = () => {
       const ownSales = rows.filter((r: any) => r.level === 1).reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
       const networkCommissions = rows.filter((r: any) => r.level > 1).reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
       setBreakdown({ ownSales, networkCommissions });
+      const map: Record<string, { name: string; level: number }> = {};
+      rows.forEach((r: any) => {
+        map[r.id] = {
+          name: r.resellers?.display_name || "Indicada",
+          level: r.level,
+        };
+      });
+      setSourceByCommission(map);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [profile?.resellerId]);
