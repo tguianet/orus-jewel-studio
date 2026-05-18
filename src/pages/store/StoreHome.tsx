@@ -1,5 +1,6 @@
-import { Link, useOutletContext, useSearchParams } from "react-router-dom";
+import { Link, useOutletContext, useSearchParams, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ArrowRight, Sparkles, Instagram, MessageCircle, Heart, Truck, ShieldCheck, Gem, Crown, Award, Droplet, Sun, Sparkle, CheckCircle2, Package, RefreshCw, CreditCard, ChevronLeft, ChevronRight, Menu, Check } from "lucide-react";
 import { formatBRL, getStoreProducts, Sacoleira } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
