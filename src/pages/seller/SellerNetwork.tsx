@@ -8,6 +8,8 @@ import { StatCard } from "@/components/StatCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { loadNetwork, NetworkMember } from "@/lib/cloudStore";
 import { waLink } from "@/lib/whatsapp";
+import { supabase } from "@/integrations/supabase/client";
+import { formatBRL } from "@/lib/mockData";
 
 const commissionRules = [
   { level: 1, rate: 0.1, label: "Nível 1 — venda direta" },
