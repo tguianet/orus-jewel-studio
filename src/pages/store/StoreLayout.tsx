@@ -249,6 +249,15 @@ const StoreLayout = () => {
               <Search className="h-4 w-4" />
             </Button>
             <Button variant="ghost" size="icon" className="h-9 w-9 hidden sm:inline-flex"><Heart className="h-4 w-4" /></Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 lg:hidden"
+              aria-label="Abrir menu"
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
             <Link to={`/loja/${store.storeSlug}/carrinho`}>
               <Button variant="ghost" size="icon" className="h-9 w-9 relative">
                 <ShoppingBag className="h-4 w-4" />
