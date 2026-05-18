@@ -124,7 +124,7 @@ const AdminSellers = () => {
                   </td>
                 </tr>);
               })}
-              {rows.length === 0 && <tr><td colSpan={4} className="px-5 py-10 text-center text-sm text-muted-foreground">Nenhuma sacoleira cadastrada ainda.</td></tr>}
+              {filtered.length === 0 && <tr><td colSpan={4} className="px-5 py-10 text-center text-sm text-muted-foreground">Nenhuma sacoleira encontrada.</td></tr>}
             </tbody>
           </table>
         </div>
