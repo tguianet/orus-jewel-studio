@@ -32,6 +32,7 @@ const StoreHome = () => {
   }, [banners.length]);
   const [cloudProducts, setCloudProducts] = useState<CloudStoreProduct[]>([]);
   const [activeCat, setActiveCat] = useState<string>("Todos");
+  const [catMenuOpen, setCatMenuOpen] = useState(false);
   const mockProducts = getStoreProducts(store.id);
   const allProducts: CloudStoreProduct[] | any[] = cloudProducts.length ? cloudProducts : mockProducts;
 
