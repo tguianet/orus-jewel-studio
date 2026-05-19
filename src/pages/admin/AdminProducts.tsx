@@ -306,11 +306,22 @@ const AdminProducts = () => {
     </div>
 
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {visibleItems.map(p => (
-        <div key={p.id} className="group rounded-xl border border-border bg-card overflow-hidden hover:border-primary/40 transition-all duration-500">
+      {visibleItems.map(p => {
+        const isSelected = selectedIds.has(p.id);
+        return (
+        <div
+          key={p.id}
+          className={`group rounded-xl border bg-card overflow-hidden transition-all duration-500 ${isSelected ? "border-primary ring-2 ring-primary/40" : "border-border hover:border-primary/40"} ${selectMode ? "cursor-pointer" : ""}`}
+          onClick={() => { if (selectMode) toggleSelected(p.id); }}
+        >
           <div className="aspect-square overflow-hidden relative">
             <img src={p.image} alt={p.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
             <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider border bg-success/15 text-success border-success/30">Ativo</span>
+            {selectMode && (
+              <div className="absolute top-2 left-2 rounded-md bg-background/90 p-1 shadow">
+                <Checkbox checked={isSelected} onCheckedChange={() => toggleSelected(p.id)} onClick={(e) => e.stopPropagation()} />
+              </div>
+            )}
           </div>
           <div className="p-4">
             <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">{p.category} · {p.code}</p>
@@ -327,13 +338,14 @@ const AdminProducts = () => {
             </div>
             <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
               <span className="text-xs text-muted-foreground">Mín. {p.minOrder} un.</span>
-              <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => setEditingProduct(p)}>
+              <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={(e) => { e.stopPropagation(); setEditingProduct(p); }}>
                 <Pencil className="h-3.5 w-3.5" /> Editar
               </Button>
             </div>
           </div>
         </div>
-      ))}
+        );
+      })}
       {visibleItems.length === 0 && (
         <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground sm:col-span-2 lg:col-span-3 xl:col-span-4">
           Nenhum produto encontrado nessa categoria.
@@ -346,6 +358,53 @@ const AdminProducts = () => {
       onOpenChange={(o) => { if (!o) setEditingProduct(null); }}
       onUpdated={loadProducts}
     />
+
+    <Dialog open={deleteCategoryOpen} onOpenChange={(o) => { setDeleteCategoryOpen(o); if (!o) setConfirmText(""); }}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Excluir todos os produtos da categoria</DialogTitle>
+          <DialogDescription>
+            Você está prestes a excluir <strong>{categoryCounts.get(selectedCategory) ?? 0}</strong> produto(s) da categoria <strong>"{selectedCategory}"</strong>. Essa ação não pode ser desfeita.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2">
+          <Label>Para confirmar, digite o nome da categoria:</Label>
+          <Input
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+            placeholder={selectedCategory}
+          />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setDeleteCategoryOpen(false)} disabled={deleting}>Cancelar</Button>
+          <Button
+            variant="destructive"
+            disabled={deleting || confirmText.trim() !== selectedCategory}
+            onClick={handleDeleteCategory}
+          >
+            <Trash2 className="h-4 w-4" /> {deleting ? "Excluindo..." : "Excluir tudo"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog open={deleteSelectedOpen} onOpenChange={setDeleteSelectedOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Excluir produtos selecionados</DialogTitle>
+          <DialogDescription>
+            Tem certeza que deseja excluir <strong>{selectedIds.size}</strong> produto(s)? Essa ação não pode ser desfeita.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setDeleteSelectedOpen(false)} disabled={deleting}>Cancelar</Button>
+          <Button variant="destructive" disabled={deleting} onClick={handleDeleteSelected}>
+            <Trash2 className="h-4 w-4" /> {deleting ? "Excluindo..." : "Excluir"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
   </AdminLayout>
   );
 };
