@@ -112,6 +112,59 @@ const AdminProducts = () => {
     window.setTimeout(() => setCategoryOpen(false), 450);
   };
 
+  const toggleSelected = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAllVisible = () => {
+    setSelectedIds(new Set(visibleItems.map((p) => p.id)));
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    clearSelection();
+  };
+
+  const deleteProductIds = async (ids: string[]) => {
+    if (!ids.length) return;
+    setDeleting(true);
+    try {
+      // remove vínculos em lojas das sacoleiras
+      const { error: linkErr } = await supabase.from("store_products").delete().in("product_id", ids);
+      if (linkErr) throw linkErr;
+      const { error } = await supabase.from("products").delete().in("id", ids);
+      if (error) throw error;
+      toast.success(`${ids.length} produto(s) excluído(s).`);
+      clearSelection();
+      setSelectMode(false);
+      setDeleteCategoryOpen(false);
+      setDeleteSelectedOpen(false);
+      setConfirmText("");
+      await loadProducts();
+    } catch (err: any) {
+      toast.error(err?.message || "Não foi possível excluir os produtos.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteCategory = () => {
+    const ids = items.filter((p) => p.category === selectedCategory).map((p) => p.id);
+    deleteProductIds(ids);
+  };
+
+  const handleDeleteSelected = () => {
+    deleteProductIds(Array.from(selectedIds));
+  };
+
+
   return (
     <AdminLayout>
       <PageHeader
