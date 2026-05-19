@@ -1,61 +1,30 @@
 ## Objetivo
+Adicionar a possibilidade de excluir produtos em massa na página **Admin → Produtos**, especialmente útil para limpar uma categoria inteira (ex: "Cadastro em massa" com 848 itens).
 
-Permitir que a sacoleira edite a própria loja **enquanto vê ela**, sem ficar trocando entre Personalização e a loja pública.
+## O que será adicionado
 
-## Como vai funcionar
+### 1. Botão "Excluir categoria" (ação rápida)
+- Aparece ao lado do contador de produtos quando uma categoria específica está selecionada (não aparece em "Todas").
+- Texto: `Excluir todos da categoria "<nome>" (<n>)`.
+- Abre um diálogo de confirmação exigindo digitar o nome da categoria para confirmar (proteção contra clique acidental).
+- Exclui todos os produtos da categoria atual em lote.
 
-Uma nova tela em `/sacoleira/personalizacao` (ou um botão "Editar minha loja ao vivo" no menu) com layout dividido:
+### 2. Modo seleção múltipla
+- Botão **"Selecionar"** ativa um modo onde cada card de produto mostra um checkbox.
+- Botões auxiliares: **Selecionar todos** (da visualização atual filtrada) e **Limpar seleção**.
+- Barra fixa no topo mostrando `X produtos selecionados` + botão **Excluir selecionados** (vermelho).
+- Confirmação antes de excluir.
 
-```text
-┌──────────────────────┬───────────────────────────────────┐
-│  PAINEL DE EDIÇÃO    │        PREVIEW DA LOJA            │
-│  (esquerda, ~380px)  │        (direita, ocupa o resto)   │
-│                      │                                   │
-│  - Identidade        │   [ aqui renderiza a loja real ]  │
-│  - Faixa do topo     │                                   │
-│  - Hero              │   Tudo que muda no painel         │
-│  - Benefícios        │   aparece imediatamente aqui,     │
-│  - Categorias        │   sem recarregar.                 │
-│  - Sobre / CTA       │                                   │
-│  - Cores             │                                   │
-│  - Seções visíveis   │                                   │
-│                      │                                   │
-│  [ Salvar alterações]│                                   │
-└──────────────────────┴───────────────────────────────────┘
-```
+### 3. Comportamento da exclusão
+- Remove os registros da tabela `products` em lote (`.in('id', ids)`).
+- Também limpa vínculos em `store_products` para esses produtos (evita órfãos nas lojas das sacoleiras).
+- Toast de sucesso com a quantidade excluída e recarrega a lista.
+- Em caso de erro, mostra toast com a mensagem.
 
-- O preview à direita é a **própria loja** (mesmos componentes de `StoreLayout` + `StoreHome`), só que recebe o tema sendo editado em memória, em vez de buscar do banco.
-- Toda alteração no painel atualiza o preview em tempo real (sem salvar).
-- Só ao clicar em **Salvar alterações** é que vai pro banco. Tem também botão **Descartar**.
-- Botão **Abrir loja real** para ver em outra aba.
-- Acesso restrito: só a dona da loja logada (sacoleira) consegue abrir essa tela. Visitantes nunca veem.
+## Onde será feito
+- `src/pages/admin/AdminProducts.tsx` — toda a UI (botões, modo seleção, diálogos) e lógica de exclusão.
 
-## O que pode ser editado pelo painel
-
-Tudo que já existe hoje em Personalização, organizado em seções recolhíveis:
-
-- **Identidade**: nome da loja, logo, descrição, WhatsApp, Instagram
-- **Faixa do topo**: texto esquerda, centro, direita
-- **Hero**: eyebrow, título, destaque, texto promocional, CTAs, banners
-- **Benefícios**: lista (adicionar/remover)
-- **Categorias destaque**: título, subtítulo, imagens por categoria
-- **Sobre**: eyebrow, título, textos
-- **CTA final**: eyebrow e título
-- **Cores**: primária, secundária, accent
-- **Seções visíveis**: switches para coleções, materiais, cuidados, garantia, CTA final
-
-## Detalhes técnicos
-
-- Nova página `src/pages/seller/SellerLiveEditor.tsx` com layout 2 colunas (painel + iframe-like).
-- Refatorar `StoreHome` e `StoreLayout` para aceitar `theme` e `store` por **prop opcional**, caindo no fetch atual quando não vier prop. Assim o preview consegue passar o estado em edição direto, sem ir no Supabase.
-- Estado do tema vive na página do editor (`useState<StoreTheme>`) — mesma estrutura já em `src/lib/storeTheme.ts`.
-- Salvar usa o `saveStoreCustomization` que já existe.
-- Em telas pequenas (<1024px), painel vira drawer/aba acima do preview, já que dividir não cabe.
-- Rota: substituir o conteúdo de `/sacoleira/personalizacao` por esse editor (a sacoleira clica no item "Personalização" no menu lateral e já cai no editor com preview).
-- A página antiga `SellerCustomization.tsx` pode ser removida ou virar fallback.
-
-## Fora do escopo (pra não inflar)
-
-- Clicar direto num elemento da loja para focar no campo correspondente. Pode vir depois.
-- Edição de produtos / categorias dentro do editor (continua nas telas dedicadas).
-- Versionamento / histórico de alterações do tema.
+## Fora de escopo
+- Não altera estrutura do banco nem RLS (as policies atuais já permitem admin deletar).
+- Não mexe em produtos de sacoleiras individuais (apenas catálogo do atacado, `seller_store_id IS NULL`).
+- Não toca em pedidos já feitos (`order_items` guarda `product_name` próprio).
