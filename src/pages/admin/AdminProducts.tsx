@@ -219,9 +219,9 @@ const AdminProducts = () => {
       </Dialog>
     </div>
 
-    <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
+    <div className="mb-4 flex flex-col gap-3 rounded-xl border border-border bg-card px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
       <p className="text-sm text-muted-foreground">Categoria atual: <span className="font-medium text-foreground">{selectedCategory}</span>{search.trim() && <> · Busca: <span className="font-medium text-foreground">{search.trim()}</span></>}</p>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap">
         <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
           <SelectTrigger className="w-full sm:w-56">
             <SelectValue placeholder="Ordenar" />
@@ -234,9 +234,52 @@ const AdminProducts = () => {
             <SelectItem value="stock-desc">Maior estoque</SelectItem>
           </SelectContent>
         </Select>
+        {!selectMode ? (
+          <Button variant="outline" size="sm" onClick={() => setSelectMode(true)}>
+            <CheckSquare className="h-4 w-4" /> Selecionar
+          </Button>
+        ) : (
+          <Button variant="outline" size="sm" onClick={exitSelectMode}>
+            <X className="h-4 w-4" /> Sair da seleção
+          </Button>
+        )}
+        {selectedCategory !== "Todas" && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            onClick={() => { setConfirmText(""); setDeleteCategoryOpen(true); }}
+          >
+            <Trash2 className="h-4 w-4" /> Excluir categoria ({categoryCounts.get(selectedCategory) ?? 0})
+          </Button>
+        )}
         <p className="text-sm text-primary">{visibleItems.length} produto(s)</p>
       </div>
     </div>
+
+    {selectMode && (
+      <div className="mb-4 flex flex-col gap-3 rounded-xl border border-primary/40 bg-primary/5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm">
+          <span className="font-medium text-foreground">{selectedIds.size}</span> produto(s) selecionado(s)
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={selectAllVisible}>
+            <CheckSquare className="h-4 w-4" /> Selecionar todos ({visibleItems.length})
+          </Button>
+          <Button variant="outline" size="sm" onClick={clearSelection} disabled={selectedIds.size === 0}>
+            <Square className="h-4 w-4" /> Limpar
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            disabled={selectedIds.size === 0}
+            onClick={() => setDeleteSelectedOpen(true)}
+          >
+            <Trash2 className="h-4 w-4" /> Excluir selecionados
+          </Button>
+        </div>
+      </div>
+    )}
 
     <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
       <Button
