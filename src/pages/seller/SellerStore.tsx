@@ -121,9 +121,9 @@ const SellerStore = () => {
               </div>
             </div>
             <div className="grid sm:grid-cols-3 gap-3 pt-2">
-              <div className="rounded-lg border border-border p-3"><p className="text-xs text-muted-foreground">Visitas</p><p className="font-display text-2xl">—</p></div>
-              <div className="rounded-lg border border-border p-3"><p className="text-xs text-muted-foreground">Produtos ativos</p><p className="font-display text-2xl">—</p></div>
-              <div className="rounded-lg border border-border p-3"><p className="text-xs text-muted-foreground">Conversão</p><p className="font-display text-2xl">—</p></div>
+              <div className="rounded-lg border border-border p-3"><p className="text-xs text-muted-foreground">Produtos ativos</p><p className="font-display text-2xl">{stats ? stats.products : "—"}</p></div>
+              <div className="rounded-lg border border-border p-3"><p className="text-xs text-muted-foreground">Pedidos</p><p className="font-display text-2xl">{stats ? stats.orders : "—"}</p></div>
+              <div className="rounded-lg border border-border p-3"><p className="text-xs text-muted-foreground">Receita</p><p className="font-display text-2xl">{stats ? formatBRL(stats.revenue) : "—"}</p></div>
             </div>
           </div>
         </div>
