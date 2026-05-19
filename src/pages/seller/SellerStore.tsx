@@ -1,19 +1,46 @@
 import { ExternalLink, Share2, Check, MessageCircle } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SellerLayout } from "@/layouts/SellerLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { waLink } from "@/lib/whatsapp";
+import { supabase } from "@/integrations/supabase/client";
+
+const formatBRL = (v: number) =>
+  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 const SellerStore = () => {
   const { profile } = useAuth();
   const slug = profile?.storeSlug;
+  const storeId = profile?.storeId;
   const storePath = slug ? `/loja/${slug}` : null;
   const fullUrl = storePath ? `${window.location.origin}${storePath}` : "";
   const [copied, setCopied] = useState(false);
+  const [stats, setStats] = useState<{ products: number; orders: number; revenue: number } | null>(null);
+
+  useEffect(() => {
+    if (!storeId) return;
+    (async () => {
+      const [{ count: products }, ordersRes] = await Promise.all([
+        supabase
+          .from("store_products")
+          .select("id", { count: "exact", head: true })
+          .eq("seller_store_id", storeId)
+          .eq("active", true),
+        supabase
+          .from("orders")
+          .select("total,status")
+          .eq("seller_store_id", storeId),
+      ]);
+      const orders = ordersRes.data ?? [];
+      const revenue = orders
+        .filter((o: any) => ["paid", "confirmed", "shipped", "delivered"].includes(o.status))
+        .reduce((s: number, o: any) => s + Number(o.total || 0), 0);
+      setStats({ products: products ?? 0, orders: orders.length, revenue });
+    })();
+  }, [storeId]);
 
   const handleCopy = async () => {
     if (!fullUrl) return;
@@ -94,9 +121,9 @@ const SellerStore = () => {
               </div>
             </div>
             <div className="grid sm:grid-cols-3 gap-3 pt-2">
-              <div className="rounded-lg border border-border p-3"><p className="text-xs text-muted-foreground">Visitas</p><p className="font-display text-2xl">—</p></div>
-              <div className="rounded-lg border border-border p-3"><p className="text-xs text-muted-foreground">Produtos ativos</p><p className="font-display text-2xl">—</p></div>
-              <div className="rounded-lg border border-border p-3"><p className="text-xs text-muted-foreground">Conversão</p><p className="font-display text-2xl">—</p></div>
+              <div className="rounded-lg border border-border p-3"><p className="text-xs text-muted-foreground">Produtos ativos</p><p className="font-display text-2xl">{stats ? stats.products : "—"}</p></div>
+              <div className="rounded-lg border border-border p-3"><p className="text-xs text-muted-foreground">Pedidos</p><p className="font-display text-2xl">{stats ? stats.orders : "—"}</p></div>
+              <div className="rounded-lg border border-border p-3"><p className="text-xs text-muted-foreground">Receita</p><p className="font-display text-2xl">{stats ? formatBRL(stats.revenue) : "—"}</p></div>
             </div>
           </div>
         </div>
