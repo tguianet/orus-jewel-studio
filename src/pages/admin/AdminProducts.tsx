@@ -32,6 +32,12 @@ const AdminProducts = () => {
   const [highlightedCategory, setHighlightedCategory] = useState<string>(() => getCategoryFromParams(searchParams));
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("default");
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [deleteCategoryOpen, setDeleteCategoryOpen] = useState(false);
+  const [deleteSelectedOpen, setDeleteSelectedOpen] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   const loadProducts = useCallback(async () => {
     const { data, error } = await supabase
