@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,9 +13,12 @@ interface Props { role: "admin" | "sacoleira" }
 
 const LoginPage = ({ role }: Props) => {
   const nav = useNavigate();
+  const [sp] = useSearchParams();
+  const rawNext = sp.get("next") || "";
+  const nextPath = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "";
   const { signIn, signUp } = useAuth();
   const isAdmin = role === "admin";
-  const target = isAdmin ? "/admin" : "/sacoleira";
+  const target = nextPath || (isAdmin ? "/admin" : "/sacoleira");
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [busy, setBusy] = useState(false);
 
