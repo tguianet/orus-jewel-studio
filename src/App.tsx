@@ -9,6 +9,7 @@ import Landing from "./pages/Landing";
 import LoginPage from "./pages/LoginPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import NotFound from "./pages/NotFound";
+import OAuthConsent from "./pages/OAuthConsent";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminCategories from "./pages/admin/AdminCategories";
@@ -51,6 +52,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
             <Route path="/login-admin" element={<LoginPage role="admin" />} />
             <Route path="/login-sacoleira" element={<LoginPage role="sacoleira" />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
 
             {/* Admin */}
             <Route path="/admin" element={<Admin><AdminDashboard /></Admin>} />
