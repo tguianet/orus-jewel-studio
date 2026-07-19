@@ -1,0 +1,3 @@
+# Netlify / hosts compatíveis: SPA fallback para index.html
+# Necessário para rotas como /admin, /sacoleira, /loja/:slug funcionarem no refresh.
+/*    /index.html   200

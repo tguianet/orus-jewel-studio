@@ -2,23 +2,31 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Orus — Joias com identidade | SaaS de revenda</title>
     <meta name="description" content="Orus é o SaaS premium para revenda de joias: painel de atacado e lojas virtuais individuais para sacoleiras, com checkout via WhatsApp.">
     <meta name="author" content="Orus" />
 
-    
-    
+    <!-- PWA / mobile (valores padrão; trocados em runtime por rota) -->
+    <meta id="theme-color" name="theme-color" content="#8B6914" />
+    <meta id="mobile-web-app-capable" name="mobile-web-app-capable" content="yes" />
+    <meta id="apple-mobile-web-app-capable" name="apple-mobile-web-app-capable" content="yes" />
+    <meta id="apple-mobile-web-app-status-bar-style" name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta id="apple-mobile-web-app-title" name="apple-mobile-web-app-title" content="Órus" />
+    <link id="apple-touch-icon" rel="apple-touch-icon" href="/icons/loja-192.png" />
+    <link id="pwa-manifest" rel="manifest" href="/manifests/manifest-loja.json" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/loja-192.png" />
+
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0598b039-b3e3-4c70-b6ef-08e5a2859fa4/id-preview-84e1991f--770338f6-5e66-44e7-9ac3-8357bd7434e2.lovable.app-1777146105935.png">
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0598b039-b3e3-4c70-b6ef-08e5a2859fa4/id-preview-84e1991f--770338f6-5e66-44e7-9ac3-8357bd7434e2.lovable.app-1777146105935.png">
     <meta property="og:title" content="Orus — Joias com identidade | SaaS de revenda">
-  <meta name="twitter:title" content="Orus — Joias com identidade | SaaS de revenda">
-  <meta property="og:description" content="Orus é o SaaS premium para revenda de joias: painel de atacado e lojas virtuais individuais para sacoleiras, com checkout via WhatsApp.">
-  <meta name="twitter:description" content="Orus é o SaaS premium para revenda de joias: painel de atacado e lojas virtuais individuais para sacoleiras, com checkout via WhatsApp.">
-</head>
+    <meta name="twitter:title" content="Orus — Joias com identidade | SaaS de revenda">
+    <meta property="og:description" content="Orus é o SaaS premium para revenda de joias: painel de atacado e lojas virtuais individuais para sacoleiras, com checkout via WhatsApp.">
+    <meta name="twitter:description" content="Orus é o SaaS premium para revenda de joias: painel de atacado e lojas virtuais individuais para sacoleiras, com checkout via WhatsApp.">
+  </head>
 
   <body>
     <div id="root"></div>

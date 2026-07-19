@@ -1,0 +1,35 @@
+{
+  "id": "/login-sacoleira",
+  "name": "Órus Sacoleira",
+  "short_name": "Órus Sacoleira",
+  "description": "Painel da sacoleira Órus — loja, pedidos e rede de revenda.",
+  "start_url": "/login-sacoleira",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#1a1210",
+  "theme_color": "#8B6914",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": ["business", "shopping"],
+  "icons": [
+    {
+      "src": "/icons/sacoleira-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/sacoleira-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/sacoleira-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

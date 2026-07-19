@@ -35,6 +35,7 @@ import StoreProduct from "./pages/store/StoreProduct";
 import StoreCart from "./pages/store/StoreCart";
 import StoreCheckout from "./pages/store/StoreCheckout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { PwaManifestSwitcher } from "./pwa/PwaManifestSwitcher";
 
 const Admin = ({ children }: { children: JSX.Element }) => <ProtectedRoute role="admin">{children}</ProtectedRoute>;
 const Seller = ({ children }: { children: JSX.Element }) => <ProtectedRoute role="sacoleira">{children}</ProtectedRoute>;
@@ -47,6 +48,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
     <AuthProvider>
       <CartProvider>
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <PwaManifestSwitcher />
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/login-admin" element={<LoginPage role="admin" />} />
