@@ -269,6 +269,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          checkout_token: string | null
           created_at: string
           customer_address: string | null
           customer_name: string
@@ -284,6 +285,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          checkout_token?: string | null
           created_at?: string
           customer_address?: string | null
           customer_name: string
@@ -299,6 +301,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          checkout_token?: string | null
           created_at?: string
           customer_address?: string | null
           customer_name?: string
@@ -717,6 +720,7 @@ export type Database = {
           p_customer_address?: string | null
           p_notes?: string | null
           p_items?: Json
+          p_checkout_token: string
         }
         Returns: {
           order_id: string
@@ -724,6 +728,7 @@ export type Database = {
           subtotal: number
           total: number
           created_at: string
+          items: Json
         }[]
       }
       current_reseller_id: { Args: { _user_id?: string }; Returns: string }

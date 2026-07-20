@@ -13,19 +13,69 @@ import { toast } from "sonner";
 
 type Step = "form" | "processing" | "success";
 
+type ConfirmedItem = {
+  product_id: string | null;
+  product_name: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+};
+
 type OrderResult = {
   order_id: string;
   status: string;
   subtotal: number;
   total: number;
   created_at: string;
+  items: ConfirmedItem[];
 };
 
-type OrderLineSnapshot = {
-  name: string;
-  qty: number;
-  unitPrice: number;
-};
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function checkoutTokenKey(storeId: string) {
+  return `orus_checkout_token:${storeId}`;
+}
+
+function getOrCreateCheckoutToken(storeId: string): string {
+  try {
+    const existing = sessionStorage.getItem(checkoutTokenKey(storeId));
+    if (existing && UUID_RE.test(existing)) return existing;
+  } catch {
+    // sessionStorage indisponível
+  }
+  const token =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  try {
+    sessionStorage.setItem(checkoutTokenKey(storeId), token);
+  } catch {
+    // ignore
+  }
+  return token;
+}
+
+function clearCheckoutToken(storeId: string) {
+  try {
+    sessionStorage.removeItem(checkoutTokenKey(storeId));
+  } catch {
+    // ignore
+  }
+}
+
+function parseConfirmedItems(raw: unknown): ConfirmedItem[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((item) => {
+    const row = item as Record<string, unknown>;
+    return {
+      product_id: (row.product_id as string | null) ?? null,
+      product_name: String(row.product_name ?? ""),
+      quantity: Number(row.quantity ?? 0),
+      unit_price: Number(row.unit_price ?? 0),
+      total: Number(row.total ?? 0),
+    };
+  });
+}
 
 const StoreCheckout = () => {
   const { store } = useOutletContext<{ store: Sacoleira }>();
@@ -34,7 +84,6 @@ const StoreCheckout = () => {
   const [form, setForm] = useState({ name: "", phone: "", address: "", notes: "" });
   const [step, setStep] = useState<Step>("form");
   const [order, setOrder] = useState<OrderResult | null>(null);
-  const [lineSnapshot, setLineSnapshot] = useState<OrderLineSnapshot[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   const submitOrder = async (e: FormEvent) => {
@@ -50,16 +99,12 @@ const StoreCheckout = () => {
       return;
     }
 
-    // Frontend envia só product_id + quantity (sem preços/status)
+    // Só product_id + quantity (sem preços/status). Token reutilizado na tentativa.
     const payloadItems = items.map((i) => ({
       product_id: i.product.id,
       quantity: i.qty,
     }));
-    const snapshot: OrderLineSnapshot[] = items.map((i) => ({
-      name: i.product.name,
-      qty: i.qty,
-      unitPrice: i.price,
-    }));
+    const checkoutToken = getOrCreateCheckoutToken(store.id);
 
     setSubmitting(true);
     setStep("processing");
@@ -71,6 +116,7 @@ const StoreCheckout = () => {
         p_customer_address: form.address.trim() || null,
         p_notes: form.notes.trim() || null,
         p_items: payloadItems,
+        p_checkout_token: checkoutToken,
       });
 
       if (error) throw error;
@@ -80,15 +126,18 @@ const StoreCheckout = () => {
         throw new Error("Resposta inválida do servidor");
       }
 
-      setOrder({
+      const confirmed: OrderResult = {
         order_id: row.order_id,
         status: row.status,
         subtotal: Number(row.subtotal),
         total: Number(row.total),
         created_at: row.created_at,
-      });
-      setLineSnapshot(snapshot);
+        items: parseConfirmedItems(row.items),
+      };
+
+      setOrder(confirmed);
       clear();
+      clearCheckoutToken(store.id);
       setStep("success");
       toast.success("Pedido enviado com sucesso");
     } catch (err: unknown) {
@@ -98,6 +147,7 @@ const StoreCheckout = () => {
           ? String((err as { message: string }).message)
           : "Não foi possível enviar o pedido";
       toast.error("Erro ao enviar pedido", { description: message });
+      // Mantém o token para retry idempotente (não cria outro pedido)
       setStep("form");
     } finally {
       setSubmitting(false);
@@ -119,13 +169,13 @@ const StoreCheckout = () => {
       form.address ? `*Endereço:* ${form.address}` : "",
       form.notes ? `*Obs:* ${form.notes}` : "",
       "",
-      "*Itens:*",
-      ...lineSnapshot.map(
+      "*Itens (valores confirmados):*",
+      ...order.items.map(
         (i) =>
-          `• ${i.qty}x ${i.name} — ${formatBRL(i.unitPrice)} un. = ${formatBRL(i.unitPrice * i.qty)}`,
+          `• ${i.quantity}x ${i.product_name} — ${formatBRL(i.unit_price)} un. = ${formatBRL(i.total)}`,
       ),
       "",
-      `*Total:* ${formatBRL(order.total)}`,
+      `*Total confirmado:* ${formatBRL(order.total)}`,
       "",
       "_Combine o pagamento com a revendedora._",
     ]
@@ -263,11 +313,26 @@ const StoreCheckout = () => {
                   Pedido aguardando confirmação. Combine o pagamento com a revendedora.
                 </DialogDescription>
               </DialogHeader>
-              <p className="text-sm text-muted-foreground">
-                Pedido <span className="font-mono">{order.order_id.slice(0, 8)}</span>
-                <br />
-                Total: <span className="text-gold font-semibold">{formatBRL(order.total)}</span>
-              </p>
+              <div className="w-full space-y-2 text-sm text-left">
+                <p className="text-center text-muted-foreground">
+                  Pedido <span className="font-mono">{order.order_id.slice(0, 8)}</span>
+                </p>
+                <div className="rounded-lg border border-border p-3 space-y-2">
+                  {order.items.map((i, idx) => (
+                    <div key={`${i.product_id ?? "item"}-${idx}`} className="flex justify-between gap-2">
+                      <span className="min-w-0 truncate">
+                        {i.quantity}x {i.product_name}
+                      </span>
+                      <span className="shrink-0 text-muted-foreground">{formatBRL(i.total)}</span>
+                    </div>
+                  ))}
+                  <div className="gold-divider my-1" />
+                  <div className="flex justify-between font-medium">
+                    <span>Total confirmado</span>
+                    <span className="text-gold">{formatBRL(order.total)}</span>
+                  </div>
+                </div>
+              </div>
               <div className="w-full space-y-2 pt-2">
                 <Button onClick={sendWhatsApp} variant="whatsapp" size="lg" className="w-full">
                   <MessageCircle className="h-5 w-5" /> Enviar pedido pelo WhatsApp
