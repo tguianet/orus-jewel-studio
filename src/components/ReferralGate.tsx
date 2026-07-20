@@ -29,12 +29,11 @@ export const ReferralGate = () => {
     }
 
     setBusy(true);
-    // Validate referrer exists
-    const { data: ref, error: refErr } = await supabase
-      .from("resellers")
-      .select("id, display_name")
-      .eq("id", code)
-      .maybeSingle();
+    // Lookup seguro (sem expor e-mail/telefone) + vínculo único via RPC
+    const { data: refRows, error: refErr } = await supabase.rpc("lookup_reseller_sponsor", {
+      _id: code,
+    });
+    const ref = Array.isArray(refRows) ? refRows[0] : refRows;
 
     if (refErr || !ref) {
       setBusy(false);
@@ -42,10 +41,9 @@ export const ReferralGate = () => {
       return;
     }
 
-    const { error: upErr } = await supabase
-      .from("resellers")
-      .update({ parent_id: code })
-      .eq("id", profile.resellerId);
+    const { error: upErr } = await supabase.rpc("set_my_reseller_parent", {
+      _parent_id: code,
+    });
 
     setBusy(false);
     if (upErr) {

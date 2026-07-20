@@ -53,7 +53,8 @@ const StoreCheckout = () => {
       notes: `[Pagamento simulado: ${paymentMethod.toUpperCase()}]${form.notes ? " " + form.notes : ""}`,
       subtotal: total,
       total,
-      status: "paid",
+      // Pedidos públicos nascem como "new"; apenas admin pode marcar como pago (RLS/trigger).
+      status: "new",
     };
     const { error } = await supabase.from("orders").insert(orderPayload);
     if (error) throw error;
@@ -78,8 +79,8 @@ const StoreCheckout = () => {
       total: i.price * i.qty,
     })));
     if (itemsError) {
-      console.error("[checkout] falha ao salvar itens, removendo pedido", itemsError);
-      await supabase.from("orders").delete().eq("id", newOrderId);
+      console.error("[checkout] falha ao salvar itens", itemsError);
+      // Público não pode DELETE pedidos (segurança). Pedido órfão fica como "new" sem itens.
       throw itemsError;
     }
     return newOrderId;

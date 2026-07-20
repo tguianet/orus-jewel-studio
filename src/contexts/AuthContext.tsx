@@ -122,7 +122,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         password,
         options: {
           emailRedirectTo: redirectUrl,
-          data: { display_name: displayName, phone, role: "sacoleira", parent_reseller_id: parentResellerId || null },
+          // role no metadata é ignorado pelo banco para admin; cadastro público vira sempre sacoleira.
+          data: { display_name: displayName, phone, parent_reseller_id: parentResellerId || null },
         },
       });
       return error ? { error: error.message } : {};

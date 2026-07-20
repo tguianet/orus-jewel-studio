@@ -48,9 +48,12 @@ export const loadPublicStore = async (slug?: string) => {
 };
 
 export const loadStoreProducts = async (sellerStoreId: string): Promise<CloudStoreProduct[]> => {
+  // Colunas públicas apenas (anon não tem SELECT em cost_price / wholesale_price).
   const { data, error } = await supabase
     .from("store_products")
-    .select("id, resale_price, seller_store_id, active, products(*, categories(name))")
+    .select(
+      "id, resale_price, seller_store_id, active, products(id, code, name, description, suggested_price, stock, min_order, image_url, status, category_name, categories(name))",
+    )
     .eq("seller_store_id", sellerStoreId)
     .eq("active", true);
 
@@ -67,8 +70,8 @@ export const loadStoreProducts = async (sellerStoreId: string): Promise<CloudSto
         name: product.name,
         category,
         description: product.description,
-        costPrice: Number(product.cost_price || 0),
-        wholesalePrice: Number(product.wholesale_price || 0),
+        costPrice: 0,
+        wholesalePrice: 0,
         suggestedPrice: Number(product.suggested_price || 0),
         stock: Number(product.stock || 0),
         minOrder: Number(product.min_order || 1),
