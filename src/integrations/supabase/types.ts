@@ -709,6 +709,23 @@ export type Database = {
         Args: { _order_id: string }
         Returns: undefined
       }
+      create_public_order: {
+        Args: {
+          p_seller_store_id: string
+          p_customer_name: string
+          p_customer_phone: string
+          p_customer_address?: string | null
+          p_notes?: string | null
+          p_items?: Json
+        }
+        Returns: {
+          order_id: string
+          status: Database["public"]["Enums"]["order_status"]
+          subtotal: number
+          total: number
+          created_at: string
+        }[]
+      }
       current_reseller_id: { Args: { _user_id?: string }; Returns: string }
       current_store_id: { Args: { _user_id?: string }; Returns: string }
       get_store_reseller_id: { Args: { _store_id: string }; Returns: string }

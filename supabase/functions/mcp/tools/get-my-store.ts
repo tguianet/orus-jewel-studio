@@ -1,10 +1,11 @@
-import { defineTool } from "@lovable.dev/mcp-js";
-import { supabaseForUser, notAuth, errResult, jsonResult } from "../supabase";
+import { defineTool } from "npm:@lovable.dev/mcp-js@0.23.0";
+import { supabaseForUser, notAuth, errResult, jsonResult } from "../supabase.ts";
 
 export default defineTool({
   name: "get_my_store",
   title: "Minha loja",
-  description: "Retorna a loja da sacoleira autenticada (nome, slug, status, tier, comissão).",
+  description:
+    "Retorna a loja da sacoleira autenticada (nome, slug, status, tier). Respeita RLS.",
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async (_input, ctx) => {

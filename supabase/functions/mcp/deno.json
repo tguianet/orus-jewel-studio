@@ -1,0 +1,7 @@
+{
+  "imports": {
+    "@lovable.dev/mcp-js": "npm:@lovable.dev/mcp-js@0.23.0",
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2",
+    "zod": "npm:zod@3"
+  }
+}

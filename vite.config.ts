@@ -2,8 +2,9 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
-import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/supabase/vite";
 import { VitePWA } from "vite-plugin-pwa";
+// mcpPlugin removido: regenerava supabase/functions/mcp com caminho absoluto Windows.
+// A Edge Function em supabase/functions/mcp é mantida manualmente (imports Deno/npm).
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -20,7 +21,6 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
-    mcpPlugin(),
     VitePWA({
       // Atualiza o SW automaticamente sem travar o usuário em versão antiga
       registerType: "autoUpdate",
