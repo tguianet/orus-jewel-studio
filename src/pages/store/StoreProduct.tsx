@@ -60,18 +60,18 @@ const StoreProduct = () => {
             <p className="text-xs text-muted-foreground mt-1">ou em até 3x sem juros</p>
           </div>
 
-          <div className="mt-8 flex items-center gap-4">
-            <div className="flex items-center border border-border rounded-lg">
+          <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <div className="flex items-center border border-border rounded-lg self-start">
               <Button variant="ghost" size="icon" className="rounded-r-none" onClick={() => setQty(Math.max(1, qty - 1))}><Minus className="h-4 w-4" /></Button>
               <span className="w-10 text-center font-medium">{qty}</span>
               <Button variant="ghost" size="icon" className="rounded-l-none" onClick={() => setQty(qty + 1)}><Plus className="h-4 w-4" /></Button>
             </div>
-            <Button variant="gold" size="lg" className="flex-1" onClick={handleAdd}>
+            <Button variant="gold" size="lg" className="flex-1 w-full sm:w-auto whitespace-normal text-sm sm:text-base" onClick={handleAdd}>
               <ShoppingBag className="h-4 w-4" /> Adicionar ao carrinho
             </Button>
           </div>
 
-          <Button variant="whatsapp" size="lg" className="mt-3" onClick={() => { handleAdd(); navigate(`/loja/${store.storeSlug}/checkout`); }}>
+          <Button variant="whatsapp" size="lg" className="mt-3 w-full" onClick={() => { handleAdd(); navigate(`/loja/${store.storeSlug}/checkout`); }}>
             Comprar pelo WhatsApp
           </Button>
         </div>
