@@ -2,7 +2,134 @@
 // To take ownership, delete this banner line; the plugin then leaves the file alone.
 // supabase function: mcp
 // Bundled from src/lib/mcp/index.ts by @lovable.dev/mcp-js.
+// src/lib/mcp/index.ts
+import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.23.0";
+
+// src/lib/mcp/tools/get-my-store.ts
+import { defineTool } from "npm:@lovable.dev/mcp-js@0.23.0";
+
+// src/lib/mcp/supabase.ts
+import { createClient } from "npm:@supabase/supabase-js@^2.104.1";
+function supabaseForUser(ctx) {
+  const url = process.env.SUPABASE_URL;
+  const anon = process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY;
+  return createClient(url, anon, {
+    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+}
+function notAuth() {
+  return { content: [{ type: "text", text: "N\xE3o autenticado." }], isError: true };
+}
+function errResult(msg) {
+  return { content: [{ type: "text", text: msg }], isError: true };
+}
+function jsonResult(data) {
+  return {
+    content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+    structuredContent: { data }
+  };
+}
+
+// src/lib/mcp/tools/get-my-store.ts
+var get_my_store_default = defineTool({
+  name: "get_my_store",
+  title: "Minha loja",
+  description: "Retorna a loja da sacoleira autenticada (nome, slug, status, tier, comiss\xE3o).",
+  inputSchema: {},
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async (_input, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuth();
+    const sb = supabaseForUser(ctx);
+    const { data, error } = await sb.from("seller_stores").select("id, store_name, store_slug, status, tier, commission_rate, contact_phone, created_at").eq("owner_user_id", ctx.getUserId()).maybeSingle();
+    if (error) return errResult(error.message);
+    if (!data) return errResult("Nenhuma loja associada a este usu\xE1rio.");
+    return jsonResult(data);
+  }
+});
+
+// src/lib/mcp/tools/list-my-orders.ts
+import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.23.0";
+import { z } from "npm:zod@^3.25.76";
+var list_my_orders_default = defineTool2({
+  name: "list_my_orders",
+  title: "Meus pedidos",
+  description: "Lista pedidos da loja da sacoleira autenticada (mais recentes primeiro).",
+  inputSchema: {
+    status: z.string().optional().describe("Filtrar por status (ex.: paid, pending, shipped, delivered)."),
+    limit: z.number().int().positive().optional().describe("M\xE1ximo de pedidos (padr\xE3o 20).")
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ status, limit }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuth();
+    const sb = supabaseForUser(ctx);
+    const { data: store, error: sErr } = await sb.from("seller_stores").select("id").eq("owner_user_id", ctx.getUserId()).maybeSingle();
+    if (sErr) return errResult(sErr.message);
+    if (!store) return errResult("Sem loja associada.");
+    let q = sb.from("orders").select("id, created_at, status, customer_name, customer_phone, subtotal, discount, total:subtotal, notes").eq("seller_store_id", store.id).order("created_at", { ascending: false }).limit(Math.min(limit ?? 20, 100));
+    if (status) q = q.eq("status", status);
+    const { data, error } = await q;
+    if (error) return errResult(error.message);
+    return jsonResult(data);
+  }
+});
+
+// src/lib/mcp/tools/list-my-products.ts
+import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.23.0";
+import { z as z2 } from "npm:zod@^3.25.76";
+var list_my_products_default = defineTool3({
+  name: "list_my_products",
+  title: "Meus produtos",
+  description: "Lista produtos ativos na loja da sacoleira autenticada.",
+  inputSchema: {
+    limit: z2.number().int().positive().optional().describe("M\xE1ximo de itens (padr\xE3o 50).")
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ limit }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuth();
+    const sb = supabaseForUser(ctx);
+    const { data: store } = await sb.from("seller_stores").select("id").eq("owner_user_id", ctx.getUserId()).maybeSingle();
+    if (!store) return errResult("Sem loja associada.");
+    const { data, error } = await sb.from("store_products").select("id, resale_price, active, product:products(id, code, name, category_name, image_url, status)").eq("seller_store_id", store.id).eq("active", true).limit(Math.min(limit ?? 50, 200));
+    if (error) return errResult(error.message);
+    return jsonResult(data);
+  }
+});
+
+// src/lib/mcp/tools/list-my-network.ts
+import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.23.0";
+var list_my_network_default = defineTool4({
+  name: "list_my_network",
+  title: "Minha rede (MLM)",
+  description: "Lista sacoleiras indicadas diretamente pela sacoleira autenticada.",
+  inputSchema: {},
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async (_input, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuth();
+    const sb = supabaseForUser(ctx);
+    const { data: me, error: eMe } = await sb.from("resellers").select("id").eq("user_id", ctx.getUserId()).maybeSingle();
+    if (eMe) return errResult(eMe.message);
+    if (!me) return errResult("Sem cadastro de sacoleira.");
+    const { data, error } = await sb.from("resellers").select("id, display_name, email, phone, tier, status, created_at").eq("parent_id", me.id).order("created_at", { ascending: false });
+    if (error) return errResult(error.message);
+    return jsonResult({ count: data?.length ?? 0, members: data });
+  }
+});
+
+// src/lib/mcp/index.ts
+var projectRef = "ycxfyyhxgsbjoiijxgyu";
+var mcp_default = defineMcp({
+  name: "aura-store-mcp",
+  title: "Aura Store \u2014 MCP",
+  version: "0.1.0",
+  instructions: "Ferramentas para sacoleiras da Aura Store: consultar sua loja, produtos, pedidos e rede MLM. Todas as ferramentas operam apenas sobre os dados da sacoleira autenticada (respeita RLS).",
+  auth: auth.oauth.issuer({
+    issuer: `https://${projectRef}.supabase.co/auth/v1`,
+    acceptedAudiences: "authenticated"
+  }),
+  tools: [get_my_store_default, list_my_orders_default, list_my_products_default, list_my_network_default]
+});
+
 // lovable-mcp-supabase-entry.ts
-import mcp from "npm:C:\\Users\\Tiago TGuiaNET\\Desktop\\clientes\\fabiano joias\\joais lovable\\orus-jewel-studio-main\\orus-jewel-studio\\src\\lib\\mcp\\index.ts";
 import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@0.23.0/stacks/supabase";
-Deno.serve(createSupabaseHandler(mcp, { functionName: "mcp" }));
+Deno.serve(createSupabaseHandler(mcp_default, { functionName: "mcp" }));
