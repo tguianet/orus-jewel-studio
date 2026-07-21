@@ -720,6 +720,7 @@ export type Database = {
         Args: { _reseller_id: string; _user_id?: string }
         Returns: boolean
       }
+      owns_storage_store_folder: { Args: { _name: string }; Returns: boolean }
       owns_store: {
         Args: { _store_id: string; _user_id?: string }
         Returns: boolean
