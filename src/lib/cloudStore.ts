@@ -36,16 +36,21 @@ export const mapStore = (row: any): Sacoleira => ({
 
 export const loadPublicStore = async (slug?: string) => {
   if (!slug) return null;
+  // Public-safe columns only. Anon has SELECT revoked on contact_phone,
+  // commission_rate, owner_user_id, reseller_id. Phone for WhatsApp comes
+  // from theme.whatsapp when the seller sets it.
   const { data, error } = await supabase
     .from("seller_stores")
-    .select("*, resellers(*)")
+    .select("id, store_name, store_slug, status, tier, theme, created_at")
     .eq("store_slug", slug)
     .eq("status", "approved")
     .maybeSingle();
 
   if (error || !data) return null;
-  return mapStore(data);
+  const theme = (data as any).theme || {};
+  return mapStore({ ...data, contact_phone: theme.whatsapp || null });
 };
+
 
 export const loadStoreProducts = async (sellerStoreId: string): Promise<CloudStoreProduct[]> => {
   // Colunas públicas apenas (anon não tem SELECT em cost_price / wholesale_price).

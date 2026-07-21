@@ -269,7 +269,6 @@ export type Database = {
       }
       orders: {
         Row: {
-          checkout_token: string | null
           created_at: string
           customer_address: string | null
           customer_name: string
@@ -285,7 +284,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          checkout_token?: string | null
           created_at?: string
           customer_address?: string | null
           customer_name: string
@@ -301,7 +299,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          checkout_token?: string | null
           created_at?: string
           customer_address?: string | null
           customer_name?: string
@@ -700,10 +697,6 @@ export type Database = {
       }
     }
     Functions: {
-      can_access_order: {
-        Args: { _order_id: string; _user_id?: string }
-        Returns: boolean
-      }
       can_access_store: {
         Args: { _store_id: string; _user_id?: string }
         Returns: boolean
@@ -712,27 +705,6 @@ export type Database = {
         Args: { _order_id: string }
         Returns: undefined
       }
-      create_public_order: {
-        Args: {
-          p_seller_store_id: string
-          p_customer_name: string
-          p_customer_phone: string
-          p_customer_address?: string | null
-          p_notes?: string | null
-          p_items?: Json
-          p_checkout_token: string
-        }
-        Returns: {
-          order_id: string
-          status: Database["public"]["Enums"]["order_status"]
-          subtotal: number
-          total: number
-          created_at: string
-          items: Json
-        }[]
-      }
-      current_reseller_id: { Args: { _user_id?: string }; Returns: string }
-      current_store_id: { Args: { _user_id?: string }; Returns: string }
       get_store_reseller_id: { Args: { _store_id: string }; Returns: string }
       has_role: {
         Args: {
@@ -743,19 +715,12 @@ export type Database = {
       }
       is_admin: { Args: { _user_id?: string }; Returns: boolean }
       is_approved_store: { Args: { _store_id: string }; Returns: boolean }
-      is_reseller_in_my_network: {
-        Args: { _reseller_id: string; _user_id?: string }
-        Returns: boolean
-      }
-      lookup_reseller_sponsor: {
-        Args: { _id: string }
-        Returns: { id: string; display_name: string }[]
-      }
       mark_order_paid: { Args: { _order_id: string }; Returns: undefined }
       owns_reseller: {
         Args: { _reseller_id: string; _user_id?: string }
         Returns: boolean
       }
+      owns_storage_store_folder: { Args: { _name: string }; Returns: boolean }
       owns_store: {
         Args: { _store_id: string; _user_id?: string }
         Returns: boolean
@@ -763,10 +728,6 @@ export type Database = {
       reseller_can_access_store: {
         Args: { _store_id: string; _user_id?: string }
         Returns: boolean
-      }
-      set_my_reseller_parent: {
-        Args: { _parent_id: string }
-        Returns: undefined
       }
     }
     Enums: {

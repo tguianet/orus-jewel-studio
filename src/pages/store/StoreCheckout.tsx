@@ -109,7 +109,7 @@ const StoreCheckout = () => {
     setSubmitting(true);
     setStep("processing");
     try {
-      const { data, error } = await supabase.rpc("create_public_order", {
+      const { data, error } = await (supabase.rpc as any)("create_public_order", {
         p_seller_store_id: store.id,
         p_customer_name: form.name.trim(),
         p_customer_phone: form.phone.trim(),
