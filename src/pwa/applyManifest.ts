@@ -60,7 +60,7 @@ function applyDocumentMeta(config: PwaManifestConfig) {
   favicon.setAttribute("sizes", "192x192");
   favicon.href = config.favicon;
 
-  // Remove favicons genéricos/antigos que possam competir (ex.: /favicon.ico do Lovable).
+  // Remove favicons genericos/antigos que possam competir.
   document
     .querySelectorAll('link[rel="icon"]:not(#' + FAVICON_LINK_ID + "), link[rel='shortcut icon']")
     .forEach((node) => node.parentElement?.removeChild(node));
@@ -80,7 +80,7 @@ function applyDocumentMeta(config: PwaManifestConfig) {
 
 /**
  * Aplica manifesto + metas imediatamente (antes do beforeinstallprompt).
- * Todos os apps usam blob dinâmico para não competir com JSON estático antigo em cache.
+ * Todos os apps usam blob dinamico para nao competir com JSON estatico antigo em cache.
  */
 export function applyPwaManifestForPath(pathname: string) {
   const config = getPwaManifestConfig(pathname);
@@ -101,12 +101,12 @@ export function applyPwaManifestForPath(pathname: string) {
     scope: `${origin}/`,
     icons: config.icons.map((icon) => ({
       ...icon,
-      // src já pode ser relativo com ?v= — torna absoluto para blob:
       src: icon.src.startsWith("http") ? icon.src : `${origin}${icon.src}`,
     })),
   };
 
-  const blob = new Blob([JSON.stringify(webManifest)], { type: "application/manifest+json" });
+  const json = JSON.stringify(webManifest);
+  const blob = new Blob([json], { type: "application/manifest+json;charset=utf-8" });
   currentBlobUrl = URL.createObjectURL(blob);
   manifestLink.href = currentBlobUrl;
 }

@@ -1,4 +1,4 @@
-/** Versão de assets PWA — bust de cache de ícones/manifestos. */
+/** Versao de assets PWA - bust de cache de icones/manifestos. */
 export const PWA_ASSET_VERSION = "20260722a";
 
 export type PwaAppKind = "admin" | "sacoleira" | "loja" | "default";
@@ -76,9 +76,9 @@ export function getPwaManifestConfig(pathname: string): PwaManifestConfig {
   if (kind === "admin") {
     return {
       kind,
-      name: "Órus Admin",
+      name: "\u00d3rus Admin",
       shortName: "Admin",
-      description: "Painel administrativo Órus — gestão de joias, sacoleiras e pedidos.",
+      description: "Painel administrativo \u00d3rus",
       startUrl: "/login-admin",
       themeColor: "#C1186E",
       backgroundColor: "#ffffff",
@@ -91,9 +91,9 @@ export function getPwaManifestConfig(pathname: string): PwaManifestConfig {
   if (kind === "sacoleira") {
     return {
       kind,
-      name: "Órus Sacoleira",
+      name: "\u00d3rus Sacoleira",
       shortName: "Sacoleira",
-      description: "Painel da sacoleira Órus — loja, pedidos e rede de revenda.",
+      description: "Painel da sacoleira \u00d3rus \u2014 loja, pedidos e rede de revenda.",
       startUrl: "/login-sacoleira",
       themeColor: "#C1186E",
       backgroundColor: "#ffffff",
@@ -111,7 +111,7 @@ export function getPwaManifestConfig(pathname: string): PwaManifestConfig {
       kind,
       name: "Amada Amante",
       shortName: "Amada Amante",
-      description: "Loja Amada Amante — joias com identidade.",
+      description: "Loja virtual Amada Amante",
       startUrl,
       themeColor: "#C1186E",
       backgroundColor: "#ffffff",
@@ -121,12 +121,12 @@ export function getPwaManifestConfig(pathname: string): PwaManifestConfig {
     };
   }
 
-  // Landing e rotas genéricas: NÃO usar o nome antigo "Órus" (competia com os 3 apps).
+  // Landing e rotas genericas: nao usar o nome antigo sozinho (competia com os 3 apps).
   return {
     kind: "default",
     name: "Amada Amante",
     shortName: "Amada Amante",
-    description: "Amada Amante — joias com identidade.",
+    description: "Loja virtual Amada Amante",
     startUrl: "/",
     themeColor: "#C1186E",
     backgroundColor: "#ffffff",

@@ -1,8 +1,8 @@
 {
   "id": "/login-admin",
-  "name": "Órus Admin",
+  "name": "\u00d3rus Admin",
   "short_name": "Admin",
-  "description": "Painel administrativo Órus — gestão de joias, sacoleiras e pedidos.",
+  "description": "Painel administrativo \u00d3rus",
   "start_url": "/login-admin",
   "scope": "/",
   "display": "standalone",

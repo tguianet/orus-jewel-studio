@@ -39,7 +39,7 @@ export default defineConfig(({ mode }) => ({
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/api\//, /^\/manifests\//, /^\/icons\//],
         globPatterns: ["**/*.{js,css,html,svg,woff,woff2}"],
-        // Ícones/manifestos NÃO entram no precache estático agressivo (evita “LO” preso).
+        // Ícones/manifestos NÃO entram no precache estático agressivo (evita "LO" preso).
         globIgnores: ["**/icons/**", "**/manifests/**", "**/favicon.ico"],
         runtimeCaching: [
           {

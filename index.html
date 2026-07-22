@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Amada Amante</title>
-    <meta name="description" content="Amada Amante — joias com identidade. SaaS de revenda com lojas virtuais e checkout via WhatsApp.">
+    <meta name="description" content="Amada Amante - joias com identidade. SaaS de revenda com lojas virtuais e checkout via WhatsApp.">
     <meta name="author" content="Amada Amante" />
 
-    <!-- PWA / mobile — bootstrap síncrono abaixo troca antes do beforeinstallprompt -->
+    <!-- PWA / mobile - bootstrap sincrono abaixo troca antes do beforeinstallprompt -->
     <meta id="theme-color" name="theme-color" content="#C1186E" />
     <meta id="mobile-web-app-capable" name="mobile-web-app-capable" content="yes" />
     <meta id="apple-mobile-web-app-capable" name="apple-mobile-web-app-capable" content="yes" />
@@ -27,26 +27,30 @@
         var kind = "default";
         var name = "Amada Amante";
         var shortName = "Amada Amante";
+        var description = "Loja virtual Amada Amante";
         var startUrl = "/";
         var iconBase = "/icons/loja";
         var theme = "#C1186E";
 
         if (path.indexOf("/login-admin") === 0 || path.indexOf("/admin") === 0) {
           kind = "admin";
-          name = "Órus Admin";
+          name = "\u00d3rus Admin";
           shortName = "Admin";
+          description = "Painel administrativo \u00d3rus";
           startUrl = "/login-admin";
           iconBase = "/icons/admin";
         } else if (path.indexOf("/login-sacoleira") === 0 || path.indexOf("/sacoleira") === 0) {
           kind = "sacoleira";
-          name = "Órus Sacoleira";
+          name = "\u00d3rus Sacoleira";
           shortName = "Sacoleira";
+          description = "Painel da sacoleira \u00d3rus \u2014 loja, pedidos e rede de revenda.";
           startUrl = "/login-sacoleira";
           iconBase = "/icons/sacoleira";
         } else if (path.indexOf("/loja/") === 0) {
           kind = "loja";
           name = "Amada Amante";
           shortName = "Amada Amante";
+          description = "Loja virtual Amada Amante";
           var m = path.match(/^\/loja\/([^/]+)/);
           startUrl = m ? "/loja/" + m[1] : "/loja";
           iconBase = "/icons/loja";
@@ -75,7 +79,7 @@
           id: origin + startUrl,
           name: name,
           short_name: shortName,
-          description: name,
+          description: description,
           start_url: origin + startUrl,
           scope: origin + "/",
           display: "standalone",
@@ -91,12 +95,13 @@
           ]
         };
 
-        var blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
+        var blob = new Blob([JSON.stringify(manifest)], {
+          type: "application/manifest+json;charset=utf-8"
+        });
         var url = URL.createObjectURL(blob);
         var link = document.getElementById("pwa-manifest");
         if (link) link.setAttribute("href", url);
 
-        // Fallback estático se blob falhar (raro)
         if (kind === "admin") {
           window.__ORUS_PWA_FALLBACK__ = "/manifests/manifest-admin.json";
         } else if (kind === "sacoleira") {
@@ -114,8 +119,8 @@
     <meta name="twitter:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0598b039-b3e3-4c70-b6ef-08e5a2859fa4/id-preview-84e1991f--770338f6-5e66-44e7-9ac3-8357bd7434e2.lovable.app-1777146105935.png">
     <meta property="og:title" content="Amada Amante">
     <meta name="twitter:title" content="Amada Amante">
-    <meta property="og:description" content="Amada Amante — joias com identidade. SaaS de revenda com lojas virtuais e checkout via WhatsApp.">
-    <meta name="twitter:description" content="Amada Amante — joias com identidade. SaaS de revenda com lojas virtuais e checkout via WhatsApp.">
+    <meta property="og:description" content="Amada Amante - joias com identidade. SaaS de revenda com lojas virtuais e checkout via WhatsApp.">
+    <meta name="twitter:description" content="Amada Amante - joias com identidade. SaaS de revenda com lojas virtuais e checkout via WhatsApp.">
   </head>
 
   <body>
