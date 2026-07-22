@@ -697,6 +697,10 @@ export type Database = {
       }
     }
     Functions: {
+      can_access_order: {
+        Args: { _order_id: string; _user_id?: string }
+        Returns: boolean
+      }
       can_access_store: {
         Args: { _store_id: string; _user_id?: string }
         Returns: boolean
@@ -705,6 +709,8 @@ export type Database = {
         Args: { _order_id: string }
         Returns: undefined
       }
+      current_reseller_id: { Args: { _user_id?: string }; Returns: string }
+      current_store_id: { Args: { _user_id?: string }; Returns: string }
       get_store_reseller_id: { Args: { _store_id: string }; Returns: string }
       has_role: {
         Args: {
@@ -715,6 +721,17 @@ export type Database = {
       }
       is_admin: { Args: { _user_id?: string }; Returns: boolean }
       is_approved_store: { Args: { _store_id: string }; Returns: boolean }
+      is_reseller_in_my_network: {
+        Args: { _reseller_id: string; _user_id?: string }
+        Returns: boolean
+      }
+      lookup_reseller_sponsor: {
+        Args: { _id: string }
+        Returns: {
+          display_name: string
+          id: string
+        }[]
+      }
       mark_order_paid: { Args: { _order_id: string }; Returns: undefined }
       owns_reseller: {
         Args: { _reseller_id: string; _user_id?: string }
@@ -728,6 +745,10 @@ export type Database = {
       reseller_can_access_store: {
         Args: { _store_id: string; _user_id?: string }
         Returns: boolean
+      }
+      set_my_reseller_parent: {
+        Args: { _parent_id: string }
+        Returns: undefined
       }
     }
     Enums: {
