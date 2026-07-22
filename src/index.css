@@ -4,11 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Aura Store Suite Design System — premium dark + gold for jewelry SaaS */
+/* Amada Amante Design System — premium dark + gold for jewelry SaaS */
 
 @layer base {
   :root {
-    /* Default to dark — Aura is dark-first */
+    /* Default to dark — Amada Amante is dark-first */
     --background: 30 12% 6%;
     --foreground: 40 30% 92%;
 

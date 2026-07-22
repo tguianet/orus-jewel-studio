@@ -95,7 +95,7 @@ export default function OAuthConsent() {
               <h1 className="font-display text-2xl">Conectar {clientName} à sua conta</h1>
               <p className="text-sm text-muted-foreground">
                 Isso permite que <span className="text-foreground font-medium">{clientName}</span> use as ferramentas
-                da Aura Store como você. As permissões e políticas do sistema continuam valendo.
+                da Amada Amante como você. As permissões e políticas do sistema continuam valendo.
               </p>
             </div>
 

@@ -1,8 +1,8 @@
 {
   "id": "/login-admin",
-  "name": "\u00d3rus Admin",
+  "name": "Amada Amante Admin",
   "short_name": "Admin",
-  "description": "Painel administrativo \u00d3rus",
+  "description": "Painel administrativo Amada Amante",
   "start_url": "/login-admin",
   "scope": "/",
   "display": "standalone",

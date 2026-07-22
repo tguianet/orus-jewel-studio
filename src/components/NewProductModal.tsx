@@ -58,7 +58,7 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
     setSaving(true);
     const formEl = event.currentTarget;
     const form = new FormData(formEl);
-    const name = String(form.get("name") || "Nova joia Aura");
+    const name = String(form.get("name") || "Nova joia Amada Amante");
     const category = String(form.get("category") || categories[0]?.name || "Joias");
     const wholesalePrice = Number(form.get("wholesalePrice") || 0);
     const suggestedPrice = Number(form.get("suggestedPrice") || wholesalePrice * 2);
@@ -97,7 +97,7 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
           category_id: null,
           category_name: category,
           seller_store_id: null,
-          description: "Produto cadastrado pelo painel Aura Store Suite.",
+          description: "Produto cadastrado pelo painel Amada Amante.",
           cost_price: Math.round(wholesalePrice * 0.58),
           wholesale_price: wholesalePrice,
           suggested_price: suggestedPrice,

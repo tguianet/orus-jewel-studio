@@ -128,7 +128,7 @@ const AdminDashboard = () => {
 
       setRecent(orders.slice(0, 5).map((order) => ({
         id: order.id,
-        sacoleiraName: storeNameById.get(order.seller_store_id) ?? "Loja Aura",
+        sacoleiraName: storeNameById.get(order.seller_store_id) ?? "Loja Amada Amante",
         items: countByOrder.get(order.id) ?? 0,
         total: Number(order.total ?? 0),
         status: String(order.status),
@@ -159,8 +159,8 @@ const AdminDashboard = () => {
     <AdminLayout>
       <PageHeader
         eyebrow="Visão geral"
-        title="Bem-vinda à Aura Store Suite"
-        description="Resumo das operações da sua rede Aura Store Suite."
+        title="Bem-vinda à Amada Amante"
+        description="Resumo das operações da sua rede Amada Amante."
         actions={<NewProductModal />}
       />
 

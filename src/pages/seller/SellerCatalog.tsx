@@ -57,7 +57,7 @@ const SellerCatalog = () => {
 
   return (
     <SellerLayout>
-      <PageHeader eyebrow="Catálogo Aura" title="Escolha seus produtos" description="Selecione as peças e defina seu preço de revenda." />
+      <PageHeader eyebrow="Catálogo Amada Amante" title="Escolha seus produtos" description="Selecione as peças e defina seu preço de revenda." />
 
       {loading ? (
         <div className="flex items-center justify-center h-40 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin mr-2"/> Carregando...</div>

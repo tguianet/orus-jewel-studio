@@ -76,9 +76,9 @@ export function getPwaManifestConfig(pathname: string): PwaManifestConfig {
   if (kind === "admin") {
     return {
       kind,
-      name: "\u00d3rus Admin",
+      name: "Amada Amante Admin",
       shortName: "Admin",
-      description: "Painel administrativo \u00d3rus",
+      description: "Painel administrativo Amada Amante",
       startUrl: "/login-admin",
       themeColor: "#C1186E",
       backgroundColor: "#ffffff",
@@ -91,9 +91,9 @@ export function getPwaManifestConfig(pathname: string): PwaManifestConfig {
   if (kind === "sacoleira") {
     return {
       kind,
-      name: "\u00d3rus Sacoleira",
+      name: "Amada Amante Sacoleira",
       shortName: "Sacoleira",
-      description: "Painel da sacoleira \u00d3rus \u2014 loja, pedidos e rede de revenda.",
+      description: "Painel da sacoleira Amada Amante \u2014 loja, pedidos e rede de revenda.",
       startUrl: "/login-sacoleira",
       themeColor: "#C1186E",
       backgroundColor: "#ffffff",
@@ -121,7 +121,7 @@ export function getPwaManifestConfig(pathname: string): PwaManifestConfig {
     };
   }
 
-  // Landing e rotas genericas: nao usar o nome antigo sozinho (competia com os 3 apps).
+  // Landing e rotas genericas: marca Amada Amante (nao competir com os 3 apps).
   return {
     kind: "default",
     name: "Amada Amante",

@@ -817,7 +817,7 @@ const SellerCustomization = () => {
                 onChange={(e) => setTheme({ ...theme, footerAbout: e.target.value })}
                 rows={3}
                 maxLength={300}
-                placeholder="Pequena descrição que aparece no rodapé (ex.: AURA é joias autorais para o dia a dia)."
+                placeholder="Pequena descrição que aparece no rodapé (ex.: Amada Amante é joias autorais para o dia a dia)."
                 className="mt-1.5"
               />
             </div>

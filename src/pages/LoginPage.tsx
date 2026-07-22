@@ -81,7 +81,7 @@ const LoginPage = ({ role }: Props) => {
                 : "Catálogo curado, preço sob seu controle e pedidos que chegam direto no seu WhatsApp."}
             </p>
           </div>
-          <p className="text-xs text-muted-foreground tracking-widest uppercase">Aura Store Suite · Joias em rede</p>
+          <p className="text-xs text-muted-foreground tracking-widest uppercase">Amada Amante · Joias em rede</p>
         </div>
       </div>
 
@@ -147,7 +147,7 @@ const LoginPage = ({ role }: Props) => {
           {!isAdmin && mode !== "forgot" && (
             <p className="text-xs text-center text-muted-foreground">
               {mode === "signin" ? (
-                <>Quer ser revendedora Aura?{" "}
+                <>Quer ser revendedora Amada Amante?{" "}
                 <button onClick={() => setMode("signup")} className="text-primary hover:underline">Solicitar cadastro</button></>
               ) : (
                 <>Já tem conta?{" "}

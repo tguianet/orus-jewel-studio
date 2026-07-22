@@ -161,7 +161,7 @@ const SellerDashboard = () => {
       <div className="rounded-xl border border-primary/20 bg-gradient-gold-soft p-6">
         <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Próximo passo</p>
         <h3 className="font-display text-2xl mb-2">Adicione mais brilho à sua vitrine</h3>
-        <p className="text-sm text-muted-foreground mb-4">Você está exibindo {productCount} produtos. Adicione novos do catálogo Aura para atrair mais clientes.</p>
+        <p className="text-sm text-muted-foreground mb-4">Você está exibindo {productCount} produtos. Adicione novos do catálogo Amada Amante para atrair mais clientes.</p>
         <Link to="/sacoleira/catalogo"><Button variant="gold" className="w-full">Explorar catálogo</Button></Link>
       </div>
     </div>

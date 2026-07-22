@@ -33,7 +33,7 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
   ];
 
   return (
-    <AppShell nav={nav} scopeLabel="Painel Admin" userName={profile?.displayName || "Aura Store Suite"}>
+    <AppShell nav={nav} scopeLabel="Painel Admin" userName={profile?.displayName || "Amada Amante"}>
       {children}
     </AppShell>
   );

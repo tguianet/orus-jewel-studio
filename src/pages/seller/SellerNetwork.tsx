@@ -118,7 +118,7 @@ const SellerNetwork = () => {
                             <a
                               href={waLink(
                                 m.phone,
-                                `Olá ${m.name}! Aqui é da sua mentora na Aura. Tudo bem? Passando pra te dar um apoio com a sua loja. ✨`,
+                                `Olá ${m.name}! Aqui é da sua mentora na Amada Amante. Tudo bem? Passando pra te dar um apoio com a sua loja. ✨`,
                               )}
                               target="_blank"
                               rel="noreferrer"

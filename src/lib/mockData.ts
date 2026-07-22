@@ -3,7 +3,7 @@ import earringsImg from "@/assets/product-earrings.jpg";
 import necklaceImg from "@/assets/product-necklace.jpg";
 import braceletImg from "@/assets/product-bracelet.jpg";
 
-export const appName = "Aura Store Suite";
+export const appName = "Amada Amante";
 export const brandTagline = "SaaS premium para revenda de joias";
 
 export type ProfileRole = "admin" | "sacoleira";
@@ -102,7 +102,7 @@ export type WalletTransaction = {
 };
 
 export const profiles: Profile[] = [
-  { id: "u-admin", role: "admin", displayName: "Aura Admin", email: "admin@aurastore.com", phone: "(11) 99000-0000" },
+  { id: "u-admin", role: "admin", displayName: "Amada Amante Admin", email: "admin@aurastore.com", phone: "(11) 99000-0000" },
   { id: "u-marina", role: "sacoleira", displayName: "Marina Costa", email: "marina@email.com", phone: "(11) 98765-4321" },
   { id: "u-bia", role: "sacoleira", displayName: "Beatriz Lima", email: "bia@email.com", phone: "(21) 99876-5432" },
   { id: "u-cami", role: "sacoleira", displayName: "Camila Souza", email: "cami@email.com", phone: "(31) 97654-3210" },
@@ -129,7 +129,7 @@ export const products: Product[] = [
 ];
 
 export const sacoleiras: Sacoleira[] = [
-  { id: "s1", profileId: "u-marina", parentId: null, name: "Marina Costa", storeName: "Marina Aura", storeSlug: "marina-aura", email: "marina@email.com", phone: "(11) 98765-4321", status: "approved", tier: "VIP", totalSpent: 4820, ordersCount: 12, walletAvailable: 842.5, walletPending: 156.8, directReferrals: 2, networkSize: 3 },
+  { id: "s1", profileId: "u-marina", parentId: null, name: "Marina Costa", storeName: "Marina Amada Amante", storeSlug: "marina-aura", email: "marina@email.com", phone: "(11) 98765-4321", status: "approved", tier: "VIP", totalSpent: 4820, ordersCount: 12, walletAvailable: 842.5, walletPending: 156.8, directReferrals: 2, networkSize: 3 },
   { id: "s2", profileId: "u-bia", parentId: "s1", name: "Beatriz Lima", storeName: "Bia Brilhos", storeSlug: "bia-brilhos", email: "bia@email.com", phone: "(21) 99876-5432", status: "approved", tier: "padrão", totalSpent: 1290, ordersCount: 4, walletAvailable: 214.0, walletPending: 49.5, directReferrals: 1, networkSize: 1 },
   { id: "s3", profileId: "u-cami", parentId: "s2", name: "Camila Souza", storeName: "Cami Acessórios", storeSlug: "cami-acessorios", email: "cami@email.com", phone: "(31) 97654-3210", status: "pending", tier: "padrão", totalSpent: 0, ordersCount: 0, walletAvailable: 0, walletPending: 0, directReferrals: 0, networkSize: 0 },
   { id: "s4", profileId: "u-lari", parentId: "s1", name: "Larissa Mendes", storeName: "Lari Luxo", storeSlug: "lari-luxo", email: "lari@email.com", phone: "(41) 96543-2109", status: "approved", tier: "personalizado", totalSpent: 8950, ordersCount: 23, walletAvailable: 1260.3, walletPending: 312.2, directReferrals: 0, networkSize: 0 },
@@ -147,10 +147,10 @@ export const storeProducts: StoreProduct[] = [
 ];
 
 export const wholesaleOrders: WholesaleOrder[] = [
-  { id: "PED-1042", sacoleiraId: "s1", sacoleiraName: "Marina Aura", date: "2026-04-18", items: 8, subtotal: 520, discount: 52, total: 468, status: "enviado" },
+  { id: "PED-1042", sacoleiraId: "s1", sacoleiraName: "Marina Amada Amante", date: "2026-04-18", items: 8, subtotal: 520, discount: 52, total: 468, status: "enviado" },
   { id: "PED-1041", sacoleiraId: "s4", sacoleiraName: "Lari Luxo", date: "2026-04-17", items: 14, subtotal: 980, discount: 147, total: 833, status: "pago" },
   { id: "PED-1040", sacoleiraId: "s2", sacoleiraName: "Bia Brilhos", date: "2026-04-16", items: 5, subtotal: 295, discount: 0, total: 295, status: "aguardando" },
-  { id: "PED-1039", sacoleiraId: "s1", sacoleiraName: "Marina Aura", date: "2026-04-15", items: 11, subtotal: 745, discount: 74, total: 671, status: "entregue" },
+  { id: "PED-1039", sacoleiraId: "s1", sacoleiraName: "Marina Amada Amante", date: "2026-04-15", items: 11, subtotal: 745, discount: 74, total: 671, status: "entregue" },
 ];
 
 export const storeOrders: StoreOrder[] = [

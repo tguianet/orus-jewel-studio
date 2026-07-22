@@ -1,8 +1,8 @@
 {
   "id": "/login-sacoleira",
-  "name": "\u00d3rus Sacoleira",
+  "name": "Amada Amante Sacoleira",
   "short_name": "Sacoleira",
-  "description": "Painel da sacoleira \u00d3rus \u2014 loja, pedidos e rede de revenda.",
+  "description": "Painel da sacoleira Amada Amante \u2014 loja, pedidos e rede de revenda.",
   "start_url": "/login-sacoleira",
   "scope": "/",
   "display": "standalone",

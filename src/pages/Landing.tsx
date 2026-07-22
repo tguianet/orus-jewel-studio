@@ -44,7 +44,7 @@ const Landing = () => (
             sabe vender.
           </h1>
           <p className="text-lg text-muted-foreground max-w-lg leading-relaxed">
-            Aura Store Suite conecta seu estoque de atacado a uma rede multinível de sacoleiras com lojas virtuais individuais, comissões por venda e carteira própria.
+            Amada Amante conecta seu estoque de atacado a uma rede multinível de sacoleiras com lojas virtuais individuais, comissões por venda e carteira própria.
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
             <Link to="/admin"><Button variant="gold" size="xl">Entrar como Admin <ArrowRight className="h-4 w-4" /></Button></Link>
@@ -61,7 +61,7 @@ const Landing = () => (
         <div className="relative animate-fade-in">
           <div className="absolute -inset-4 bg-gradient-gold opacity-20 blur-3xl rounded-full" />
           <div className="relative rounded-2xl overflow-hidden border border-primary/20 shadow-elegant">
-            <img src={heroImg} alt="Joias premium Aura" width={1600} height={1024} className="w-full h-auto object-cover" />
+            <img src={heroImg} alt="Joias premium Amada Amante" width={1600} height={1024} className="w-full h-auto object-cover" />
           </div>
           <div className="absolute -bottom-6 -left-6 hidden sm:block glass-panel rounded-xl px-4 py-3">
             <div className="flex items-center gap-3">
@@ -129,7 +129,7 @@ const Landing = () => (
     <footer className="border-t border-border/50 py-8">
       <div className="container flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
         <OrusLogo size="sm" />
-        <p>© {new Date().getFullYear()} Aura Store Suite. Joias em rede.</p>
+        <p>© {new Date().getFullYear()} Amada Amante. Joias em rede.</p>
       </div>
     </footer>
   </div>

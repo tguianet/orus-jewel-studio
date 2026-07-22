@@ -448,7 +448,7 @@ const StoreLayout = () => {
           <p className="text-[11px] opacity-70 pt-2">
             {theme.footerCopyright || `© ${new Date().getFullYear()} ${store.storeName} — todos os direitos reservados`}
           </p>
-          <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 pt-1">Powered by Aura Store Suite</p>
+          <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 pt-1">Powered by Amada Amante</p>
         </div>
       </footer>
     </div>

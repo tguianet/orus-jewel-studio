@@ -135,7 +135,7 @@ const SellerStore = () => {
           </Link>
           <Link to="/sacoleira/catalogo" className="block rounded-xl border border-border bg-card p-5 hover:border-primary/40 transition-all">
             <h4 className="font-display text-lg">Adicionar produtos</h4>
-            <p className="text-xs text-muted-foreground mt-1">Selecione do catálogo Aura</p>
+            <p className="text-xs text-muted-foreground mt-1">Selecione do catálogo Amada Amante</p>
           </Link>
           <Link to="/sacoleira/meus-produtos" className="block rounded-xl border border-border bg-card p-5 hover:border-primary/40 transition-all">
             <h4 className="font-display text-lg">Definir preços</h4>

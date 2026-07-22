@@ -149,7 +149,7 @@ ${orders.map((o: any) => `
           <div className="grid lg:grid-cols-2 gap-5">
             <div className="rounded-xl border border-border bg-card p-6 space-y-4">
               <h3 className="font-display text-xl">Marca</h3>
-              <div><Label>Nome da empresa</Label><Input defaultValue="Aura Store Suite" className="mt-1.5" /></div>
+              <div><Label>Nome da empresa</Label><Input defaultValue="Amada Amante" className="mt-1.5" /></div>
               <div><Label>Email de contato</Label><Input defaultValue="contato@aurastore.com" className="mt-1.5" /></div>
               <div><Label>WhatsApp comercial</Label><Input defaultValue="(11) 99000-0000" className="mt-1.5" /></div>
               <Button variant="gold" className="w-full">Salvar</Button>

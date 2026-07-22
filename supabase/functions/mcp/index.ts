@@ -23,10 +23,10 @@ const projectRef = resolveProjectRef();
 
 const mcp = defineMcp({
   name: "orus-store-mcp",
-  title: "Órus Store — MCP",
+  title: "Amada Amante — MCP",
   version: "0.2.0",
   instructions:
-    "Ferramentas para sacoleiras Órus: consultar sua loja, produtos, pedidos e rede. Todas operam só sobre dados da sacoleira autenticada (JWT + RLS). Sem service role.",
+    "Ferramentas para sacoleiras Amada Amante: consultar sua loja, produtos, pedidos e rede. Todas operam só sobre dados da sacoleira autenticada (JWT + RLS). Sem service role.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated",
