@@ -13,6 +13,7 @@ import { themeCssVars } from "@/lib/colorUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import { EditableText } from "@/components/preview/EditableText";
 import { StorePopup } from "@/components/store/StorePopup";
+import amadaAmanteLogo from "@/assets/amada-amante-logo.png.asset.json";
 
 const StoreLayout = () => {
   const { slug } = useParams();
