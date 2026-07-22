@@ -331,9 +331,12 @@ const StoreLayout = () => {
                 Sale
               </a>
             </nav>
-            <div className="mt-auto px-6 py-5 border-t border-border/60 flex items-center gap-4 text-xs text-muted-foreground">
+            <div className="mt-auto px-6 py-5 border-t border-border/60 flex flex-col gap-3 text-xs text-muted-foreground">
               <Link to={`/loja/${store.storeSlug}/carrinho`} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 hover:text-foreground">
                 <ShoppingBag className="h-4 w-4" /> Carrinho{count > 0 ? ` (${count})` : ""}
+              </Link>
+              <Link to="/login-sacoleira" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 hover:text-foreground">
+                <User className="h-4 w-4" /> Área da sacoleira
               </Link>
             </div>
           </SheetContent>
