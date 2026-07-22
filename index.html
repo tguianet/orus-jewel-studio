@@ -21,7 +21,7 @@
     <script>
       // Aplica manifesto/metas imediatamente (antes do React e do beforeinstallprompt).
       (function () {
-        var VERSION = "20260722d";
+        var VERSION = "20260722e";
         var path = location.pathname || "/";
         var origin = location.origin;
         var kind = "default";
@@ -34,16 +34,16 @@
 
         if (path.indexOf("/login-admin") === 0 || path.indexOf("/admin") === 0) {
           kind = "admin";
-          name = "\u00d3rus Admin";
+          name = "Amada Amante Admin";
           shortName = "Admin";
-          description = "Painel administrativo \u00d3rus";
+          description = "Painel administrativo Amada Amante";
           startUrl = "/login-admin";
           iconBase = "/icons/admin";
         } else if (path.indexOf("/login-sacoleira") === 0 || path.indexOf("/sacoleira") === 0) {
           kind = "sacoleira";
-          name = "\u00d3rus Sacoleira";
+          name = "Amada Amante Sacoleira";
           shortName = "Sacoleira";
-          description = "Painel da sacoleira \u00d3rus \u2014 loja, pedidos e rede de revenda.";
+          description = "Painel da sacoleira Amada Amante \u2014 loja, pedidos e rede de revenda.";
           startUrl = "/login-sacoleira";
           iconBase = "/icons/sacoleira";
         } else if (path.indexOf("/loja/") === 0) {
