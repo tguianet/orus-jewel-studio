@@ -203,13 +203,11 @@ const StoreLayout = () => {
               </Button>
             )}
             <Link to={`/loja/${store.storeSlug}`} className="flex items-center">
-              {theme.logoUrl ? (
-                <img src={theme.logoUrl} alt={store.storeName} className={`h-12 sm:h-14 lg:h-16 object-contain ${theme.logoFormat === "wide" ? "max-w-[360px]" : "max-w-[220px]"}`} />
-              ) : (
-                <span className="font-display text-xl sm:text-2xl lg:text-3xl tracking-[0.3em] uppercase leading-none font-light text-foreground">
-                  {store.storeName}
-                </span>
-              )}
+              <img
+                src={theme.logoUrl || amadaAmanteLogo.url}
+                alt={store.storeName}
+                className={`h-12 sm:h-14 lg:h-16 object-contain ${theme.logoFormat === "wide" ? "max-w-[360px]" : "max-w-[220px]"}`}
+              />
             </Link>
           </div>
 
