@@ -6,6 +6,8 @@ import { VitePWA } from "vite-plugin-pwa";
 // mcpPlugin removido: regenerava supabase/functions/mcp com caminho absoluto Windows.
 // A Edge Function em supabase/functions/mcp é mantida manualmente (imports Deno/npm).
 
+const PWA_CACHE_VERSION = "amada-amante-v20260722a";
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
@@ -22,11 +24,9 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
-      // Atualiza o SW automaticamente sem travar o usuário em versão antiga
       registerType: "autoUpdate",
-      // Registro manual via virtual:pwa-register (evita double-register)
       injectRegister: false,
-      // Manifestos gerenciados em runtime (3 apps no mesmo domínio)
+      // Manifestos 100% em runtime (3 apps). Evita manifesto padrão do plugin.
       manifest: false,
       includeAssets: [
         "icons/*.png",
@@ -35,17 +35,39 @@ export default defineConfig(({ mode }) => ({
         "robots.txt",
       ],
       workbox: {
-        // SPA: qualquer navegação cai no index.html (rotas internas após F5)
+        cacheId: PWA_CACHE_VERSION,
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/api\//, /^\/manifests\//, /^\/icons\//],
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2,webmanifest,json}"],
-        // Não cacheia agressivamente a API do Supabase
+        globPatterns: ["**/*.{js,css,html,svg,woff,woff2}"],
+        // Ícones/manifestos NÃO entram no precache estático agressivo (evita “LO” preso).
+        globIgnores: ["**/icons/**", "**/manifests/**", "**/favicon.ico"],
         runtimeCaching: [
+          {
+            // Manifestos: sempre rede (nunca cache-first)
+            urlPattern: ({ url }) => url.pathname.startsWith("/manifests/"),
+            handler: "NetworkOnly",
+          },
+          {
+            // Ícones PWA: rede primeiro + cache versionado
+            urlPattern: ({ url }) => url.pathname.startsWith("/icons/"),
+            handler: "NetworkFirst",
+            options: {
+              cacheName: `${PWA_CACHE_VERSION}-icons`,
+              networkTimeoutSeconds: 3,
+              expiration: {
+                maxEntries: 32,
+                maxAgeSeconds: 60 * 60 * 24 * 7,
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
             handler: "NetworkFirst",
             options: {
-              cacheName: "supabase-api",
+              cacheName: `${PWA_CACHE_VERSION}-supabase`,
               networkTimeoutSeconds: 10,
               expiration: {
                 maxEntries: 64,
@@ -57,10 +79,13 @@ export default defineConfig(({ mode }) => ({
             },
           },
           {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
+            // Demais imagens (não /icons/)
+            urlPattern: ({ url }) =>
+              /\.(?:png|jpg|jpeg|svg|gif|webp)$/i.test(url.pathname) &&
+              !url.pathname.startsWith("/icons/"),
             handler: "CacheFirst",
             options: {
-              cacheName: "orus-images",
+              cacheName: `${PWA_CACHE_VERSION}-images`,
               expiration: {
                 maxEntries: 128,
                 maxAgeSeconds: 60 * 60 * 24 * 30,

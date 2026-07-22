@@ -2,8 +2,7 @@ import { registerSW } from "virtual:pwa-register";
 
 /**
  * Registra o service worker com atualização automática.
- * Quando houver nova versão, o SW assume imediatamente (skipWaiting + clientsClaim)
- * e a página recarrega para não ficar presa em cache antigo.
+ * skipWaiting + clientsClaim (vite.config) + reload quando há nova versão.
  */
 export function registerPwa() {
   if (typeof window === "undefined") return;
@@ -13,10 +12,15 @@ export function registerPwa() {
     onRegisteredSW(_swUrl, registration) {
       if (!registration) return;
 
-      // Verifica atualizações periodicamente (a cada 60 min)
+      // Verifica atualizações periodicamente (a cada 30 min)
       setInterval(() => {
         void registration.update();
-      }, 60 * 60 * 1000);
+      }, 30 * 60 * 1000);
+
+      // Checagem imediata ao focar a aba
+      window.addEventListener("focus", () => {
+        void registration.update();
+      });
     },
     onNeedRefresh() {
       void updateSW(true);

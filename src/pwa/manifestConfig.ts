@@ -1,3 +1,6 @@
+/** Versão de assets PWA — bust de cache de ícones/manifestos. */
+export const PWA_ASSET_VERSION = "20260722a";
+
 export type PwaAppKind = "admin" | "sacoleira" | "loja" | "default";
 
 export type PwaManifestConfig = {
@@ -9,6 +12,7 @@ export type PwaManifestConfig = {
   themeColor: string;
   backgroundColor: string;
   appleTouchIcon: string;
+  favicon: string;
   icons: Array<{
     src: string;
     sizes: string;
@@ -17,22 +21,41 @@ export type PwaManifestConfig = {
   }>;
 };
 
+function iconUrl(path: string): string {
+  return `${path}?v=${PWA_ASSET_VERSION}`;
+}
+
 const ADMIN_ICONS: PwaManifestConfig["icons"] = [
-  { src: "/icons/admin-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-  { src: "/icons/admin-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
-  { src: "/icons/admin-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+  { src: iconUrl("/icons/admin-192.png"), sizes: "192x192", type: "image/png", purpose: "any" },
+  { src: iconUrl("/icons/admin-512.png"), sizes: "512x512", type: "image/png", purpose: "any" },
+  {
+    src: iconUrl("/icons/admin-maskable-512.png"),
+    sizes: "512x512",
+    type: "image/png",
+    purpose: "maskable",
+  },
 ];
 
 const SACOLEIRA_ICONS: PwaManifestConfig["icons"] = [
-  { src: "/icons/sacoleira-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-  { src: "/icons/sacoleira-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
-  { src: "/icons/sacoleira-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+  { src: iconUrl("/icons/sacoleira-192.png"), sizes: "192x192", type: "image/png", purpose: "any" },
+  { src: iconUrl("/icons/sacoleira-512.png"), sizes: "512x512", type: "image/png", purpose: "any" },
+  {
+    src: iconUrl("/icons/sacoleira-maskable-512.png"),
+    sizes: "512x512",
+    type: "image/png",
+    purpose: "maskable",
+  },
 ];
 
 const LOJA_ICONS: PwaManifestConfig["icons"] = [
-  { src: "/icons/loja-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-  { src: "/icons/loja-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
-  { src: "/icons/loja-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+  { src: iconUrl("/icons/loja-192.png"), sizes: "192x192", type: "image/png", purpose: "any" },
+  { src: iconUrl("/icons/loja-512.png"), sizes: "512x512", type: "image/png", purpose: "any" },
+  {
+    src: iconUrl("/icons/loja-maskable-512.png"),
+    sizes: "512x512",
+    type: "image/png",
+    purpose: "maskable",
+  },
 ];
 
 export function resolvePwaKind(pathname: string): PwaAppKind {
@@ -54,12 +77,13 @@ export function getPwaManifestConfig(pathname: string): PwaManifestConfig {
     return {
       kind,
       name: "Órus Admin",
-      shortName: "Órus Admin",
+      shortName: "Admin",
       description: "Painel administrativo Órus — gestão de joias, sacoleiras e pedidos.",
       startUrl: "/login-admin",
-      themeColor: "#1a1a1a",
-      backgroundColor: "#0f0f0f",
-      appleTouchIcon: "/icons/admin-192.png",
+      themeColor: "#C1186E",
+      backgroundColor: "#ffffff",
+      appleTouchIcon: iconUrl("/icons/admin-192.png"),
+      favicon: iconUrl("/icons/admin-192.png"),
       icons: ADMIN_ICONS,
     };
   }
@@ -68,12 +92,13 @@ export function getPwaManifestConfig(pathname: string): PwaManifestConfig {
     return {
       kind,
       name: "Órus Sacoleira",
-      shortName: "Órus Sacoleira",
+      shortName: "Sacoleira",
       description: "Painel da sacoleira Órus — loja, pedidos e rede de revenda.",
       startUrl: "/login-sacoleira",
-      themeColor: "#8B6914",
-      backgroundColor: "#1a1210",
-      appleTouchIcon: "/icons/sacoleira-192.png",
+      themeColor: "#C1186E",
+      backgroundColor: "#ffffff",
+      appleTouchIcon: iconUrl("/icons/sacoleira-192.png"),
+      favicon: iconUrl("/icons/sacoleira-192.png"),
       icons: SACOLEIRA_ICONS,
     };
   }
@@ -84,26 +109,29 @@ export function getPwaManifestConfig(pathname: string): PwaManifestConfig {
 
     return {
       kind,
-      name: "Loja Órus",
-      shortName: "Loja Órus",
-      description: "Loja virtual Órus — joias com identidade.",
+      name: "Amada Amante",
+      shortName: "Amada Amante",
+      description: "Loja Amada Amante — joias com identidade.",
       startUrl,
-      themeColor: "#8B6914",
-      backgroundColor: "#faf7f2",
-      appleTouchIcon: "/icons/loja-192.png",
+      themeColor: "#C1186E",
+      backgroundColor: "#ffffff",
+      appleTouchIcon: iconUrl("/icons/loja-192.png"),
+      favicon: iconUrl("/icons/loja-192.png"),
       icons: LOJA_ICONS,
     };
   }
 
+  // Landing e rotas genéricas: NÃO usar o nome antigo "Órus" (competia com os 3 apps).
   return {
     kind: "default",
-    name: "Órus",
-    shortName: "Órus",
-    description: "Órus — Joias com identidade | SaaS de revenda",
+    name: "Amada Amante",
+    shortName: "Amada Amante",
+    description: "Amada Amante — joias com identidade.",
     startUrl: "/",
-    themeColor: "#8B6914",
-    backgroundColor: "#0f0f0f",
-    appleTouchIcon: "/icons/loja-192.png",
+    themeColor: "#C1186E",
+    backgroundColor: "#ffffff",
+    appleTouchIcon: iconUrl("/icons/loja-192.png"),
+    favicon: iconUrl("/icons/loja-192.png"),
     icons: LOJA_ICONS,
   };
 }
@@ -116,12 +144,12 @@ export function buildWebManifest(config: PwaManifestConfig) {
     description: config.description,
     start_url: config.startUrl,
     scope: "/",
-    display: "standalone",
-    orientation: "portrait-primary",
+    display: "standalone" as const,
+    orientation: "portrait-primary" as const,
     background_color: config.backgroundColor,
     theme_color: config.themeColor,
     lang: "pt-BR",
-    dir: "ltr",
+    dir: "ltr" as const,
     icons: config.icons,
   };
 }

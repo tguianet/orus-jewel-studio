@@ -1,11 +1,13 @@
 import {
   buildWebManifest,
   getPwaManifestConfig,
+  PWA_ASSET_VERSION,
   type PwaManifestConfig,
 } from "./manifestConfig";
 
 const MANIFEST_LINK_ID = "pwa-manifest";
 const APPLE_TOUCH_ICON_ID = "apple-touch-icon";
+const FAVICON_LINK_ID = "app-favicon";
 const THEME_COLOR_ID = "theme-color";
 const APPLE_TITLE_ID = "apple-mobile-web-app-title";
 
@@ -53,6 +55,16 @@ function applyDocumentMeta(config: PwaManifestConfig) {
   const appleIcon = ensureLink(APPLE_TOUCH_ICON_ID, "apple-touch-icon");
   appleIcon.href = config.appleTouchIcon;
 
+  const favicon = ensureLink(FAVICON_LINK_ID, "icon");
+  favicon.type = "image/png";
+  favicon.setAttribute("sizes", "192x192");
+  favicon.href = config.favicon;
+
+  // Remove favicons genéricos/antigos que possam competir (ex.: /favicon.ico do Lovable).
+  document
+    .querySelectorAll('link[rel="icon"]:not(#' + FAVICON_LINK_ID + "), link[rel='shortcut icon']")
+    .forEach((node) => node.parentElement?.removeChild(node));
+
   const appleCapable = ensureMeta("apple-mobile-web-app-capable", "apple-mobile-web-app-capable");
   appleCapable.content = "yes";
 
@@ -67,12 +79,12 @@ function applyDocumentMeta(config: PwaManifestConfig) {
 }
 
 /**
- * Troca o manifesto (e meta tags iOS/Android) conforme a rota atual.
- * Para a loja, gera um manifesto dinâmico com start_url = /loja/:slug.
+ * Aplica manifesto + metas imediatamente (antes do beforeinstallprompt).
+ * Todos os apps usam blob dinâmico para não competir com JSON estático antigo em cache.
  */
 export function applyPwaManifestForPath(pathname: string) {
   const config = getPwaManifestConfig(pathname);
-  const key = `${config.kind}:${config.startUrl}`;
+  const key = `${PWA_ASSET_VERSION}:${config.kind}:${config.startUrl}:${config.name}:${config.shortName}`;
   if (key === lastAppliedKey) return;
   lastAppliedKey = key;
 
@@ -81,18 +93,6 @@ export function applyPwaManifestForPath(pathname: string) {
   const manifestLink = ensureLink(MANIFEST_LINK_ID, "manifest");
   revokeBlobUrl();
 
-  // Admin e Sacoleira usam arquivos estáticos; Loja usa blob com slug dinâmico.
-  if (config.kind === "admin") {
-    manifestLink.href = "/manifests/manifest-admin.json";
-    return;
-  }
-
-  if (config.kind === "sacoleira") {
-    manifestLink.href = "/manifests/manifest-sacoleira.json";
-    return;
-  }
-
-  // URLs absolutas evitam resolução incorreta com blob: (start_url relativo ao manifesto).
   const origin = window.location.origin;
   const webManifest = {
     ...buildWebManifest(config),
@@ -101,9 +101,11 @@ export function applyPwaManifestForPath(pathname: string) {
     scope: `${origin}/`,
     icons: config.icons.map((icon) => ({
       ...icon,
-      src: `${origin}${icon.src}`,
+      // src já pode ser relativo com ?v= — torna absoluto para blob:
+      src: icon.src.startsWith("http") ? icon.src : `${origin}${icon.src}`,
     })),
   };
+
   const blob = new Blob([JSON.stringify(webManifest)], { type: "application/manifest+json" });
   currentBlobUrl = URL.createObjectURL(blob);
   manifestLink.href = currentBlobUrl;
