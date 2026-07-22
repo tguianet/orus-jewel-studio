@@ -9,11 +9,11 @@ interface Props {
 
 /**
  * Marca Amada Amante.
- * - Completa (símbolo + texto): cabeçalhos, login, landing
+ * - Completa (símbolo + texto dourado): cabeçalhos, login, landing
  * - Só símbolo: ícones pequenos / preview compacto
  */
 export const OrusLogo = ({ className, showWord = true, size = "md" }: Props) => {
-  const sizes = { sm: "h-7", md: "h-9", lg: "h-12" };
+  const sizes = { sm: "h-8", md: "h-10", lg: "h-14" };
   const text = { sm: "text-xl", md: "text-2xl", lg: "text-4xl" };
 
   return (
@@ -22,10 +22,10 @@ export const OrusLogo = ({ className, showWord = true, size = "md" }: Props) => 
         src={brandMark}
         alt={showWord ? "Amada Amante" : ""}
         aria-hidden={!showWord}
-        className={cn("aspect-square object-contain rounded-full", sizes[size])}
+        className={cn("w-auto object-contain", sizes[size])}
       />
       {showWord && (
-        <span className={cn("font-display font-light tracking-[0.2em] text-foreground", text[size])}>
+        <span className={cn("font-display font-light tracking-[0.2em] text-gold", text[size])}>
           Amada Amante
         </span>
       )}
