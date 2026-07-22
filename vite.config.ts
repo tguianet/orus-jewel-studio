@@ -6,7 +6,7 @@ import { VitePWA } from "vite-plugin-pwa";
 // mcpPlugin removido: regenerava supabase/functions/mcp com caminho absoluto Windows.
 // A Edge Function em supabase/functions/mcp é mantida manualmente (imports Deno/npm).
 
-const PWA_CACHE_VERSION = "amada-amante-v20260722a";
+const PWA_CACHE_VERSION = "amada-amante-v20260722b";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
