@@ -249,6 +249,11 @@ const StoreLayout = () => {
               <Search className="h-4 w-4" />
             </Button>
             <Button variant="ghost" size="icon" className="h-9 w-9 hidden sm:inline-flex"><Heart className="h-4 w-4" /></Button>
+            <Link to="/login-sacoleira" aria-label="Entrar">
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <User className="h-4 w-4" />
+              </Button>
+            </Link>
             <Button
               variant="ghost"
               size="icon"
