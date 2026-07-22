@@ -1,5 +1,5 @@
 /** Versao de assets PWA - bust de cache de icones/manifestos. */
-export const PWA_ASSET_VERSION = "20260722c";
+export const PWA_ASSET_VERSION = "20260722d";
 
 export type PwaAppKind = "admin" | "sacoleira" | "loja" | "default";
 
