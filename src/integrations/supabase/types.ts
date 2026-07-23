@@ -259,13 +259,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "order_items_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products_admin_costs"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "order_items_seller_store_id_fkey"
             columns: ["seller_store_id"]
             isOneToOne: false
@@ -605,13 +598,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "store_products_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products_admin_costs"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "store_products_seller_store_id_fkey"
             columns: ["seller_store_id"]
             isOneToOne: false
@@ -694,24 +680,6 @@ export type Database = {
       }
     }
     Views: {
-      products_admin_costs: {
-        Row: {
-          cost_price: number | null
-          id: string | null
-          wholesale_price: number | null
-        }
-        Insert: {
-          cost_price?: number | null
-          id?: string | null
-          wholesale_price?: number | null
-        }
-        Update: {
-          cost_price?: number | null
-          id?: string | null
-          wholesale_price?: number | null
-        }
-        Relationships: []
-      }
       reseller_wallet_summary: {
         Row: {
           available: number | null
@@ -732,6 +700,14 @@ export type Database = {
       }
     }
     Functions: {
+      admin_product_costs: {
+        Args: never
+        Returns: {
+          cost_price: number
+          id: string
+          wholesale_price: number
+        }[]
+      }
       can_access_order: {
         Args: { _order_id: string; _user_id?: string }
         Returns: boolean
