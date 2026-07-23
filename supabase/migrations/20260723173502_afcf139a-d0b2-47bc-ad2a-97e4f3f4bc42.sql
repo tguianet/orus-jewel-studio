@@ -324,7 +324,7 @@ BEGIN
       RAISE EXCEPTION 'Produto "%" não está liberado nesta loja', v_product_name;
     END IF;
 
-    IF v_qty < COALESCE(v_min_order, 1) THEN
+    IF v_min_order IS NOT NULL AND v_qty < v_min_order THEN
       RAISE EXCEPTION 'Quantidade mínima para "%" é %', v_product_name, v_min_order;
     END IF;
 
@@ -332,8 +332,8 @@ BEGIN
       RAISE EXCEPTION 'Preço inválido para "%"', v_product_name;
     END IF;
 
-    IF v_stock < v_qty THEN
-      RAISE EXCEPTION 'Estoque insuficiente para "%" (disponível: %)', v_product_name, v_stock;
+    IF v_stock IS NULL OR v_stock < v_qty THEN
+      RAISE EXCEPTION 'Estoque insuficiente para "%" (disponível: %)', v_product_name, COALESCE(v_stock, 0);
     END IF;
 
     v_line_total := round(v_unit_price * v_qty, 2);

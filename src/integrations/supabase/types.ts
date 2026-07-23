@@ -561,6 +561,70 @@ export type Database = {
           },
         ]
       }
+      stock_movements: {
+        Row: {
+          created_at: string
+          id: string
+          movement_type: string
+          order_id: string | null
+          performed_by: string | null
+          product_id: string
+          quantity: number
+          quantity_after: number
+          quantity_before: number
+          reason: string
+          seller_store_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          movement_type: string
+          order_id?: string | null
+          performed_by?: string | null
+          product_id: string
+          quantity: number
+          quantity_after: number
+          quantity_before: number
+          reason?: string
+          seller_store_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          movement_type?: string
+          order_id?: string | null
+          performed_by?: string | null
+          product_id?: string
+          quantity?: number
+          quantity_after?: number
+          quantity_before?: number
+          reason?: string
+          seller_store_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_seller_store_id_fkey"
+            columns: ["seller_store_id"]
+            isOneToOne: false
+            referencedRelation: "seller_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_popups: {
         Row: {
           active: boolean
