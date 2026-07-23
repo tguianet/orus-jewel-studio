@@ -57,8 +57,11 @@ USING (
 COMMENT ON TABLE public.stock_movements IS
   'Auditoria de estoque. Fonte: products.stock. Pedidos abandonados (new prolongado): cancelar para disparar cancel_restore.';
 
-REVOKE ALL ON TABLE public.stock_movements FROM anon;
-REVOKE INSERT, UPDATE, DELETE ON TABLE public.stock_movements FROM authenticated;
+REVOKE ALL ON TABLE public.stock_movements FROM PUBLIC, anon;
+REVOKE ALL ON TABLE public.stock_movements FROM authenticated;
+GRANT SELECT ON public.stock_movements TO authenticated;
+GRANT ALL ON public.stock_movements TO service_role;
+-- authenticated: sem INSERT/UPDATE/DELETE (só SELECT + RLS admin/dono)
 
 CREATE OR REPLACE FUNCTION public.restore_stock_on_order_cancelled()
 RETURNS trigger
@@ -78,6 +81,7 @@ BEGIN
       SELECT oi.product_id, oi.quantity, oi.seller_store_id
       FROM public.order_items oi
       WHERE oi.order_id = NEW.id
+      ORDER BY oi.product_id
     LOOP
       IF EXISTS (
         SELECT 1 FROM public.stock_movements sm
@@ -194,12 +198,23 @@ BEGIN
 
   PERFORM pg_advisory_xact_lock(hashtext(p_checkout_token::text));
 
+  -- Idempotência: mesmo token → mesmo pedido (sem baixar estoque de novo).
+  -- Exige mesma loja (não reutiliza pedido de outra loja).
   SELECT o.id, o.status, o.subtotal, o.total, o.created_at
     INTO v_order_id, v_status, v_subtotal, v_total, v_created_at
   FROM public.orders o
   WHERE o.checkout_token = p_checkout_token;
 
   IF FOUND THEN
+    IF NOT EXISTS (
+      SELECT 1
+      FROM public.orders o2
+      WHERE o2.id = v_order_id
+        AND o2.seller_store_id = p_seller_store_id
+    ) THEN
+      RAISE EXCEPTION 'checkout_token inválido para esta loja';
+    END IF;
+
     SELECT COALESCE(
       jsonb_agg(
         jsonb_build_object(
@@ -277,8 +292,11 @@ BEGIN
   END IF;
 
   -- Fase A: validar + travar estoque (FOR UPDATE) + calcular totais. SEM baixar ainda.
+  -- ORDER BY product_id → ordem determinística de locks (evita deadlock entre checkouts).
   FOR v_product_id, v_qty IN
-    SELECT t.product_id, t.quantity FROM tmp_public_order_items t
+    SELECT t.product_id, t.quantity
+    FROM tmp_public_order_items t
+    ORDER BY t.product_id
   LOOP
     IF v_qty > c_max_qty_per_item THEN
       RAISE EXCEPTION 'Quantidade excede o mÃ¡ximo permitido';
@@ -361,14 +379,15 @@ BEGIN
     INTO v_order_id, v_status, v_subtotal, v_total, v_created_at;
   EXCEPTION
     WHEN unique_violation THEN
-      -- Outra sessÃ£o ganhou o token; locks serÃ£o liberados no fim sem baixar estoque
+      -- Outra sessão ganhou o token; locks serão liberados no fim sem baixar estoque
       SELECT o.id, o.status, o.subtotal, o.total, o.created_at
         INTO v_order_id, v_status, v_subtotal, v_total, v_created_at
       FROM public.orders o
-      WHERE o.checkout_token = p_checkout_token;
+      WHERE o.checkout_token = p_checkout_token
+        AND o.seller_store_id = p_seller_store_id;
 
       IF NOT FOUND THEN
-        RAISE;
+        RAISE EXCEPTION 'checkout_token em conflito ou inválido para esta loja';
       END IF;
 
       SELECT COALESCE(
@@ -393,10 +412,12 @@ BEGIN
       RETURN;
   END;
 
-  -- Fase C: baixar estoque + movements + itens (pedido jÃ¡ existe)
+  -- Fase C: baixar estoque + movements + itens (pedido já existe)
+  -- Mesma ordem de locks da Fase A.
   FOR v_product_id, v_qty, v_product_name, v_unit_price, v_line_total IN
     SELECT t.product_id, t.quantity, t.product_name, t.unit_price, t.line_total
     FROM tmp_public_order_items t
+    ORDER BY t.product_id
   LOOP
     SELECT stock INTO v_stock
     FROM public.products
