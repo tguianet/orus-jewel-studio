@@ -1,5 +1,5 @@
 import { useOutletContext, useNavigate } from "react-router-dom";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { MessageCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { Sacoleira, formatBRL } from "@/lib/mockData";
@@ -36,19 +36,48 @@ function checkoutTokenKey(storeId: string) {
   return `orus_checkout_token:${storeId}`;
 }
 
-function getOrCreateCheckoutToken(storeId: string): string {
+function checkoutCartKey(storeId: string) {
+  return `orus_checkout_cart:${storeId}`;
+}
+
+function newCheckoutToken(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  // Fallback RFC-like UUID v4 (sem crypto.randomUUID)
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+function cartFingerprint(items: { product: { id: string }; qty: number }[]): string {
+  return items
+    .map((i) => `${i.product.id}:${i.qty}`)
+    .sort()
+    .join("|");
+}
+
+function getOrCreateCheckoutToken(storeId: string, fingerprint: string): string {
   try {
+    const prevCart = sessionStorage.getItem(checkoutCartKey(storeId));
     const existing = sessionStorage.getItem(checkoutTokenKey(storeId));
+    // Carrinho mudou → novo token (evita reutilizar pedido antigo com itens diferentes)
+    if (prevCart !== fingerprint) {
+      const token = newCheckoutToken();
+      sessionStorage.setItem(checkoutTokenKey(storeId), token);
+      sessionStorage.setItem(checkoutCartKey(storeId), fingerprint);
+      return token;
+    }
     if (existing && UUID_RE.test(existing)) return existing;
   } catch {
     // sessionStorage indisponível
   }
-  const token =
-    typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const token = newCheckoutToken();
   try {
     sessionStorage.setItem(checkoutTokenKey(storeId), token);
+    sessionStorage.setItem(checkoutCartKey(storeId), fingerprint);
   } catch {
     // ignore
   }
@@ -58,6 +87,7 @@ function getOrCreateCheckoutToken(storeId: string): string {
 function clearCheckoutToken(storeId: string) {
   try {
     sessionStorage.removeItem(checkoutTokenKey(storeId));
+    sessionStorage.removeItem(checkoutCartKey(storeId));
   } catch {
     // ignore
   }
@@ -86,6 +116,21 @@ const StoreCheckout = () => {
   const [order, setOrder] = useState<OrderResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const fingerprint = useMemo(() => cartFingerprint(items), [items]);
+
+  // Se o carrinho mudar fora do submit, invalida token antigo desta loja.
+  useEffect(() => {
+    if (!store?.id) return;
+    try {
+      const prev = sessionStorage.getItem(checkoutCartKey(store.id));
+      if (prev !== null && prev !== fingerprint) {
+        clearCheckoutToken(store.id);
+      }
+    } catch {
+      // ignore
+    }
+  }, [store?.id, fingerprint]);
+
   const submitOrder = async (e: FormEvent) => {
     e.preventDefault();
     if (submitting) return;
@@ -99,12 +144,12 @@ const StoreCheckout = () => {
       return;
     }
 
-    // Só product_id + quantity (sem preços/status). Token reutilizado na tentativa.
+    // Só product_id + quantity (sem preços/status). Token reutilizado no retry.
     const payloadItems = items.map((i) => ({
       product_id: i.product.id,
       quantity: i.qty,
     }));
-    const checkoutToken = getOrCreateCheckoutToken(store.id);
+    const checkoutToken = getOrCreateCheckoutToken(store.id, fingerprint);
 
     setSubmitting(true);
     setStep("processing");

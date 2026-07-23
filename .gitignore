@@ -12,6 +12,22 @@ dist
 dist-ssr
 *.local
 
+# Environment / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*credentials*
+*service_role*
+
+# Database dumps / backups
+*.dump
+*.sql.gz
+*.backup
+supabase/.branches
+supabase/.temp
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

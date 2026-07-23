@@ -67,13 +67,27 @@ BEGIN
   -- Serializa chamadas concorrentes com o mesmo token (evita pedido parcial)
   PERFORM pg_advisory_xact_lock(hashtext(p_checkout_token::text));
 
+  IF p_seller_store_id IS NULL THEN
+    RAISE EXCEPTION 'Loja inválida';
+  END IF;
+
   -- Idempotência: token já usado → retorna pedido existente + itens do banco
+  -- Exige mesma loja (impede reutilizar token de outra loja).
   SELECT o.id, o.status, o.subtotal, o.total, o.created_at
     INTO v_order_id, v_status, v_subtotal, v_total, v_created_at
   FROM public.orders o
   WHERE o.checkout_token = p_checkout_token;
 
   IF FOUND THEN
+    IF NOT EXISTS (
+      SELECT 1
+      FROM public.orders o2
+      WHERE o2.id = v_order_id
+        AND o2.seller_store_id = p_seller_store_id
+    ) THEN
+      RAISE EXCEPTION 'checkout_token inválido para esta loja';
+    END IF;
+
     SELECT COALESCE(
       jsonb_agg(
         jsonb_build_object(
@@ -94,10 +108,6 @@ BEGIN
     RETURN QUERY
     SELECT v_order_id, v_status, v_subtotal, v_total, v_created_at, v_items;
     RETURN;
-  END IF;
-
-  IF p_seller_store_id IS NULL THEN
-    RAISE EXCEPTION 'Loja inválida';
   END IF;
 
   IF p_customer_name IS NULL OR length(trim(p_customer_name)) < 2 THEN
@@ -260,10 +270,11 @@ BEGIN
       SELECT o.id, o.status, o.subtotal, o.total, o.created_at
         INTO v_order_id, v_status, v_subtotal, v_total, v_created_at
       FROM public.orders o
-      WHERE o.checkout_token = p_checkout_token;
+      WHERE o.checkout_token = p_checkout_token
+        AND o.seller_store_id = p_seller_store_id;
 
       IF NOT FOUND THEN
-        RAISE;
+        RAISE EXCEPTION 'checkout_token em conflito ou inválido para esta loja';
       END IF;
 
       SELECT COALESCE(
