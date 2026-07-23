@@ -109,7 +109,7 @@ BEGIN
       ) VALUES (
         r.product_id, r.seller_store_id, NEW.id, 'cancel_restore',
         r.quantity, v_before, v_after, auth.uid(),
-        'DevoluÃ§Ã£o por cancelamento do pedido'
+        'Devolução por cancelamento do pedido'
       );
     END LOOP;
 
@@ -133,7 +133,7 @@ AFTER UPDATE OF status ON public.orders
 FOR EACH ROW
 EXECUTE FUNCTION public.restore_stock_on_order_cancelled();
 -- ---------------------------------------------------------------------------
--- 6) create_public_order â€” estoque atÃ´mico em products.stock
+-- 6) create_public_order  estoque atômico em products.stock
 -- ---------------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION public.create_public_order(
@@ -181,19 +181,19 @@ DECLARE
   c_max_distinct_items constant integer := 50;
 BEGIN
   IF p_checkout_token IS NULL THEN
-    RAISE EXCEPTION 'checkout_token Ã© obrigatÃ³rio';
+    RAISE EXCEPTION 'checkout_token é obrigatório';
   END IF;
 
   IF p_seller_store_id IS NULL THEN
-    RAISE EXCEPTION 'Loja invÃ¡lida';
+    RAISE EXCEPTION 'Loja inválida';
   END IF;
 
   IF length(trim(COALESCE(p_customer_name, ''))) < 2 THEN
-    RAISE EXCEPTION 'Nome do cliente invÃ¡lido';
+    RAISE EXCEPTION 'Nome do cliente inválido';
   END IF;
 
   IF length(trim(COALESCE(p_customer_phone, ''))) < 8 THEN
-    RAISE EXCEPTION 'Telefone do cliente invÃ¡lido';
+    RAISE EXCEPTION 'Telefone do cliente inválido';
   END IF;
 
   PERFORM pg_advisory_xact_lock(hashtext(p_checkout_token::text));
@@ -239,11 +239,11 @@ BEGIN
 
   SELECT public.is_approved_store(p_seller_store_id) INTO v_store_ok;
   IF NOT COALESCE(v_store_ok, false) THEN
-    RAISE EXCEPTION 'Loja indisponÃ­vel';
+    RAISE EXCEPTION 'Loja indisponível';
   END IF;
 
   IF p_items IS NULL OR jsonb_typeof(p_items) IS DISTINCT FROM 'array' THEN
-    RAISE EXCEPTION 'Itens invÃ¡lidos';
+    RAISE EXCEPTION 'Itens inválidos';
   END IF;
 
   CREATE TEMP TABLE tmp_public_order_items (
@@ -258,19 +258,19 @@ BEGIN
   LOOP
     IF v_item ? 'unit_price' OR v_item ? 'price' OR v_item ? 'total'
        OR v_item ? 'subtotal' OR v_item ? 'cost_price' OR v_item ? 'wholesale_price' THEN
-      RAISE EXCEPTION 'Itens nÃ£o podem enviar preÃ§os';
+      RAISE EXCEPTION 'Itens não podem enviar preços';
     END IF;
 
     BEGIN
       v_product_id := (v_item ->> 'product_id')::uuid;
     EXCEPTION WHEN others THEN
-      RAISE EXCEPTION 'product_id invÃ¡lido';
+      RAISE EXCEPTION 'product_id inválido';
     END;
 
     BEGIN
       v_qty := (v_item ->> 'quantity')::integer;
     EXCEPTION WHEN others THEN
-      RAISE EXCEPTION 'quantity invÃ¡lida';
+      RAISE EXCEPTION 'quantity inválida';
     END;
 
     IF v_qty IS NULL OR v_qty <= 0 THEN
@@ -299,7 +299,7 @@ BEGIN
     ORDER BY t.product_id
   LOOP
     IF v_qty > c_max_qty_per_item THEN
-      RAISE EXCEPTION 'Quantidade excede o mÃ¡ximo permitido';
+      RAISE EXCEPTION 'Quantidade excede o máximo permitido';
     END IF;
 
     SELECT p.name, p.status, p.stock, p.min_order, sp.active,
@@ -313,27 +313,27 @@ BEGIN
     FOR UPDATE OF p;
 
     IF NOT FOUND THEN
-      RAISE EXCEPTION 'Produto indisponÃ­vel nesta loja';
+      RAISE EXCEPTION 'Produto indisponível nesta loja';
     END IF;
 
     IF v_product_status IS DISTINCT FROM 'active'::public.product_status THEN
-      RAISE EXCEPTION 'Produto "%" estÃ¡ inativo', v_product_name;
+      RAISE EXCEPTION 'Produto "%" está inativo', v_product_name;
     END IF;
 
     IF COALESCE(v_link_active, false) IS NOT TRUE THEN
-      RAISE EXCEPTION 'Produto "%" nÃ£o estÃ¡ liberado nesta loja', v_product_name;
+      RAISE EXCEPTION 'Produto "%" não está liberado nesta loja', v_product_name;
     END IF;
 
     IF v_qty < COALESCE(v_min_order, 1) THEN
-      RAISE EXCEPTION 'Quantidade mÃ­nima para "%" Ã© %', v_product_name, v_min_order;
+      RAISE EXCEPTION 'Quantidade mínima para "%" é %', v_product_name, v_min_order;
     END IF;
 
     IF v_unit_price IS NULL OR v_unit_price < 0 THEN
-      RAISE EXCEPTION 'PreÃ§o invÃ¡lido para "%"', v_product_name;
+      RAISE EXCEPTION 'Preço inválido para "%"', v_product_name;
     END IF;
 
     IF v_stock < v_qty THEN
-      RAISE EXCEPTION 'Estoque insuficiente para "%" (disponÃ­vel: %)', v_product_name, v_stock;
+      RAISE EXCEPTION 'Estoque insuficiente para "%" (disponível: %)', v_product_name, v_stock;
     END IF;
 
     v_line_total := round(v_unit_price * v_qty, 2);
@@ -348,7 +348,7 @@ BEGIN
 
   v_total := v_subtotal;
 
-  -- Fase B: criar pedido (locks de estoque ainda ativos nesta transaÃ§Ã£o)
+  -- Fase B: criar pedido (locks de estoque ainda ativos nesta transação)
   BEGIN
     INSERT INTO public.orders (
       seller_store_id,
@@ -440,7 +440,7 @@ BEGIN
     ) VALUES (
       v_product_id, p_seller_store_id, v_order_id, 'checkout_reserve',
       -v_qty, v_stock, v_stock_after, auth.uid(),
-      'Baixa atÃ´mica no checkout pÃºblico'
+      'Baixa atômica no checkout público'
     );
 
     INSERT INTO public.order_items (
@@ -489,7 +489,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION public.create_public_order(uuid, text, text, text, text, jsonb, uuid) IS
-  'Checkout pÃºblico atÃ´mico: preÃ§o no banco, estoque products.stock com FOR UPDATE, idempotÃªncia por checkout_token. Pedidos abandonados (new prolongado): cancelar para restaurar estoque.';
+  'Checkout público atômico: preço no banco, estoque products.stock com FOR UPDATE, idempotência por checkout_token. Pedidos abandonados (new prolongado): cancelar para restaurar estoque.';
 
 REVOKE ALL ON FUNCTION public.create_public_order(uuid, text, text, text, text, jsonb, uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.create_public_order(uuid, text, text, text, text, jsonb, uuid) TO anon, authenticated, service_role;
