@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json
+          new_data: Json | null
+          old_data: Json | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json
+          new_data?: Json | null
+          old_data?: Json | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json
+          new_data?: Json | null
+          old_data?: Json | null
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           active: boolean
@@ -779,6 +815,17 @@ export type Database = {
       set_my_reseller_parent: {
         Args: { _parent_id: string }
         Returns: undefined
+      }
+      write_audit_log: {
+        Args: {
+          p_action: string
+          p_after?: Json
+          p_before?: Json
+          p_entity: string
+          p_entity_id?: string
+          p_metadata?: Json
+        }
+        Returns: string
       }
     }
     Enums: {
