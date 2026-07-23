@@ -712,43 +712,25 @@ export type Database = {
         Args: { _order_id: string }
         Returns: undefined
       }
-      create_public_order:
-        | {
-            Args: {
-              p_customer_address?: string
-              p_customer_name: string
-              p_customer_phone: string
-              p_items?: Json
-              p_notes?: string
-              p_seller_store_id: string
-            }
-            Returns: {
-              created_at: string
-              order_id: string
-              status: Database["public"]["Enums"]["order_status"]
-              subtotal: number
-              total: number
-            }[]
-          }
-        | {
-            Args: {
-              p_checkout_token?: string
-              p_customer_address?: string
-              p_customer_name: string
-              p_customer_phone: string
-              p_items?: Json
-              p_notes?: string
-              p_seller_store_id: string
-            }
-            Returns: {
-              created_at: string
-              items: Json
-              order_id: string
-              status: Database["public"]["Enums"]["order_status"]
-              subtotal: number
-              total: number
-            }[]
-          }
+      create_public_order: {
+        Args: {
+          p_checkout_token?: string
+          p_customer_address?: string
+          p_customer_name: string
+          p_customer_phone: string
+          p_items?: Json
+          p_notes?: string
+          p_seller_store_id: string
+        }
+        Returns: {
+          created_at: string
+          items: Json
+          order_id: string
+          status: Database["public"]["Enums"]["order_status"]
+          subtotal: number
+          total: number
+        }[]
+      }
       current_reseller_id: { Args: { _user_id?: string }; Returns: string }
       current_store_id: { Args: { _user_id?: string }; Returns: string }
       get_store_reseller_id: { Args: { _store_id: string }; Returns: string }
