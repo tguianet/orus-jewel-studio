@@ -57,7 +57,7 @@ export const loadStoreProducts = async (sellerStoreId: string): Promise<CloudSto
   const { data, error } = await supabase
     .from("store_products")
     .select(
-      "id, resale_price, seller_store_id, active, products(id, code, name, description, suggested_price, stock, min_order, image_url, status, category_name, categories(name))",
+      "id, resale_price, seller_store_id, active, images, products(id, code, name, description, suggested_price, stock, min_order, image_url, images, status, category_name, categories(name))",
     )
     .eq("seller_store_id", sellerStoreId)
     .eq("active", true);
@@ -69,6 +69,11 @@ export const loadStoreProducts = async (sellerStoreId: string): Promise<CloudSto
       const product = item.products;
       if (!product || product.status !== "active") return null;
       const category = product.categories?.name || product.category_name || "Joias";
+      const productImages: string[] = Array.isArray(product.images) ? product.images : [];
+      const storeImages: string[] = Array.isArray(item.images) ? item.images : [];
+      const gallery = [...productImages, ...storeImages].filter(Boolean);
+      const primary = gallery[0] || product.image_url || imageByCategory(category);
+      const finalGallery = gallery.length ? gallery : (product.image_url ? [product.image_url] : [primary]);
       return {
         id: product.id,
         code: product.code,
@@ -80,7 +85,8 @@ export const loadStoreProducts = async (sellerStoreId: string): Promise<CloudSto
         suggestedPrice: Number(product.suggested_price || 0),
         stock: Number(product.stock || 0),
         minOrder: Number(product.min_order || 1),
-        image: product.image_url || imageByCategory(category),
+        image: primary,
+        images: finalGallery,
         active: product.status === "active",
         resellerPrice: Number(item.resale_price || product.suggested_price || 0),
         sellerStoreId: item.seller_store_id,
@@ -88,6 +94,7 @@ export const loadStoreProducts = async (sellerStoreId: string): Promise<CloudSto
     })
     .filter(Boolean) as CloudStoreProduct[];
 };
+
 
 // ---------- Admin / catalog ----------
 
