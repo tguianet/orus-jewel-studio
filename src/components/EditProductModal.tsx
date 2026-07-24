@@ -1,11 +1,13 @@
 import { FormEvent, useEffect, useState } from "react";
-import { ImagePlus, Upload, X } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { categories, Product } from "@/lib/mockData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ProductImageGallery } from "@/components/ProductImageGallery";
+
 
 interface EditProductModalProps {
   product: Product | null;
