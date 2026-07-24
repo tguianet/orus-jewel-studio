@@ -1,11 +1,13 @@
 import { FormEvent, useEffect, useState } from "react";
-import { ImagePlus, Upload, X } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { categories, Product } from "@/lib/mockData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ProductImageGallery } from "@/components/ProductImageGallery";
+
 
 interface EditProductModalProps {
   product: Product | null;
@@ -21,16 +23,13 @@ const getErrorMessage = (error: unknown) => {
 };
 
 export const EditProductModal = ({ product, open, onOpenChange, onUpdated }: EditProductModalProps) => {
-  const [imagePreview, setImagePreview] = useState<string>("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imageError, setImageError] = useState("");
+  const [images, setImages] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (open && product) {
-      setImagePreview(product.image);
-      setImageFile(null);
-      setImageError("");
+      const gallery = product.images && product.images.length ? product.images : (product.image ? [product.image] : []);
+      setImages(gallery);
     }
   }, [open, product]);
 
@@ -43,22 +42,6 @@ export const EditProductModal = ({ product, open, onOpenChange, onUpdated }: Edi
     return () => document.removeEventListener("keydown", handleEscape);
   }, [open, onOpenChange]);
 
-  const handleImageUpload = (file?: File) => {
-    setImageError("");
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setImageError("Envie um arquivo de imagem válido.");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setImageError("A imagem deve ter no máximo 5MB.");
-      return;
-    }
-    setImageFile(file);
-    const reader = new FileReader();
-    reader.onload = () => setImagePreview(String(reader.result));
-    reader.readAsDataURL(file);
-  };
 
   const handleSave = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -72,24 +55,7 @@ export const EditProductModal = ({ product, open, onOpenChange, onUpdated }: Edi
     const stock = Number(form.get("stock") || product.stock);
     const minOrder = Number(form.get("minOrder") || product.minOrder);
     const status = String(form.get("status") || (product.active ? "active" : "inactive"));
-    let productImageUrl = product.image;
-
-    if (imageFile) {
-      try {
-        const extension = imageFile.name.split(".").pop()?.toLowerCase() || "jpg";
-        const filePath = `${product.code.toLowerCase()}-${crypto.randomUUID()}.${extension}`;
-        const { error: uploadError } = await supabase.storage
-          .from("product-images")
-          .upload(filePath, imageFile, { cacheControl: "3600", upsert: false });
-        if (uploadError) throw uploadError;
-        const { data } = supabase.storage.from("product-images").getPublicUrl(filePath);
-        productImageUrl = data.publicUrl;
-      } catch (error) {
-        toast.error("Não foi possível enviar a imagem.", { description: getErrorMessage(error) });
-        setSaving(false);
-        return;
-      }
-    }
+    const primary = images[0] || product.image;
 
     try {
       const { error } = await supabase
@@ -102,10 +68,12 @@ export const EditProductModal = ({ product, open, onOpenChange, onUpdated }: Edi
           cost_price: Math.round(wholesalePrice * 0.58),
           stock,
           min_order: minOrder,
-          image_url: productImageUrl,
+          image_url: primary,
+          images,
           status: status as "active" | "inactive",
         } as never)
         .eq("id", product.id);
+
 
       if (error) throw error;
 
@@ -148,19 +116,10 @@ export const EditProductModal = ({ product, open, onOpenChange, onUpdated }: Edi
         <p className="text-xs text-muted-foreground mb-4">Código: {product.code}</p>
         <form onSubmit={handleSave} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="edit-product-image">Imagem</Label>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <img src={imagePreview} alt={product.name} className="h-24 w-24 rounded-lg border border-border object-cover" />
-              <div className="flex-1">
-                <Input id="edit-product-image" type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => handleImageUpload(e.target.files?.[0])} />
-                <Button type="button" variant="outline" onClick={() => document.getElementById("edit-product-image")?.click()} disabled={saving}>
-                  <Upload className="h-4 w-4" /> Trocar imagem
-                </Button>
-                <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground"><ImagePlus className="h-3.5 w-3.5" /> PNG, JPG ou WEBP até 5MB</p>
-                {imageError && <p className="mt-1 text-xs text-destructive">{imageError}</p>}
-              </div>
-            </div>
+            <Label>Fotos</Label>
+            <ProductImageGallery images={images} onChange={setImages} pathPrefix={product.code.toLowerCase()} disabled={saving} />
           </div>
+
           <div className="space-y-1.5">
             <Label htmlFor="edit-name">Nome</Label>
             <Input id="edit-name" name="name" defaultValue={product.name} required />

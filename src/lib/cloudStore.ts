@@ -57,7 +57,7 @@ export const loadStoreProducts = async (sellerStoreId: string): Promise<CloudSto
   const { data, error } = await supabase
     .from("store_products")
     .select(
-      "id, resale_price, seller_store_id, active, products(id, code, name, description, suggested_price, stock, min_order, image_url, status, category_name, categories(name))",
+      "id, resale_price, seller_store_id, active, images, products(id, code, name, description, suggested_price, stock, min_order, image_url, images, status, category_name, categories(name))",
     )
     .eq("seller_store_id", sellerStoreId)
     .eq("active", true);
@@ -69,6 +69,11 @@ export const loadStoreProducts = async (sellerStoreId: string): Promise<CloudSto
       const product = item.products;
       if (!product || product.status !== "active") return null;
       const category = product.categories?.name || product.category_name || "Joias";
+      const productImages: string[] = Array.isArray(product.images) ? product.images : [];
+      const storeImages: string[] = Array.isArray(item.images) ? item.images : [];
+      const gallery = [...productImages, ...storeImages].filter(Boolean);
+      const primary = gallery[0] || product.image_url || imageByCategory(category);
+      const finalGallery = gallery.length ? gallery : (product.image_url ? [product.image_url] : [primary]);
       return {
         id: product.id,
         code: product.code,
@@ -80,7 +85,8 @@ export const loadStoreProducts = async (sellerStoreId: string): Promise<CloudSto
         suggestedPrice: Number(product.suggested_price || 0),
         stock: Number(product.stock || 0),
         minOrder: Number(product.min_order || 1),
-        image: product.image_url || imageByCategory(category),
+        image: primary,
+        images: finalGallery,
         active: product.status === "active",
         resellerPrice: Number(item.resale_price || product.suggested_price || 0),
         sellerStoreId: item.seller_store_id,
@@ -89,6 +95,7 @@ export const loadStoreProducts = async (sellerStoreId: string): Promise<CloudSto
     .filter(Boolean) as CloudStoreProduct[];
 };
 
+
 // ---------- Admin / catalog ----------
 
 export type CatalogProduct = Product & { selected: boolean; storeProductId?: string; resellerPrice: number };
@@ -96,43 +103,11 @@ export type CatalogProduct = Product & { selected: boolean; storeProductId?: str
 export const loadAdminProducts = async (): Promise<Product[]> => {
   const { data } = await supabase
     .from("products")
-    .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,category_name,status")
+    .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,images,category_name,status")
     .order("created_at", { ascending: false });
-  return (data ?? []).map((p: any) => ({
-    id: p.id,
-    code: p.code,
-    name: p.name,
-    category: p.category_name || "Joias",
-    description: p.description,
-    costPrice: Number(p.cost_price || 0),
-    wholesalePrice: Number(p.wholesale_price || 0),
-    suggestedPrice: Number(p.suggested_price || 0),
-    stock: Number(p.stock || 0),
-    minOrder: Number(p.min_order || 1),
-    image: p.image_url || imageByCategory(p.category_name),
-    active: p.status === "active",
-  }));
-};
-
-export const loadCatalogForStore = async (storeId: string): Promise<CatalogProduct[]> => {
-  const [{ data: products }, { data: links }] = await Promise.all([
-    supabase
-      .from("products")
-      .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,category_name,status")
-      .eq("status", "active")
-      .is("seller_store_id", null)
-      .or("category_name.is.null,category_name.neq.Cadastro em massa")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("store_products")
-      .select("id,product_id,resale_price,active")
-      .eq("seller_store_id", storeId),
-  ]);
-  const linkByProduct = new Map<string, { id: string; price: number; active: boolean }>(
-    (links ?? []).map((l: any) => [l.product_id, { id: l.id, price: Number(l.resale_price || 0), active: l.active }])
-  );
-  return (products ?? []).map((p: any) => {
-    const link = linkByProduct.get(p.id);
+  return (data ?? []).map((p: any) => {
+    const gallery: string[] = Array.isArray(p.images) ? p.images : [];
+    const finalGallery = gallery.length ? gallery : (p.image_url ? [p.image_url] : []);
     return {
       id: p.id,
       code: p.code,
@@ -144,7 +119,48 @@ export const loadCatalogForStore = async (storeId: string): Promise<CatalogProdu
       suggestedPrice: Number(p.suggested_price || 0),
       stock: Number(p.stock || 0),
       minOrder: Number(p.min_order || 1),
-      image: p.image_url || imageByCategory(p.category_name),
+      image: finalGallery[0] || imageByCategory(p.category_name),
+      images: finalGallery,
+      active: p.status === "active",
+    };
+  });
+};
+
+export const loadCatalogForStore = async (storeId: string): Promise<CatalogProduct[]> => {
+  const [{ data: products }, { data: links }] = await Promise.all([
+    supabase
+      .from("products")
+      .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,images,category_name,status")
+      .eq("status", "active")
+      .is("seller_store_id", null)
+      .or("category_name.is.null,category_name.neq.Cadastro em massa")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("store_products")
+      .select("id,product_id,resale_price,active,images")
+      .eq("seller_store_id", storeId),
+  ]);
+  const linkByProduct = new Map<string, { id: string; price: number; active: boolean; images: string[] }>(
+    (links ?? []).map((l: any) => [l.product_id, { id: l.id, price: Number(l.resale_price || 0), active: l.active, images: Array.isArray(l.images) ? l.images : [] }])
+  );
+  return (products ?? []).map((p: any) => {
+    const link = linkByProduct.get(p.id);
+    const productImages: string[] = Array.isArray(p.images) ? p.images : [];
+    const gallery = [...productImages, ...(link?.images ?? [])].filter(Boolean);
+    const finalGallery = gallery.length ? gallery : (p.image_url ? [p.image_url] : []);
+    return {
+      id: p.id,
+      code: p.code,
+      name: p.name,
+      category: p.category_name || "Joias",
+      description: p.description,
+      costPrice: Number(p.cost_price || 0),
+      wholesalePrice: Number(p.wholesale_price || 0),
+      suggestedPrice: Number(p.suggested_price || 0),
+      stock: Number(p.stock || 0),
+      minOrder: Number(p.min_order || 1),
+      image: finalGallery[0] || imageByCategory(p.category_name),
+      images: finalGallery,
       active: p.status === "active",
       selected: !!link?.active,
       storeProductId: link?.id,
@@ -152,6 +168,7 @@ export const loadCatalogForStore = async (storeId: string): Promise<CatalogProdu
     };
   });
 };
+
 
 export const toggleStoreProduct = async (
   storeId: string,

@@ -1,11 +1,13 @@
 import { FormEvent, useEffect, useState } from "react";
-import { ImagePlus, Plus, Upload, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { categories, fallbackProduct, Product } from "@/lib/mockData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ProductImageGallery } from "@/components/ProductImageGallery";
+
 
 interface NewProductModalProps {
   onCreate?: (product: Product) => void | Promise<void>;
@@ -19,9 +21,7 @@ const getErrorMessage = (error: unknown) => {
 
 export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
   const [open, setOpen] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string>(fallbackProduct.image);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imageError, setImageError] = useState("");
+  const [images, setImages] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -32,26 +32,6 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
   }, [open]);
-
-  const handleImageUpload = (file?: File) => {
-    setImageError("");
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setImageError("Envie um arquivo de imagem válido.");
-      setImageFile(null);
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setImageError("A imagem deve ter no máximo 5MB.");
-      setImageFile(null);
-      return;
-    }
-
-    setImageFile(file);
-    const reader = new FileReader();
-    reader.onload = () => setImagePreview(String(reader.result));
-    reader.readAsDataURL(file);
-  };
 
   const handleCreate = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -64,29 +44,7 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
     const suggestedPrice = Number(form.get("suggestedPrice") || wholesalePrice * 2);
     const stock = Number(form.get("stock") || 0);
     const code = `AUR-${category.charAt(0).toUpperCase()}${Date.now().toString().slice(-3)}`;
-    let productImageUrl = imagePreview;
-
-    if (imageFile) {
-      try {
-        const extension = imageFile.name.split(".").pop()?.toLowerCase() || "jpg";
-        const filePath = `${code.toLowerCase()}-${crypto.randomUUID()}.${extension}`;
-        const { error: uploadError } = await supabase.storage
-          .from("product-images")
-          .upload(filePath, imageFile, { cacheControl: "3600", upsert: false });
-
-        if (uploadError) throw uploadError;
-
-        const { data } = supabase.storage.from("product-images").getPublicUrl(filePath);
-        productImageUrl = data.publicUrl;
-      } catch (error) {
-        setImageError("Falha no upload da imagem. Tente outro arquivo ou salve sem imagem.");
-        toast.error("Não foi possível enviar a imagem.", {
-          description: getErrorMessage(error),
-        });
-        setSaving(false);
-        return;
-      }
-    }
+    const primary = images[0] || fallbackProduct.image;
 
     try {
       const { data: savedProduct, error: productError } = await supabase
@@ -103,14 +61,16 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
           suggested_price: suggestedPrice,
           stock,
           min_order: 2,
-          image_url: productImageUrl,
+          image_url: primary,
+          images,
           status: "active",
         } as never)
-        .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,category_name")
+        .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,images,category_name")
         .single();
 
       if (productError) throw productError;
 
+      const savedImages: string[] = (savedProduct as any).images || images;
       const createdProduct: Product = {
         id: savedProduct.id,
         code: savedProduct.code,
@@ -122,20 +82,19 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
         suggestedPrice: Number(savedProduct.suggested_price ?? 0),
         stock: savedProduct.stock ?? 0,
         minOrder: savedProduct.min_order ?? 1,
-        image: savedProduct.image_url || productImageUrl,
+        image: savedProduct.image_url || primary,
+        images: savedImages,
         active: true,
       };
 
       try {
         await onCreate?.(createdProduct);
-      } catch (refreshError) {
+      } catch {
         toast.warning("Produto salvo, mas a lista não atualizou automaticamente. Recarregue a página.");
       }
 
       formEl?.reset?.();
-      setImagePreview(fallbackProduct.image);
-      setImageFile(null);
-      setImageError("");
+      setImages([]);
       setOpen(false);
       toast.success("Produto salvo com sucesso.");
     } catch (error) {
@@ -146,6 +105,7 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
       setSaving(false);
     }
   };
+
 
   return (
     <>
@@ -162,26 +122,10 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
             <h2 id="new-product-title" className="font-display text-2xl mb-4">Novo produto</h2>
             <form onSubmit={handleCreate} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="product-image">Imagem do produto</Label>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <img src={imagePreview} alt="Prévia da imagem do produto" className="h-24 w-24 rounded-lg border border-border object-cover" />
-                  <div className="flex-1">
-                    <Input
-                      id="product-image"
-                      name="image"
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      className="hidden"
-                      onChange={(event) => handleImageUpload(event.target.files?.[0])}
-                    />
-                    <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => document.getElementById("product-image")?.click()} disabled={saving}>
-                      <Upload className="h-4 w-4" /> Fazer upload
-                    </Button>
-                    <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground"><ImagePlus className="h-3.5 w-3.5" /> PNG, JPG ou WEBP até 5MB</p>
-                    {imageError && <p className="mt-1 text-xs text-destructive">{imageError}</p>}
-                  </div>
-                </div>
+                <Label>Fotos do produto</Label>
+                <ProductImageGallery images={images} onChange={setImages} pathPrefix="produto" disabled={saving} />
               </div>
+
               <div className="space-y-1.5">
                 <Label htmlFor="name">Nome da joia</Label>
                 <Input id="name" name="name" placeholder="Ex: Brinco Pérola Dourada" required />

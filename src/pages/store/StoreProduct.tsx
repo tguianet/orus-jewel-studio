@@ -1,6 +1,6 @@
 import { useParams, useOutletContext, Link, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { Minus, Plus, ShoppingBag, ArrowLeft } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Minus, Plus, ShoppingBag, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { getProductById, getStoreProducts, formatBRL, Sacoleira } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
@@ -18,6 +18,7 @@ const StoreProduct = () => {
   const { add } = useCart();
   const navigate = useNavigate();
   const [qty, setQty] = useState(1);
+  const [slide, setSlide] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -27,12 +28,23 @@ const StoreProduct = () => {
     return () => { mounted = false; };
   }, [store.id]);
 
+  const gallery = useMemo(() => {
+    const imgs = (product as any)?.images as string[] | undefined;
+    if (imgs && imgs.length) return imgs;
+    return product?.image ? [product.image] : [];
+  }, [product]);
+
+  useEffect(() => { setSlide(0); }, [product?.id]);
+
   if (!product) return <div className="container py-16 text-center text-muted-foreground">Produto não encontrado.</div>;
 
   const handleAdd = () => {
     for (let i = 0; i < qty; i++) add(product, resellerPrice);
     toast.success(`${product.name} adicionado ao carrinho`);
   };
+
+  const prev = () => setSlide((s) => (s - 1 + gallery.length) % gallery.length);
+  const next = () => setSlide((s) => (s + 1) % gallery.length);
 
   return (
     <div className="container py-8">
@@ -41,9 +53,40 @@ const StoreProduct = () => {
       </Link>
 
       <div className="grid lg:grid-cols-2 gap-10">
-        <div className="aspect-square rounded-2xl overflow-hidden border border-border bg-card">
-          <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+        <div className="space-y-3">
+          <div className="relative aspect-square rounded-2xl overflow-hidden border border-border bg-card">
+            <div className="flex h-full w-full transition-transform duration-500 ease-out" style={{ transform: `translateX(-${slide * 100}%)` }}>
+              {gallery.map((src, i) => (
+                <img key={i} src={src} alt={`${product.name} ${i + 1}`} className="h-full w-full flex-shrink-0 object-cover" />
+              ))}
+            </div>
+            {gallery.length > 1 && (
+              <>
+                <button type="button" onClick={prev} aria-label="Anterior" className="absolute left-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-background/80 backdrop-blur border border-border flex items-center justify-center hover:bg-background">
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button type="button" onClick={next} aria-label="Próximo" className="absolute right-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-background/80 backdrop-blur border border-border flex items-center justify-center hover:bg-background">
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                  {gallery.map((_, i) => (
+                    <button key={i} type="button" onClick={() => setSlide(i)} aria-label={`Foto ${i + 1}`} className={`h-1.5 rounded-full transition-all ${i === slide ? "w-6 bg-primary" : "w-1.5 bg-background/70"}`} />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+          {gallery.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto">
+              {gallery.map((src, i) => (
+                <button key={i} type="button" onClick={() => setSlide(i)} className={`h-16 w-16 flex-shrink-0 rounded-md overflow-hidden border-2 transition-colors ${i === slide ? "border-primary" : "border-border"}`}>
+                  <img src={src} alt="" className="h-full w-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
+
 
         <div className="flex flex-col">
           <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">{product.category}</p>
