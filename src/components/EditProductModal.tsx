@@ -116,19 +116,10 @@ export const EditProductModal = ({ product, open, onOpenChange, onUpdated }: Edi
         <p className="text-xs text-muted-foreground mb-4">Código: {product.code}</p>
         <form onSubmit={handleSave} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="edit-product-image">Imagem</Label>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <img src={imagePreview} alt={product.name} className="h-24 w-24 rounded-lg border border-border object-cover" />
-              <div className="flex-1">
-                <Input id="edit-product-image" type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => handleImageUpload(e.target.files?.[0])} />
-                <Button type="button" variant="outline" onClick={() => document.getElementById("edit-product-image")?.click()} disabled={saving}>
-                  <Upload className="h-4 w-4" /> Trocar imagem
-                </Button>
-                <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground"><ImagePlus className="h-3.5 w-3.5" /> PNG, JPG ou WEBP até 5MB</p>
-                {imageError && <p className="mt-1 text-xs text-destructive">{imageError}</p>}
-              </div>
-            </div>
+            <Label>Fotos</Label>
+            <ProductImageGallery images={images} onChange={setImages} pathPrefix={product.code.toLowerCase()} disabled={saving} />
           </div>
+
           <div className="space-y-1.5">
             <Label htmlFor="edit-name">Nome</Label>
             <Input id="edit-name" name="name" defaultValue={product.name} required />
