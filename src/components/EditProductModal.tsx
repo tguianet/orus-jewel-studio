@@ -23,16 +23,13 @@ const getErrorMessage = (error: unknown) => {
 };
 
 export const EditProductModal = ({ product, open, onOpenChange, onUpdated }: EditProductModalProps) => {
-  const [imagePreview, setImagePreview] = useState<string>("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imageError, setImageError] = useState("");
+  const [images, setImages] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (open && product) {
-      setImagePreview(product.image);
-      setImageFile(null);
-      setImageError("");
+      const gallery = product.images && product.images.length ? product.images : (product.image ? [product.image] : []);
+      setImages(gallery);
     }
   }, [open, product]);
 
@@ -45,22 +42,6 @@ export const EditProductModal = ({ product, open, onOpenChange, onUpdated }: Edi
     return () => document.removeEventListener("keydown", handleEscape);
   }, [open, onOpenChange]);
 
-  const handleImageUpload = (file?: File) => {
-    setImageError("");
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setImageError("Envie um arquivo de imagem válido.");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setImageError("A imagem deve ter no máximo 5MB.");
-      return;
-    }
-    setImageFile(file);
-    const reader = new FileReader();
-    reader.onload = () => setImagePreview(String(reader.result));
-    reader.readAsDataURL(file);
-  };
 
   const handleSave = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
