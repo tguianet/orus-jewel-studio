@@ -32,6 +32,7 @@ export type Product = {
   stock: number;
   minOrder: number;
   image: string;
+  images?: string[];
   active: boolean;
 };
 export type Sacoleira = {
