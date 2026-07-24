@@ -122,26 +122,10 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
             <h2 id="new-product-title" className="font-display text-2xl mb-4">Novo produto</h2>
             <form onSubmit={handleCreate} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="product-image">Imagem do produto</Label>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <img src={imagePreview} alt="Prévia da imagem do produto" className="h-24 w-24 rounded-lg border border-border object-cover" />
-                  <div className="flex-1">
-                    <Input
-                      id="product-image"
-                      name="image"
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      className="hidden"
-                      onChange={(event) => handleImageUpload(event.target.files?.[0])}
-                    />
-                    <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => document.getElementById("product-image")?.click()} disabled={saving}>
-                      <Upload className="h-4 w-4" /> Fazer upload
-                    </Button>
-                    <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground"><ImagePlus className="h-3.5 w-3.5" /> PNG, JPG ou WEBP até 5MB</p>
-                    {imageError && <p className="mt-1 text-xs text-destructive">{imageError}</p>}
-                  </div>
-                </div>
+                <Label>Fotos do produto</Label>
+                <ProductImageGallery images={images} onChange={setImages} pathPrefix="produto" disabled={saving} />
               </div>
+
               <div className="space-y-1.5">
                 <Label htmlFor="name">Nome da joia</Label>
                 <Input id="name" name="name" placeholder="Ex: Brinco Pérola Dourada" required />
