@@ -103,43 +103,11 @@ export type CatalogProduct = Product & { selected: boolean; storeProductId?: str
 export const loadAdminProducts = async (): Promise<Product[]> => {
   const { data } = await supabase
     .from("products")
-    .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,category_name,status")
+    .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,images,category_name,status")
     .order("created_at", { ascending: false });
-  return (data ?? []).map((p: any) => ({
-    id: p.id,
-    code: p.code,
-    name: p.name,
-    category: p.category_name || "Joias",
-    description: p.description,
-    costPrice: Number(p.cost_price || 0),
-    wholesalePrice: Number(p.wholesale_price || 0),
-    suggestedPrice: Number(p.suggested_price || 0),
-    stock: Number(p.stock || 0),
-    minOrder: Number(p.min_order || 1),
-    image: p.image_url || imageByCategory(p.category_name),
-    active: p.status === "active",
-  }));
-};
-
-export const loadCatalogForStore = async (storeId: string): Promise<CatalogProduct[]> => {
-  const [{ data: products }, { data: links }] = await Promise.all([
-    supabase
-      .from("products")
-      .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,category_name,status")
-      .eq("status", "active")
-      .is("seller_store_id", null)
-      .or("category_name.is.null,category_name.neq.Cadastro em massa")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("store_products")
-      .select("id,product_id,resale_price,active")
-      .eq("seller_store_id", storeId),
-  ]);
-  const linkByProduct = new Map<string, { id: string; price: number; active: boolean }>(
-    (links ?? []).map((l: any) => [l.product_id, { id: l.id, price: Number(l.resale_price || 0), active: l.active }])
-  );
-  return (products ?? []).map((p: any) => {
-    const link = linkByProduct.get(p.id);
+  return (data ?? []).map((p: any) => {
+    const gallery: string[] = Array.isArray(p.images) ? p.images : [];
+    const finalGallery = gallery.length ? gallery : (p.image_url ? [p.image_url] : []);
     return {
       id: p.id,
       code: p.code,
@@ -151,7 +119,48 @@ export const loadCatalogForStore = async (storeId: string): Promise<CatalogProdu
       suggestedPrice: Number(p.suggested_price || 0),
       stock: Number(p.stock || 0),
       minOrder: Number(p.min_order || 1),
-      image: p.image_url || imageByCategory(p.category_name),
+      image: finalGallery[0] || imageByCategory(p.category_name),
+      images: finalGallery,
+      active: p.status === "active",
+    };
+  });
+};
+
+export const loadCatalogForStore = async (storeId: string): Promise<CatalogProduct[]> => {
+  const [{ data: products }, { data: links }] = await Promise.all([
+    supabase
+      .from("products")
+      .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,images,category_name,status")
+      .eq("status", "active")
+      .is("seller_store_id", null)
+      .or("category_name.is.null,category_name.neq.Cadastro em massa")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("store_products")
+      .select("id,product_id,resale_price,active,images")
+      .eq("seller_store_id", storeId),
+  ]);
+  const linkByProduct = new Map<string, { id: string; price: number; active: boolean; images: string[] }>(
+    (links ?? []).map((l: any) => [l.product_id, { id: l.id, price: Number(l.resale_price || 0), active: l.active, images: Array.isArray(l.images) ? l.images : [] }])
+  );
+  return (products ?? []).map((p: any) => {
+    const link = linkByProduct.get(p.id);
+    const productImages: string[] = Array.isArray(p.images) ? p.images : [];
+    const gallery = [...productImages, ...(link?.images ?? [])].filter(Boolean);
+    const finalGallery = gallery.length ? gallery : (p.image_url ? [p.image_url] : []);
+    return {
+      id: p.id,
+      code: p.code,
+      name: p.name,
+      category: p.category_name || "Joias",
+      description: p.description,
+      costPrice: Number(p.cost_price || 0),
+      wholesalePrice: Number(p.wholesale_price || 0),
+      suggestedPrice: Number(p.suggested_price || 0),
+      stock: Number(p.stock || 0),
+      minOrder: Number(p.min_order || 1),
+      image: finalGallery[0] || imageByCategory(p.category_name),
+      images: finalGallery,
       active: p.status === "active",
       selected: !!link?.active,
       storeProductId: link?.id,
@@ -159,6 +168,7 @@ export const loadCatalogForStore = async (storeId: string): Promise<CatalogProdu
     };
   });
 };
+
 
 export const toggleStoreProduct = async (
   storeId: string,
