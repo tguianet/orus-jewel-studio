@@ -372,6 +372,7 @@ export type Database = {
           description: string
           id: string
           image_url: string | null
+          images: string[]
           min_order: number
           name: string
           seller_store_id: string | null
@@ -390,6 +391,7 @@ export type Database = {
           description?: string
           id?: string
           image_url?: string | null
+          images?: string[]
           min_order?: number
           name: string
           seller_store_id?: string | null
@@ -408,6 +410,7 @@ export type Database = {
           description?: string
           id?: string
           image_url?: string | null
+          images?: string[]
           min_order?: number
           name?: string
           seller_store_id?: string | null
@@ -666,6 +669,7 @@ export type Database = {
           active: boolean
           created_at: string
           id: string
+          images: string[]
           product_id: string
           resale_price: number
           seller_store_id: string
@@ -675,6 +679,7 @@ export type Database = {
           active?: boolean
           created_at?: string
           id?: string
+          images?: string[]
           product_id: string
           resale_price?: number
           seller_store_id: string
@@ -684,6 +689,7 @@ export type Database = {
           active?: boolean
           created_at?: string
           id?: string
+          images?: string[]
           product_id?: string
           resale_price?: number
           seller_store_id?: string
