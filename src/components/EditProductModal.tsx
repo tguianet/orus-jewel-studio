@@ -55,24 +55,7 @@ export const EditProductModal = ({ product, open, onOpenChange, onUpdated }: Edi
     const stock = Number(form.get("stock") || product.stock);
     const minOrder = Number(form.get("minOrder") || product.minOrder);
     const status = String(form.get("status") || (product.active ? "active" : "inactive"));
-    let productImageUrl = product.image;
-
-    if (imageFile) {
-      try {
-        const extension = imageFile.name.split(".").pop()?.toLowerCase() || "jpg";
-        const filePath = `${product.code.toLowerCase()}-${crypto.randomUUID()}.${extension}`;
-        const { error: uploadError } = await supabase.storage
-          .from("product-images")
-          .upload(filePath, imageFile, { cacheControl: "3600", upsert: false });
-        if (uploadError) throw uploadError;
-        const { data } = supabase.storage.from("product-images").getPublicUrl(filePath);
-        productImageUrl = data.publicUrl;
-      } catch (error) {
-        toast.error("Não foi possível enviar a imagem.", { description: getErrorMessage(error) });
-        setSaving(false);
-        return;
-      }
-    }
+    const primary = images[0] || product.image;
 
     try {
       const { error } = await supabase
@@ -85,10 +68,12 @@ export const EditProductModal = ({ product, open, onOpenChange, onUpdated }: Edi
           cost_price: Math.round(wholesalePrice * 0.58),
           stock,
           min_order: minOrder,
-          image_url: productImageUrl,
+          image_url: primary,
+          images,
           status: status as "active" | "inactive",
         } as never)
         .eq("id", product.id);
+
 
       if (error) throw error;
 
