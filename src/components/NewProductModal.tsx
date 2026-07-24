@@ -21,9 +21,7 @@ const getErrorMessage = (error: unknown) => {
 
 export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
   const [open, setOpen] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string>(fallbackProduct.image);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imageError, setImageError] = useState("");
+  const [images, setImages] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -34,26 +32,6 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
   }, [open]);
-
-  const handleImageUpload = (file?: File) => {
-    setImageError("");
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setImageError("Envie um arquivo de imagem válido.");
-      setImageFile(null);
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setImageError("A imagem deve ter no máximo 5MB.");
-      setImageFile(null);
-      return;
-    }
-
-    setImageFile(file);
-    const reader = new FileReader();
-    reader.onload = () => setImagePreview(String(reader.result));
-    reader.readAsDataURL(file);
-  };
 
   const handleCreate = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -66,29 +44,7 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
     const suggestedPrice = Number(form.get("suggestedPrice") || wholesalePrice * 2);
     const stock = Number(form.get("stock") || 0);
     const code = `AUR-${category.charAt(0).toUpperCase()}${Date.now().toString().slice(-3)}`;
-    let productImageUrl = imagePreview;
-
-    if (imageFile) {
-      try {
-        const extension = imageFile.name.split(".").pop()?.toLowerCase() || "jpg";
-        const filePath = `${code.toLowerCase()}-${crypto.randomUUID()}.${extension}`;
-        const { error: uploadError } = await supabase.storage
-          .from("product-images")
-          .upload(filePath, imageFile, { cacheControl: "3600", upsert: false });
-
-        if (uploadError) throw uploadError;
-
-        const { data } = supabase.storage.from("product-images").getPublicUrl(filePath);
-        productImageUrl = data.publicUrl;
-      } catch (error) {
-        setImageError("Falha no upload da imagem. Tente outro arquivo ou salve sem imagem.");
-        toast.error("Não foi possível enviar a imagem.", {
-          description: getErrorMessage(error),
-        });
-        setSaving(false);
-        return;
-      }
-    }
+    const primary = images[0] || fallbackProduct.image;
 
     try {
       const { data: savedProduct, error: productError } = await supabase
@@ -105,14 +61,16 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
           suggested_price: suggestedPrice,
           stock,
           min_order: 2,
-          image_url: productImageUrl,
+          image_url: primary,
+          images,
           status: "active",
         } as never)
-        .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,category_name")
+        .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,images,category_name")
         .single();
 
       if (productError) throw productError;
 
+      const savedImages: string[] = (savedProduct as any).images || images;
       const createdProduct: Product = {
         id: savedProduct.id,
         code: savedProduct.code,
@@ -124,20 +82,19 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
         suggestedPrice: Number(savedProduct.suggested_price ?? 0),
         stock: savedProduct.stock ?? 0,
         minOrder: savedProduct.min_order ?? 1,
-        image: savedProduct.image_url || productImageUrl,
+        image: savedProduct.image_url || primary,
+        images: savedImages,
         active: true,
       };
 
       try {
         await onCreate?.(createdProduct);
-      } catch (refreshError) {
+      } catch {
         toast.warning("Produto salvo, mas a lista não atualizou automaticamente. Recarregue a página.");
       }
 
       formEl?.reset?.();
-      setImagePreview(fallbackProduct.image);
-      setImageFile(null);
-      setImageError("");
+      setImages([]);
       setOpen(false);
       toast.success("Produto salvo com sucesso.");
     } catch (error) {
@@ -148,6 +105,7 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
       setSaving(false);
     }
   };
+
 
   return (
     <>
