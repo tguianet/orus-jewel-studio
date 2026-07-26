@@ -19,6 +19,21 @@ export type OrderStatus =
   | "refunded";
 export type CommissionLevel = 1 | 2 | 3;
 
+export type ReturnItemCondition =
+  | "perfeito_estado"
+  | "embalagem_aberta"
+  | "avariado"
+  | "incompleto"
+  | "usado"
+  | "outro";
+
+export type ReturnStockAction =
+  | "retornar_ao_estoque"
+  | "nao_retornar_ao_estoque"
+  | "enviar_para_avaliacao";
+
+export type ReturnResolution = "devolucao" | "troca";
+
 export type Profile = {
   id: string;
   role: ProfileRole;

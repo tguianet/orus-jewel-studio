@@ -1,0 +1,25 @@
+-- Checklist pós-migration 20260727120000_physical_returns.sql
+-- Rodar no Lovable Cloud com BEGIN/ROLLBACK para não persistir.
+
+-- A) Devolução total + restock (perfeito_estado)
+-- B) Parcial 1 de N
+-- C) Segunda parcial
+-- D) qty > remaining → exception
+-- E) avariado + retornar_ao_estoque → exception
+-- F) embalagem_aberta sem confirm_open_package_restock → exception
+-- G) embalagem_aberta com confirmação → return_restore
+-- H) double submit / restante 0 → exception
+-- I) concorrência no último unit (duas sessões) → uma OK
+-- J) sacoleira RPC → negada
+-- K) anon → sem EXECUTE / negada
+-- L) stock_movements return_restore before/after coerentes
+-- M) commissions + wallet inalterados
+-- N) orders.total / order_items.quantity preservados
+-- O) troca: value_difference no banco; sem baixa do substituto
+-- P) cancelled + cancel_restore → rejeitado
+-- Q) cancelled pago sem cancel_restore → aceito
+
+-- Estrutura:
+-- SELECT enumlabel FROM pg_enum e JOIN pg_type t ON t.oid=e.enumtypid WHERE t.typname='return_item_condition';
+-- SELECT conname FROM pg_constraint WHERE conname LIKE 'product_return%';
+-- SELECT proname FROM pg_proc WHERE proname IN ('register_physical_return','get_order_return_preview');

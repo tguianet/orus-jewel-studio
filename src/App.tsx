@@ -15,6 +15,7 @@ import AdminProducts from "./pages/admin/AdminProducts";
 import AdminCategories from "./pages/admin/AdminCategories";
 import AdminSellers from "./pages/admin/AdminSellers";
 import AdminOrders from "./pages/admin/AdminOrders";
+import AdminReturns from "./pages/admin/AdminReturns";
 import AdminFinance from "./pages/admin/AdminFinance";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminNetwork from "./pages/admin/AdminNetwork";
@@ -62,6 +63,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
             <Route path="/admin/categorias" element={<Admin><AdminCategories /></Admin>} />
             <Route path="/admin/sacoleiras" element={<Admin><AdminSellers /></Admin>} />
             <Route path="/admin/pedidos" element={<Admin><AdminOrders /></Admin>} />
+            <Route path="/admin/devolucoes" element={<Admin><AdminReturns /></Admin>} />
             <Route path="/admin/financeiro" element={<Admin><AdminFinance /></Admin>} />
             <Route path="/admin/configuracoes" element={<Admin><AdminSettings /></Admin>} />
             <Route path="/admin/rede" element={<Admin><AdminNetwork /></Admin>} />
