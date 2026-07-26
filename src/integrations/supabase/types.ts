@@ -94,39 +94,6 @@ export type Database = {
           },
         ]
       }
-      commission_settings: {
-        Row: {
-          active_from: string
-          created_at: string
-          id: string
-          level_1_rate: number
-          level_2_rate: number
-          level_3_rate: number
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          active_from?: string
-          created_at?: string
-          id?: string
-          level_1_rate: number
-          level_2_rate: number
-          level_3_rate: number
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          active_from?: string
-          created_at?: string
-          id?: string
-          level_1_rate?: number
-          level_2_rate?: number
-          level_3_rate?: number
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: []
-      }
       commissions: {
         Row: {
           amount: number
@@ -918,22 +885,6 @@ export type Database = {
       set_my_reseller_parent: {
         Args: { _parent_id: string }
         Returns: undefined
-      }
-      get_current_commission_rates: {
-        Args: never
-        Returns: {
-          level_1_rate: number
-          level_2_rate: number
-          level_3_rate: number
-        }[]
-      }
-      update_commission_settings: {
-        Args: {
-          p_level_1_rate: number
-          p_level_2_rate: number
-          p_level_3_rate: number
-        }
-        Returns: Database["public"]["Tables"]["commission_settings"]["Row"]
       }
       write_audit_log: {
         Args: {
