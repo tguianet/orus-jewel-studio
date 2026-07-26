@@ -176,7 +176,10 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
             </Suspense>
             </RouteErrorBoundary>
           </LazyRouteErrorBoundary>
+          </PwaUpdateProvider>
+          </PwaInstallProvider>
           </AreaProvider>
+
         </BrowserRouter>
       </CartProvider>
     </AuthProvider>
