@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { sbLoose } from "@/lib/supabaseLoose";
+
 import type {
   ExpiredOrdersSummary,
   InventoryReportItem,
