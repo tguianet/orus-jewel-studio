@@ -1,6 +1,6 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,13 @@ import {
 } from "@/lib/safeRedirect";
 import { AppError, normalizeError, showAppError } from "@/lib/errors";
 import { assertOnlineForCritical } from "@/lib/networkStatus";
+import {
+  friendlyReferralMessage,
+  normalizeReferralCode,
+  reasonToUiStatus,
+  type ReferralUiStatus,
+  validateReferralCode,
+} from "@/lib/referralCode";
 
 interface Props { role: "admin" | "sacoleira" }
 
@@ -26,6 +33,10 @@ const LoginPage = ({ role }: Props) => {
   const isAdmin = role === "admin";
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [busy, setBusy] = useState(false);
+  const [referralInput, setReferralInput] = useState("");
+  const [referralStatus, setReferralStatus] = useState<ReferralUiStatus>("idle");
+  const [sponsorName, setSponsorName] = useState<string | null>(null);
+  const validateSeq = useRef(0);
 
   // Se já autenticado, evita loop login ↔ área protegida
   useEffect(() => {
@@ -36,6 +47,26 @@ const LoginPage = ({ role }: Props) => {
       nav(dest, { replace: true });
     }
   }, [loading, profile, rawNext, nav]);
+
+  useEffect(() => {
+    if (mode !== "signup" || isAdmin) return;
+    const code = normalizeReferralCode(referralInput);
+    if (!code) {
+      setReferralStatus("idle");
+      setSponsorName(null);
+      return;
+    }
+    const seq = ++validateSeq.current;
+    setReferralStatus("checking");
+    const t = window.setTimeout(() => {
+      void validateReferralCode(code).then((res) => {
+        if (seq !== validateSeq.current) return;
+        setSponsorName(res.sponsor_name);
+        setReferralStatus(reasonToUiStatus(res.reason, res.valid));
+      });
+    }, 400);
+    return () => window.clearTimeout(t);
+  }, [referralInput, mode, isAdmin]);
 
   const handleForgot = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -51,8 +82,8 @@ const LoginPage = ({ role }: Props) => {
         showAppError(normalizeError(error, { operation: "reset_password" }), { showCorrelation: false });
         return;
       }
-    } catch (e) {
-      showAppError(normalizeError(e, { operation: "reset_password" }), { showCorrelation: false });
+    } catch (err) {
+      showAppError(normalizeError(err, { operation: "reset_password" }), { showCorrelation: false });
       return;
     } finally {
       setBusy(false);
@@ -88,7 +119,6 @@ const LoginPage = ({ role }: Props) => {
         return;
       }
 
-      // Login de admin exige role admin; sacoleira exige sacoleira (admin pode cair no fallback admin)
       if (isAdmin && !roles.includes("admin")) {
         showAppError(
           new AppError({
@@ -117,25 +147,35 @@ const LoginPage = ({ role }: Props) => {
       const dest = getSafeRedirectForRole(rawNext, roles);
       toast.success("Bem-vinda de volta!");
       nav(dest, { replace: true });
-    } catch (e) {
-      showAppError(normalizeError(e, { operation: "sign_in" }), { showCorrelation: false });
+    } catch (err) {
+      showAppError(normalizeError(err, { operation: "sign_in" }), { showCorrelation: false });
     } finally {
       setBusy(false);
     }
   };
 
+  const canCreateAccount = referralStatus === "valid" && !busy;
+
   const handleSignUp = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (busy) return;
+    if (busy || referralStatus !== "valid") return;
     const f = new FormData(e.currentTarget);
+    const code = normalizeReferralCode(String(f.get("sponsor") || referralInput));
+    if (!code) {
+      toast.error("Código de indicação obrigatório", {
+        description: "Digite o código da sua patrocinadora.",
+      });
+      return;
+    }
     setBusy(true);
     try {
+      assertOnlineForCritical("sign_up");
       const { error } = await signUp({
         email: String(f.get("email")),
         password: String(f.get("password")),
         displayName: String(f.get("name")),
         phone: String(f.get("phone") || ""),
-        parentResellerId: String(f.get("sponsor") || "") || undefined,
+        referralCode: code,
       });
       if (error) {
         showAppError(
@@ -146,10 +186,15 @@ const LoginPage = ({ role }: Props) => {
       }
       toast.success("Cadastro concluído!", { description: "Você já pode entrar." });
       setMode("signin");
+      setReferralInput("");
+      setReferralStatus("idle");
+      setSponsorName(null);
     } finally {
       setBusy(false);
     }
   };
+
+  const referralHint = friendlyReferralMessage(referralStatus, sponsorName);
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
@@ -211,8 +256,38 @@ const LoginPage = ({ role }: Props) => {
               <div><Label htmlFor="email">Email</Label><Input id="email" name="email" type="email" required className="mt-1.5" /></div>
               <div><Label htmlFor="phone">WhatsApp</Label><Input id="phone" name="phone" placeholder="(11) 99999-9999" className="mt-1.5" /></div>
               <div><Label htmlFor="password">Senha (mín. 6)</Label><Input id="password" name="password" type="password" required minLength={6} className="mt-1.5" /></div>
-              <div><Label htmlFor="sponsor">Código de indicação (opcional)</Label><Input id="sponsor" name="sponsor" placeholder="ID da sua patrocinadora" className="mt-1.5" /></div>
-              <Button type="submit" variant="gold" size="lg" className="w-full" disabled={busy}>
+              <div>
+                <Label htmlFor="sponsor">Código de indicação</Label>
+                <Input
+                  id="sponsor"
+                  name="sponsor"
+                  required
+                  value={referralInput}
+                  onChange={(e) => setReferralInput(e.target.value)}
+                  placeholder="Digite o código da sua patrocinadora"
+                  autoComplete="off"
+                  className="mt-1.5 uppercase tracking-wide"
+                  aria-invalid={referralStatus === "invalid" || referralStatus === "inactive" || referralStatus === "blocked"}
+                />
+                <p
+                  className={`mt-1.5 text-xs flex items-start gap-1.5 ${
+                    referralStatus === "valid"
+                      ? "text-success"
+                      : referralStatus === "checking" || referralStatus === "idle"
+                        ? "text-muted-foreground"
+                        : "text-destructive"
+                  }`}
+                  data-testid="referral-status"
+                >
+                  {referralStatus === "checking" && <Loader2 className="h-3.5 w-3.5 mt-0.5 animate-spin shrink-0" />}
+                  {referralStatus === "valid" && <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 shrink-0" />}
+                  {(referralStatus === "invalid" || referralStatus === "inactive" || referralStatus === "blocked" || referralStatus === "rate_limited") && (
+                    <XCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                  )}
+                  <span>{referralHint}</span>
+                </p>
+              </div>
+              <Button type="submit" variant="gold" size="lg" className="w-full" disabled={!canCreateAccount}>
                 {busy ? "Criando..." : "Criar conta"}
               </Button>
             </form>

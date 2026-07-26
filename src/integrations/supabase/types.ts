@@ -688,36 +688,42 @@ export type Database = {
       }
       resellers: {
         Row: {
+          can_receive_referrals: boolean
           created_at: string
           display_name: string
           email: string
           id: string
           parent_id: string | null
           phone: string | null
+          referral_code: string
           status: Database["public"]["Enums"]["seller_store_status"]
           tier: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          can_receive_referrals?: boolean
           created_at?: string
           display_name?: string
           email?: string
           id?: string
           parent_id?: string | null
           phone?: string | null
+          referral_code?: string
           status?: Database["public"]["Enums"]["seller_store_status"]
           tier?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          can_receive_referrals?: boolean
           created_at?: string
           display_name?: string
           email?: string
           id?: string
           parent_id?: string | null
           phone?: string | null
+          referral_code?: string
           status?: Database["public"]["Enums"]["seller_store_status"]
           tier?: string
           updated_at?: string
@@ -1099,6 +1105,47 @@ export type Database = {
           p_store_slug: string
           p_sponsor_reseller_id?: string | null
           p_reason?: string | null
+        }
+        Returns: Json
+      }
+      validate_referral_code: {
+        Args: { p_code: string; p_client_key?: string | null }
+        Returns: Json
+      }
+      register_reseller_with_referral: {
+        Args: {
+          p_full_name: string
+          p_email: string
+          p_phone: string | null
+          p_password: string
+          p_referral_code: string
+          p_client_key?: string | null
+        }
+        Returns: Json
+      }
+      set_my_reseller_parent_by_code: {
+        Args: { p_referral_code: string }
+        Returns: Json
+      }
+      admin_regenerate_referral_code: {
+        Args: { p_reseller_id: string; p_reason?: string | null }
+        Returns: Json
+      }
+      admin_set_reseller_sponsor: {
+        Args: {
+          p_reseller_id: string
+          p_sponsor_reseller_id: string
+          p_reason: string
+        }
+        Returns: Json
+      }
+      admin_create_root_reseller: {
+        Args: {
+          p_user_id: string
+          p_reseller_name: string
+          p_store_name: string
+          p_store_slug: string
+          p_reason: string
         }
         Returns: Json
       }

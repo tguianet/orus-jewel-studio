@@ -35,10 +35,12 @@ const SellerNetwork = () => {
 
   const monthLabel = new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 
+  const shareCode = profile?.referralCode || profile?.resellerId || "";
+
   const handleCopy = async () => {
-    if (!profile?.resellerId) return;
+    if (!shareCode) return;
     try {
-      await navigator.clipboard.writeText(profile.resellerId);
+      await navigator.clipboard.writeText(shareCode);
       setCopied(true);
       toast.success("Código copiado!");
       setTimeout(() => setCopied(false), 2000);
@@ -105,11 +107,11 @@ const SellerNetwork = () => {
     <SellerLayout>
       <PageHeader eyebrow="MLM" title="Minha rede" description="Suas indicadas em até 3 níveis." />
 
-      {profile?.resellerId && (
+      {shareCode && (
         <div className="mb-6 rounded-xl border border-primary/20 bg-primary/5 p-4">
           <p className="text-xs text-muted-foreground">Compartilhe seu código de indicação:</p>
           <div className="mt-1 flex items-center gap-2">
-            <p className="font-mono text-sm text-primary break-all flex-1">{profile.resellerId}</p>
+            <p className="font-mono text-sm text-primary break-all flex-1 tracking-wider">{shareCode}</p>
             <Button size="sm" variant="goldOutline" onClick={handleCopy} className="shrink-0">
               {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               {copied ? "Copiado" : "Copiar"}

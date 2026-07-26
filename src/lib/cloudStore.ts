@@ -567,29 +567,63 @@ export type AdminSellerRow = {
   phone: string | null;
   status: string;
   created_at: string;
+  referral_code?: string | null;
+  parent_id?: string | null;
   is_admin?: boolean;
+  sponsor_name?: string | null;
   seller_stores: { id: string; store_name: string; store_slug: string; status: string }[] | null;
 };
 
 export const loadAllSellers = async (): Promise<AdminSellerRow[]> => {
   const { data, error } = await supabase
     .from("resellers")
-    .select("id,user_id,display_name,email,phone,status,created_at,seller_stores(id,store_name,store_slug,status)")
+    .select("id,user_id,display_name,email,phone,status,created_at,referral_code,parent_id,seller_stores(id,store_name,store_slug,status)")
     .order("created_at", { ascending: false });
   if (error) throw error;
   const rows = (data ?? []) as AdminSellerRow[];
   const userIds = rows.map((r) => r.user_id).filter(Boolean);
-  if (userIds.length === 0) return rows;
+  const parentIds = [...new Set(rows.map((r) => r.parent_id).filter(Boolean))] as string[];
 
-  const { data: roleRows } = await supabase
-    .from("user_roles")
-    .select("user_id")
-    .eq("role", "admin")
-    .in("user_id", userIds);
+  const [{ data: roleRows }, { data: parents }] = await Promise.all([
+    userIds.length
+      ? supabase.from("user_roles").select("user_id").eq("role", "admin").in("user_id", userIds)
+      : Promise.resolve({ data: [] as { user_id: string }[] }),
+    parentIds.length
+      ? supabase.from("resellers").select("id,display_name").in("id", parentIds)
+      : Promise.resolve({ data: [] as { id: string; display_name: string }[] }),
+  ]);
 
   const adminIds = new Set((roleRows ?? []).map((r) => r.user_id as string));
-  return rows.map((r) => ({ ...r, is_admin: adminIds.has(r.user_id) }));
+  const parentName = new Map((parents ?? []).map((p) => [p.id, p.display_name]));
+  return rows.map((r) => ({
+    ...r,
+    is_admin: adminIds.has(r.user_id),
+    sponsor_name: r.parent_id ? parentName.get(r.parent_id) ?? null : null,
+  }));
 };
+
+export async function adminRegenerateReferralCode(resellerId: string, reason?: string) {
+  const { data, error } = await supabase.rpc("admin_regenerate_referral_code", {
+    p_reseller_id: resellerId,
+    p_reason: reason || null,
+  });
+  if (error) throw error;
+  return data as { ok: boolean; referral_code: string; previous_code: string };
+}
+
+export async function adminSetResellerSponsor(
+  resellerId: string,
+  sponsorResellerId: string,
+  reason: string,
+) {
+  const { data, error } = await supabase.rpc("admin_set_reseller_sponsor", {
+    p_reseller_id: resellerId,
+    p_sponsor_reseller_id: sponsorResellerId,
+    p_reason: reason,
+  });
+  if (error) throw error;
+  return data as { ok: boolean; parent_id: string; previous_parent_id: string | null };
+}
 
 export const updateResellerStatus = async (resellerId: string, status: "approved" | "pending" | "blocked") => {
   const { error } = await supabase.from("resellers").update({ status }).eq("id", resellerId);

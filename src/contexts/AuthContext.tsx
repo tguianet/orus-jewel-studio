@@ -24,6 +24,7 @@ import {
   showAppError,
 } from "@/lib/errors";
 import type { AppRole } from "@/lib/safeRedirect";
+import { registerResellerWithReferral } from "@/lib/referralCode";
 
 export type { AppRole };
 
@@ -33,6 +34,7 @@ export type AuthProfile = {
   role: AppRole | null;
   roles: AppRole[];
   resellerId: string | null;
+  referralCode: string | null;
   parentResellerId: string | null;
   storeId: string | null;
   storeSlug: string | null;
@@ -56,7 +58,9 @@ type AuthContextValue = {
     password: string;
     displayName: string;
     phone?: string;
+    /** @deprecated use referralCode */
     parentResellerId?: string;
+    referralCode?: string;
   }) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -70,7 +74,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 const loadExtras = async (user: User): Promise<Omit<AuthProfile, "user" | "session">> => {
   const [{ data: roleRows }, { data: reseller }, { data: store }, { data: prof }] = await Promise.all([
     supabase.from("user_roles").select("role").eq("user_id", user.id),
-    supabase.from("resellers").select("id, parent_id").eq("user_id", user.id).maybeSingle(),
+    supabase.from("resellers").select("id, parent_id, referral_code").eq("user_id", user.id).maybeSingle(),
     supabase.from("seller_stores").select("id, store_slug").eq("owner_user_id", user.id).maybeSingle(),
     supabase.from("profiles").select("display_name").eq("user_id", user.id).maybeSingle(),
   ]);
@@ -79,6 +83,7 @@ const loadExtras = async (user: User): Promise<Omit<AuthProfile, "user" | "sessi
     role: roles.includes("admin") ? "admin" : roles.includes("sacoleira") ? "sacoleira" : null,
     roles,
     resellerId: reseller?.id ?? null,
+    referralCode: (reseller as { referral_code?: string | null } | null)?.referral_code ?? null,
     parentResellerId: (reseller as { parent_id?: string | null } | null)?.parent_id ?? null,
     storeId: store?.id ?? null,
     storeSlug: store?.store_slug ?? null,
@@ -273,21 +278,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         return {};
       },
-      signUp: async ({ email, password, displayName, phone, parentResellerId }) => {
-        const redirectUrl = `${window.location.origin}/sacoleira`;
-        const { error } = await supabase.auth.signUp({
+      signUp: async ({ email, password, displayName, phone, parentResellerId, referralCode }) => {
+        const code = (referralCode || parentResellerId || "").trim();
+        if (!code) {
+          return { error: "Informe o código de indicação da sua patrocinadora." };
+        }
+        return registerResellerWithReferral({
+          fullName: displayName,
           email,
+          phone,
           password,
-          options: {
-            emailRedirectTo: redirectUrl,
-            data: {
-              display_name: displayName,
-              phone,
-              parent_reseller_id: parentResellerId || null,
-            },
-          },
+          referralCode: code,
         });
-        return error ? { error: error.message } : {};
       },
       signOut: async () => {
         manualSignOutRef.current = true;
