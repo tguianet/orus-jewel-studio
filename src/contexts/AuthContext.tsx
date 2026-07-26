@@ -10,7 +10,6 @@ import {
 } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { sbLoose } from "@/lib/supabaseLoose";
 import { clearAuthStorage, isRefreshTokenError } from "@/lib/authStorage";
 import {
   beginSessionExpiryRedirect,
