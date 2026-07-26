@@ -117,6 +117,11 @@ export async function validateReferralCode(code: string): Promise<ReferralValida
   };
 }
 
+/**
+ * Cadastro de sacoleira com indicação obrigatória.
+ * Usa o signUp oficial do Auth (nunca insert direto no schema auth) e envia o
+ * código no metadata — o servidor revalida no trigger handle_new_user.
+ */
 export async function registerResellerWithReferral(input: {
   fullName: string;
   email: string;
@@ -133,22 +138,26 @@ export async function registerResellerWithReferral(input: {
     return { error: friendlyReferralMessage(reasonToUiStatus(check.reason, false), check.sponsor_name) };
   }
 
-  const { data, error } = await sbLoose.rpc("register_reseller_with_referral", {
-    p_full_name: input.fullName.trim(),
-    p_email: input.email.trim(),
-    p_phone: input.phone?.trim() || null,
-    p_password: input.password,
-    p_referral_code: code,
-    p_client_key: getReferralClientKey(),
+  const { error } = await supabase.auth.signUp({
+    email: input.email.trim(),
+    password: input.password,
+    options: {
+      emailRedirectTo: `${window.location.origin}/`,
+      data: {
+        display_name: input.fullName.trim(),
+        phone: input.phone?.trim() || null,
+        referral_code: code,
+      },
+    },
   });
 
   if (error) {
+    if (/Código de indicação/i.test(error.message)) {
+      return { error: "Código de indicação inválido. Confira com a sua patrocinadora." };
+    }
     return { error: error.message || "Não foi possível concluir o cadastro." };
   }
 
-  const ok = Boolean((data as { ok?: boolean } | null)?.ok);
-  if (!ok) {
-    return { error: "Cadastro sem patrocinadora não concluído." };
-  }
   return {};
 }
+
