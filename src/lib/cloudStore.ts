@@ -3,6 +3,7 @@ import earringsImg from "@/assets/product-earrings.jpg";
 import necklaceImg from "@/assets/product-necklace.jpg";
 import braceletImg from "@/assets/product-bracelet.jpg";
 import { supabase } from "@/integrations/supabase/client";
+import { sbLoose } from "@/lib/supabaseLoose";
 import type { Database, Tables } from "@/integrations/supabase/types";
 import type {
   AdminProduct,
@@ -464,7 +465,7 @@ export const loadOrdersPage = async (filters: OrdersPageFilters): Promise<Orders
   const { data, error, count } = await query;
   if (error) throw error;
   return {
-    rows: (data ?? []) as AdminOrderRow[],
+    rows: (data ?? []) as unknown as AdminOrderRow[],
     total: count ?? 0,
     page,
     pageSize,
@@ -505,7 +506,7 @@ export type WalletTx = {
 
 export const loadWalletForReseller = async (resellerId: string) => {
   const [{ data: summary, error: summaryError }, { data: txs, error: txsError }] = await Promise.all([
-    supabase
+    sbLoose
       .from("reseller_wallet_summary")
       .select("reseller_id,pending,available,paid,total_balance,blocked")
       .eq("reseller_id", resellerId)
@@ -575,12 +576,12 @@ export type AdminSellerRow = {
 };
 
 export const loadAllSellers = async (): Promise<AdminSellerRow[]> => {
-  const { data, error } = await supabase
+  const { data, error } = await sbLoose
     .from("resellers")
     .select("id,user_id,display_name,email,phone,status,created_at,referral_code,parent_id,seller_stores(id,store_name,store_slug,status)")
     .order("created_at", { ascending: false });
   if (error) throw error;
-  const rows = (data ?? []) as AdminSellerRow[];
+  const rows = (data ?? []) as unknown as AdminSellerRow[];
   const userIds = rows.map((r) => r.user_id).filter(Boolean);
   const parentIds = [...new Set(rows.map((r) => r.parent_id).filter(Boolean))] as string[];
 
@@ -603,12 +604,12 @@ export const loadAllSellers = async (): Promise<AdminSellerRow[]> => {
 };
 
 export async function adminRegenerateReferralCode(resellerId: string, reason?: string) {
-  const { data, error } = await supabase.rpc("admin_regenerate_referral_code", {
+  const { data, error } = await sbLoose.rpc("admin_regenerate_referral_code", {
     p_reseller_id: resellerId,
     p_reason: reason || null,
   });
   if (error) throw error;
-  return data as { ok: boolean; referral_code: string; previous_code: string };
+  return data as unknown as { ok: boolean; referral_code: string; previous_code: string };
 }
 
 export async function adminSetResellerSponsor(
@@ -616,13 +617,13 @@ export async function adminSetResellerSponsor(
   sponsorResellerId: string,
   reason: string,
 ) {
-  const { data, error } = await supabase.rpc("admin_set_reseller_sponsor", {
+  const { data, error } = await sbLoose.rpc("admin_set_reseller_sponsor", {
     p_reseller_id: resellerId,
     p_sponsor_reseller_id: sponsorResellerId,
     p_reason: reason,
   });
   if (error) throw error;
-  return data as { ok: boolean; parent_id: string; previous_parent_id: string | null };
+  return data as unknown as { ok: boolean; parent_id: string; previous_parent_id: string | null };
 }
 
 export const updateResellerStatus = async (resellerId: string, status: "approved" | "pending" | "blocked") => {

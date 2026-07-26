@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { sbLoose } from "@/lib/supabaseLoose";
 import type {
   ExpiredOrdersSummary,
   InventoryReportItem,
@@ -62,7 +63,7 @@ async function rpcJson(
     | "seller_export_my_report",
   args: Record<string, unknown>,
 ): Promise<unknown> {
-  const { data, error } = await supabase.rpc(name, args as never);
+  const { data, error } = await sbLoose.rpc(name, args as never);
   if (error) {
     const msg = String(error.message ?? "");
     if (/could not find|does not exist|schema cache/i.test(msg)) {
