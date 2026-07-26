@@ -26,6 +26,7 @@ const AdminSellers = lazy(() => import("./pages/admin/AdminSellers"));
 const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
 const AdminReturns = lazy(() => import("./pages/admin/AdminReturns"));
 const AdminFinance = lazy(() => import("./pages/admin/AdminFinance"));
+const AdminWithdrawals = lazy(() => import("./pages/admin/AdminWithdrawals"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 const AdminNetwork = lazy(() => import("./pages/admin/AdminNetwork"));
 const AdminBanners = lazy(() => import("./pages/admin/AdminBanners"));
@@ -37,6 +38,7 @@ const SellerCatalog = lazy(() => import("./pages/seller/SellerCatalog"));
 const SellerProducts = lazy(() => import("./pages/seller/SellerProducts"));
 const SellerOrders = lazy(() => import("./pages/seller/SellerOrders"));
 const SellerCustomers = lazy(() => import("./pages/seller/SellerCustomers"));
+const SellerWithdrawals = lazy(() => import("./pages/seller/SellerWithdrawals"));
 const SellerSettings = lazy(() => import("./pages/seller/SellerSettings"));
 const SellerNetwork = lazy(() => import("./pages/seller/SellerNetwork"));
 const SellerMarketing = lazy(() => import("./pages/seller/SellerMarketing"));
@@ -96,6 +98,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
                 <Route path="/admin/pedidos" element={<Admin><AdminOrders /></Admin>} />
                 <Route path="/admin/devolucoes" element={<Admin><AdminReturns /></Admin>} />
                 <Route path="/admin/financeiro" element={<Admin><AdminFinance /></Admin>} />
+                <Route path="/admin/saques" element={<Admin><AdminWithdrawals /></Admin>} />
                 <Route path="/admin/configuracoes" element={<Admin><AdminSettings /></Admin>} />
                 <Route path="/admin/rede" element={<Admin><AdminNetwork /></Admin>} />
                 <Route path="/admin/banners" element={<Admin><AdminBanners /></Admin>} />
@@ -108,6 +111,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
                 <Route path="/sacoleira/meus-produtos" element={<Seller><SellerProducts /></Seller>} />
                 <Route path="/sacoleira/pedidos" element={<Seller><SellerOrders /></Seller>} />
                 <Route path="/sacoleira/clientes" element={<Seller><SellerCustomers /></Seller>} />
+                <Route path="/sacoleira/saques" element={<Seller><SellerWithdrawals /></Seller>} />
                 <Route path="/sacoleira/configuracoes" element={<Seller><SellerSettings /></Seller>} />
                 <Route path="/sacoleira/rede" element={<Seller><SellerNetwork /></Seller>} />
                 <Route path="/sacoleira/marketing" element={<Seller><SellerMarketing /></Seller>} />

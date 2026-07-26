@@ -485,7 +485,13 @@ export const updateOrderStatus = async (orderId: string, status: OrderStatus | s
 
 // ---------- Wallet ----------
 
-export type WalletSummary = { pending: number; available: number; paid: number; total: number };
+export type WalletSummary = {
+  pending: number;
+  available: number;
+  paid: number;
+  total: number;
+  blocked?: number;
+};
 export type WalletTx = {
   id: string;
   type: string;
@@ -514,6 +520,7 @@ export const loadWalletForReseller = async (resellerId: string) => {
       available: Number(summary?.available || 0),
       paid: Number(summary?.paid || 0),
       total: Number(summary?.total_balance || 0),
+      blocked: Number((summary as { blocked?: number } | null)?.blocked || 0),
     } as WalletSummary,
     transactions: (txs ?? []) as WalletTx[],
   };

@@ -967,6 +967,7 @@ export type Database = {
           status: string
           type: string
           updated_at: string
+          withdrawal_id: string | null
         }
         Insert: {
           amount?: number
@@ -979,6 +980,7 @@ export type Database = {
           status?: string
           type?: string
           updated_at?: string
+          withdrawal_id?: string | null
         }
         Update: {
           amount?: number
@@ -991,6 +993,7 @@ export type Database = {
           status?: string
           type?: string
           updated_at?: string
+          withdrawal_id?: string | null
         }
         Relationships: [
           {
@@ -1014,6 +1017,7 @@ export type Database = {
       reseller_wallet_summary: {
         Row: {
           available: number | null
+          blocked: number | null
           paid: number | null
           pending: number | null
           reseller_id: string | null
@@ -1225,6 +1229,74 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      admin_list_withdrawals: {
+        Args: {
+          p_status?: string | null
+          p_reseller_id?: string | null
+          p_search?: string | null
+          p_date_from?: string | null
+          p_date_to?: string | null
+          p_amount_min?: number | null
+          p_amount_max?: number | null
+          p_page?: number
+          p_page_size?: number
+        }
+        Returns: Json
+      }
+      approve_withdrawal: {
+        Args: { p_withdrawal_id: string }
+        Returns: Json
+      }
+      cancel_withdrawal: {
+        Args: { p_withdrawal_id: string; p_reason?: string | null }
+        Returns: Json
+      }
+      get_my_withdrawal_summary: {
+        Args: never
+        Returns: Json
+      }
+      get_withdrawal_audit: {
+        Args: { p_withdrawal_id: string }
+        Returns: Json
+      }
+      get_withdrawal_details: {
+        Args: { p_withdrawal_id: string; p_reveal_payment?: boolean }
+        Returns: Json
+      }
+      list_my_withdrawals: {
+        Args: { p_page?: number; p_page_size?: number }
+        Returns: Json
+      }
+      mark_withdrawal_paid: {
+        Args: {
+          p_withdrawal_id: string
+          p_payment_reference?: string | null
+          p_receipt_url?: string | null
+          p_idempotency_key: string
+        }
+        Returns: Json
+      }
+      reject_withdrawal: {
+        Args: { p_withdrawal_id: string; p_reason: string }
+        Returns: Json
+      }
+      request_withdrawal: {
+        Args: {
+          p_amount: number
+          p_payment_method: string
+          p_payment_details: Json
+          p_idempotency_key?: string | null
+        }
+        Returns: Json
+      }
+      update_withdrawal_settings: {
+        Args: { p_minimum: number }
+        Returns: Json
+      }
+      upsert_my_payout_profile: {
+        Args: { p_payment_method: string; p_payment_details: Json }
+        Returns: Json
       }
       write_audit_log: {
         Args: {
