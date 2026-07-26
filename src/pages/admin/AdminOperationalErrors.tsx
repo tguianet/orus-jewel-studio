@@ -10,6 +10,7 @@ import { ListPagination } from "@/components/system/ListPagination";
 import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
 import { normalizeError, showAppError } from "@/lib/errors";
 import { supabase } from "@/integrations/supabase/client";
+import { sbLoose } from "@/lib/supabaseLoose";
 import { toast } from "sonner";
 
 type OpErrorRow = {
@@ -44,7 +45,7 @@ const AdminOperationalErrors = () => {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc("admin_list_operational_errors", {
+      const { data, error } = await sbLoose.rpc("admin_list_operational_errors", {
         p_severity: severity || null,
         p_category: category || null,
         p_error_code: code || null,
@@ -78,7 +79,7 @@ const AdminOperationalErrors = () => {
 
   const openDetail = async (id: string) => {
     try {
-      const { data, error } = await supabase.rpc("admin_get_operational_error", {
+      const { data, error } = await sbLoose.rpc("admin_get_operational_error", {
         p_error_id: id,
       });
       if (error) throw error;
@@ -91,7 +92,7 @@ const AdminOperationalErrors = () => {
   const resolve = async (id: string) => {
     const notes = window.prompt("Notas de resolução (opcional):") ?? "";
     try {
-      const { error } = await supabase.rpc("admin_resolve_operational_error", {
+      const { error } = await sbLoose.rpc("admin_resolve_operational_error", {
         p_error_id: id,
         p_resolution_notes: notes,
       });

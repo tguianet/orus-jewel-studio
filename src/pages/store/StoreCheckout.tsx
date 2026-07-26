@@ -257,17 +257,25 @@ const StoreCheckout = () => {
 
       if (error) throw error;
 
-      const row = Array.isArray(data) ? data[0] : data;
+      const row = (Array.isArray(data) ? data[0] : data) as unknown as {
+        order_id?: string;
+        status?: OrderResult["status"];
+        subtotal?: number | string;
+        total?: number | string;
+        created_at?: string;
+        expires_at?: string | null;
+        items?: unknown;
+      } | null;
       if (!row?.order_id) {
         throw new Error("Resposta inválida do servidor");
       }
 
       const confirmed: OrderResult = {
         order_id: row.order_id,
-        status: row.status,
+        status: row.status ?? "new",
         subtotal: Number(row.subtotal),
         total: Number(row.total),
-        created_at: row.created_at,
+        created_at: row.created_at ?? new Date().toISOString(),
         expires_at: row.expires_at ?? null,
         items: parseConfirmedItems(row.items),
       };
