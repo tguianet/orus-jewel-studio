@@ -43,12 +43,15 @@ const CommissionReport = () => {
       {error && !loading && <ReportErrorState message={error.message} correlationId={error.correlationId} onRetry={() => void load()} />}
       {!loading && !error && (
         <div className="space-y-6">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <ReportMetricCard label="Pending" value={formatBRL(summary.pending ?? 0)} />
             <ReportMetricCard label="Available" value={formatBRL(summary.available ?? 0)} />
             <ReportMetricCard label="Paid" value={formatBRL(summary.paid ?? 0)} />
-            <ReportMetricCard label="Cancelled" value={formatBRL(summary.cancelled ?? 0)} />
-            <ReportMetricCard label="Reversed*" value={formatBRL(summary.reversed ?? 0)} hint="mapeado de cancelled no schema atual" />
+            <ReportMetricCard
+              label="Cancelled / estornada"
+              value={formatBRL(summary.cancelled ?? 0)}
+              hint="schema atual não tem status reversed — estornos = cancelled"
+            />
           </div>
           <SimpleBarChart
             title="Comissões por status"

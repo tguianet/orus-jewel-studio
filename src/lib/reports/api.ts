@@ -63,7 +63,15 @@ async function rpcJson(
   args: Record<string, unknown>,
 ): Promise<unknown> {
   const { data, error } = await supabase.rpc(name, args as never);
-  if (error) throw error;
+  if (error) {
+    const msg = String(error.message ?? "");
+    if (/could not find|does not exist|schema cache/i.test(msg)) {
+      throw new Error(
+        "Relatórios ainda não estão disponíveis neste ambiente. Aplique a migration de relatórios no Lovable Cloud.",
+      );
+    }
+    throw error;
+  }
   return data;
 }
 

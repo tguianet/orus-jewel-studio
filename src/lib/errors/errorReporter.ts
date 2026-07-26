@@ -104,7 +104,7 @@ function shouldDedupe(key: string): boolean {
 
 async function persistToCloud(payload: ReportableError) {
   try {
-    await supabase.rpc("report_operational_error", {
+    const { error } = await supabase.rpc("report_operational_error", {
       p_correlation_id: payload.correlationId,
       p_error_code: payload.code,
       p_category: payload.category,
@@ -115,8 +115,12 @@ async function persistToCloud(payload: ReportableError) {
       p_entity_id: payload.entityId ?? null,
       p_context: payload.sanitizedContext as Json,
     });
+    // RPC ausente / rate limit / rede: silencioso. Nunca chama reportError (anti-loop).
+    if (error && import.meta.env.DEV) {
+      console.info("[app-error] persist skipped:", error.message);
+    }
   } catch {
-    // telemetria não deve quebrar UX
+    // telemetria não deve quebrar UX nem gerar loop
   }
 }
 

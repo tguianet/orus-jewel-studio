@@ -575,7 +575,9 @@ GRANT EXECUTE ON FUNCTION public.record_checkout_consents(uuid, uuid, text, json
 
 -- -----------------------------------------------------------------------------
 -- Integra create_public_order com p_consents (transação única)
+-- Remove overloads antigas para evitar ambiguidade de assinatura no PostgREST.
 -- -----------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS public.create_public_order(uuid, text, text, text, text, jsonb);
 DROP FUNCTION IF EXISTS public.create_public_order(uuid, text, text, text, text, jsonb, uuid);
 
 CREATE OR REPLACE FUNCTION public.create_public_order(

@@ -505,7 +505,11 @@ export type WalletTx = {
 
 export const loadWalletForReseller = async (resellerId: string) => {
   const [{ data: summary, error: summaryError }, { data: txs, error: txsError }] = await Promise.all([
-    supabase.from("reseller_wallet_summary").select("*").eq("reseller_id", resellerId).maybeSingle(),
+    supabase
+      .from("reseller_wallet_summary")
+      .select("reseller_id,pending,available,paid,total_balance,blocked")
+      .eq("reseller_id", resellerId)
+      .maybeSingle(),
     supabase
       .from("wallet_transactions")
       .select("id,type,amount,status,description,created_at,commission_id")

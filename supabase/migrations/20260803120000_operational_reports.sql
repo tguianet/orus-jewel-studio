@@ -539,12 +539,15 @@ BEGIN
     RAISE EXCEPTION 'Status inválido';
   END IF;
 
+  -- Schema atual: não há status 'reversed' em commissions — estornos usam 'cancelled'.
+  -- 'reversed' no filtro é alias de cancelled; no summary NÃO somamos duas vezes.
   SELECT jsonb_build_object(
     'pending', COALESCE(SUM(amount) FILTER (WHERE status = 'pending'), 0),
     'available', COALESCE(SUM(amount) FILTER (WHERE status = 'available'), 0),
     'paid', COALESCE(SUM(amount) FILTER (WHERE status = 'paid'), 0),
     'cancelled', COALESCE(SUM(amount) FILTER (WHERE status = 'cancelled'), 0),
-    'reversed', COALESCE(SUM(amount) FILTER (WHERE status = 'cancelled'), 0)
+    'reversed', 0,
+    'reversed_alias_of', 'cancelled'
   )
   INTO v_summary
   FROM public.commissions c
@@ -1081,12 +1084,14 @@ BEGIN
     'expired_count', COUNT(*),
     'abandoned_amount', COALESCE(SUM(total), 0),
     'avg_hours_to_expiry', COALESCE(AVG(EXTRACT(EPOCH FROM (COALESCE(expired_at, expires_at) - created_at)) / 3600.0), 0),
+    -- Expiração grava restore como cancel_restore (único tipo válido para esse fluxo)
     'units_released', COALESCE((
       SELECT SUM(ABS(sm.quantity))
       FROM public.stock_movements sm
       JOIN public.orders ox ON ox.id = sm.order_id
       LEFT JOIN public.seller_stores ssx ON ssx.id = ox.seller_store_id
-      WHERE sm.movement_type IN ('expire_restore', 'cancel_restore')
+      WHERE sm.movement_type = 'cancel_restore'
+        AND ox.expired_at IS NOT NULL
         AND ox.expired_at >= p_start_date AND ox.expired_at < p_end_date
         AND (p_store_id IS NULL OR ox.seller_store_id = p_store_id)
         AND (p_reseller_id IS NULL OR ssx.reseller_id = p_reseller_id)
