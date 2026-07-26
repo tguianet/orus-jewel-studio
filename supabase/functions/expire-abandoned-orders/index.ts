@@ -6,6 +6,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const JOB_SECRET = Deno.env.get("EXPIRE_JOB_SECRET") ?? "";
+const CRON_SECRET = Deno.env.get("EXPIRE_JOB_CRON_SECRET") ?? "";
 
 const BATCH_LIMIT = 100;
 
@@ -36,6 +37,8 @@ function isAuthorized(req: Request): boolean {
   if (SERVICE_ROLE_KEY && safeEqual(bearer, SERVICE_ROLE_KEY)) return true;
   // B/C) segredo interno guardado em Cloud -> Secrets
   if (JOB_SECRET && (safeEqual(headerSecret, JOB_SECRET) || safeEqual(bearer, JOB_SECRET))) return true;
+  // C) segredo do agendador interno (pg_cron -> pg_net)
+  if (CRON_SECRET && (safeEqual(headerSecret, CRON_SECRET) || safeEqual(bearer, CRON_SECRET))) return true;
   return false;
 }
 
