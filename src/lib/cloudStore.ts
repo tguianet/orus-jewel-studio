@@ -183,7 +183,7 @@ export const loadStoreProducts = async (sellerStoreId: string): Promise<CloudSto
         sellerStoreId: item.seller_store_id,
       } satisfies CloudStoreProduct;
     })
-    .filter((item): item is CloudStoreProduct => Boolean(item));
+    .filter((item) => item !== null) as CloudStoreProduct[];
 };
 
 
