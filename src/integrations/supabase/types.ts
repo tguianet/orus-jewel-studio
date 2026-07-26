@@ -999,6 +999,59 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_code_history: {
+        Row: {
+          code: string
+          id: string
+          reason: string | null
+          reseller_id: string
+          retired_at: string
+          retired_by: string | null
+        }
+        Insert: {
+          code: string
+          id?: string
+          reason?: string | null
+          reseller_id: string
+          retired_at?: string
+          retired_by?: string | null
+        }
+        Update: {
+          code?: string
+          id?: string
+          reason?: string | null
+          reseller_id?: string
+          retired_at?: string
+          retired_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_code_history_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_validation_attempts: {
+        Row: {
+          client_key: string
+          created_at: string
+          id: number
+        }
+        Insert: {
+          client_key: string
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          client_key?: string
+          created_at?: string
+          id?: number
+        }
+        Relationships: []
+      }
       reseller_payout_profiles: {
         Row: {
           payment_details: Json
@@ -1033,36 +1086,42 @@ export type Database = {
       }
       resellers: {
         Row: {
+          can_receive_referrals: boolean
           created_at: string
           display_name: string
           email: string
           id: string
           parent_id: string | null
           phone: string | null
+          referral_code: string
           status: Database["public"]["Enums"]["seller_store_status"]
           tier: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          can_receive_referrals?: boolean
           created_at?: string
           display_name?: string
           email?: string
           id?: string
           parent_id?: string | null
           phone?: string | null
+          referral_code: string
           status?: Database["public"]["Enums"]["seller_store_status"]
           tier?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          can_receive_referrals?: boolean
           created_at?: string
           display_name?: string
           email?: string
           id?: string
           parent_id?: string | null
           phone?: string | null
+          referral_code?: string
           status?: Database["public"]["Enums"]["seller_store_status"]
           tier?: string
           updated_at?: string
@@ -1581,6 +1640,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      _referral_rate_limit_ok: {
+        Args: { p_client_key: string }
+        Returns: boolean
+      }
       _release_withdrawal_hold: {
         Args: {
           p_action: string
@@ -1611,6 +1674,16 @@ export type Database = {
         Returns: number
       }
       _withdrawal_actor_role: { Args: never; Returns: string }
+      admin_create_root_reseller: {
+        Args: {
+          p_reason: string
+          p_reseller_name: string
+          p_store_name: string
+          p_store_slug: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       admin_export_report: {
         Args: { p_filters?: Json; p_report_type: string }
         Returns: Json
@@ -1804,6 +1877,10 @@ export type Database = {
           wholesale_price: number
         }[]
       }
+      admin_regenerate_referral_code: {
+        Args: { p_reason?: string; p_reseller_id: string }
+        Returns: Json
+      }
       admin_resolve_operational_error: {
         Args: { p_error_id: string; p_resolution_notes: string }
         Returns: Json
@@ -1818,6 +1895,14 @@ export type Database = {
       }
       admin_search_users: {
         Args: { p_limit?: number; p_query: string }
+        Returns: Json
+      }
+      admin_set_reseller_sponsor: {
+        Args: {
+          p_reason: string
+          p_reseller_id: string
+          p_sponsor_reseller_id: string
+        }
         Returns: Json
       }
       approve_withdrawal: { Args: { p_withdrawal_id: string }; Returns: Json }
@@ -1889,6 +1974,7 @@ export type Database = {
           units_restored: number
         }[]
       }
+      generate_referral_code: { Args: never; Returns: string }
       get_active_legal_documents: {
         Args: { p_audience?: string }
         Returns: Json
@@ -1963,6 +2049,7 @@ export type Database = {
         }
         Returns: Json
       }
+      normalize_referral_code: { Args: { p_code: string }; Returns: string }
       owns_reseller: {
         Args: { _reseller_id: string; _user_id?: string }
         Returns: boolean
@@ -2063,6 +2150,15 @@ export type Database = {
         Args: { _store_id: string; _user_id?: string }
         Returns: boolean
       }
+      resolve_referral_sponsor: {
+        Args: { p_code: string }
+        Returns: {
+          reason: string
+          sponsor_name: string
+          sponsor_reseller_id: string
+          store_name: string
+        }[]
+      }
       reverse_mlm_commissions_for_order: {
         Args: { _order_id: string; _reason: string }
         Returns: {
@@ -2110,6 +2206,10 @@ export type Database = {
         Args: { _parent_id: string }
         Returns: undefined
       }
+      set_my_reseller_parent_by_code: {
+        Args: { p_referral_code: string }
+        Returns: Json
+      }
       update_commission_settings: {
         Args: {
           p_level_1_rate: number
@@ -2139,6 +2239,14 @@ export type Database = {
         Returns: Json
       }
       validate_checkout_consents: { Args: { p_consents: Json }; Returns: Json }
+      validate_referral_code: {
+        Args: { p_client_key?: string; p_code: string }
+        Returns: Json
+      }
+      would_create_reseller_cycle: {
+        Args: { p_new_parent_id: string; p_reseller_id: string }
+        Returns: boolean
+      }
       write_audit_log: {
         Args: {
           p_action: string
