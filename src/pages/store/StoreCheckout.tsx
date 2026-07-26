@@ -272,10 +272,10 @@ const StoreCheckout = () => {
 
       const confirmed: OrderResult = {
         order_id: row.order_id,
-        status: row.status,
+        status: row.status ?? "new",
         subtotal: Number(row.subtotal),
         total: Number(row.total),
-        created_at: row.created_at,
+        created_at: row.created_at ?? new Date().toISOString(),
         expires_at: row.expires_at ?? null,
         items: parseConfirmedItems(row.items),
       };
