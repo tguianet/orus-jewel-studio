@@ -4,7 +4,13 @@ import necklaceImg from "@/assets/product-necklace.jpg";
 import braceletImg from "@/assets/product-bracelet.jpg";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database, Tables } from "@/integrations/supabase/types";
-import type { Product, Sacoleira } from "@/types/commerce";
+import type {
+  AdminProduct,
+  PublicProduct,
+  ResellerProduct,
+  Sacoleira,
+} from "@/types/commerce";
+import { loadAdminProductCosts, mergeAdminCost } from "@/lib/productCosts";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
 type SellerStoreStatus = Database["public"]["Enums"]["seller_store_status"];
@@ -36,13 +42,13 @@ type StoreProductQueryRow = {
   } | null;
 };
 
-type ProductRow = Pick<
+/** Linha de products sem cost_price (sacoleira / listagem base admin). */
+type ProductRowNoCost = Pick<
   Tables<"products">,
   | "id"
   | "code"
   | "name"
   | "description"
-  | "cost_price"
   | "wholesale_price"
   | "suggested_price"
   | "stock"
@@ -52,6 +58,15 @@ type ProductRow = Pick<
   | "category_name"
   | "status"
 >;
+
+export const RESELLER_PRODUCT_SELECT =
+  "id,code,name,description,wholesale_price,suggested_price,stock,min_order,image_url,images,category_name,status";
+
+export const ADMIN_PRODUCT_SELECT_NO_COST =
+  "id,code,name,description,wholesale_price,suggested_price,stock,min_order,image_url,images,category_name,status";
+
+export const PUBLIC_PRODUCT_NESTED_SELECT =
+  "id, code, name, description, suggested_price, stock, min_order, image_url, images, status, category_name, categories(name)";
 
 type StoreProductLink = Pick<Tables<"store_products">, "id" | "product_id" | "resale_price" | "active" | "images">;
 
@@ -96,7 +111,7 @@ const imageByCategory = (category?: string | null) => {
   return ringImg;
 };
 
-export type CloudStoreProduct = Product & { resellerPrice: number; sellerStoreId: string };
+export type CloudStoreProduct = PublicProduct & { sellerStoreId: string };
 
 export const mapStore = (
   row: PublicStoreRow & {
@@ -143,11 +158,11 @@ export const loadPublicStore = async (slug?: string) => {
 
 
 export const loadStoreProducts = async (sellerStoreId: string): Promise<CloudStoreProduct[]> => {
-  // Colunas públicas apenas (anon não tem SELECT em cost_price / wholesale_price).
+  // Público: apenas colunas de PUBLIC_PRODUCT_NESTED_SELECT + resale.
   const { data, error } = await supabase
     .from("store_products")
     .select(
-      "id, resale_price, seller_store_id, active, images, products(id, code, name, description, suggested_price, stock, min_order, image_url, images, status, category_name, categories(name))",
+      `id, resale_price, seller_store_id, active, images, products(${PUBLIC_PRODUCT_NESTED_SELECT})`,
     )
     .eq("seller_store_id", sellerStoreId)
     .eq("active", true);
@@ -171,8 +186,6 @@ export const loadStoreProducts = async (sellerStoreId: string): Promise<CloudSto
         name: product.name,
         category,
         description: product.description,
-        costPrice: 0,
-        wholesalePrice: 0,
         suggestedPrice: Number(product.suggested_price || 0),
         stock: Number(product.stock || 0),
         minOrder: Number(product.min_order || 1),
@@ -189,9 +202,13 @@ export const loadStoreProducts = async (sellerStoreId: string): Promise<CloudSto
 
 // ---------- Admin / catalog ----------
 
-export type CatalogProduct = Product & { selected: boolean; storeProductId?: string; resellerPrice: number };
+export type CatalogProduct = ResellerProduct & {
+  selected: boolean;
+  storeProductId?: string;
+  resellerPrice: number;
+};
 
-const mapProductRow = (p: ProductRow): Product => {
+const mapResellerProductRow = (p: ProductRowNoCost): ResellerProduct => {
   const gallery: string[] = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
   const finalGallery = gallery.length ? gallery : (p.image_url ? [p.image_url] : []);
   return {
@@ -200,7 +217,6 @@ const mapProductRow = (p: ProductRow): Product => {
     name: p.name,
     category: p.category_name || "Joias",
     description: p.description,
-    costPrice: Number(p.cost_price || 0),
     wholesalePrice: Number(p.wholesale_price || 0),
     suggestedPrice: Number(p.suggested_price || 0),
     stock: Number(p.stock || 0),
@@ -211,20 +227,42 @@ const mapProductRow = (p: ProductRow): Product => {
   };
 };
 
-export const loadAdminProducts = async (): Promise<Product[]> => {
+/** Admin: listagem sem cost_price + merge via admin_product_costs(). */
+export const loadAdminProducts = async (): Promise<AdminProduct[]> => {
   const { data, error } = await supabase
     .from("products")
-    .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,images,category_name,status")
+    .select(ADMIN_PRODUCT_SELECT_NO_COST)
+    .is("seller_store_id", null)
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []).map((p) => mapProductRow(p as ProductRow));
+
+  let costs = new Map<string, { id: string; cost_price: number; wholesale_price: number }>();
+  try {
+    costs = await loadAdminProductCosts();
+  } catch (e) {
+    console.warn("[loadAdminProducts] admin_product_costs indisponível:", e);
+  }
+
+  return ((data ?? []) as ProductRowNoCost[]).map((p) => {
+    const base = mapResellerProductRow(p);
+    const merged = mergeAdminCost(p.id, costs, base.wholesalePrice);
+    const row: AdminProduct = {
+      ...base,
+      wholesalePrice: merged.wholesalePrice ?? base.wholesalePrice,
+    };
+    if (merged.costPrice !== undefined) {
+      row.costPrice = merged.costPrice;
+    }
+    return row;
+  });
 };
 
+/** Catálogo da sacoleira: wholesale ok; cost_price nunca no SELECT. */
 export const loadCatalogForStore = async (storeId: string): Promise<CatalogProduct[]> => {
   const [{ data: products, error: productsError }, { data: links, error: linksError }] = await Promise.all([
     supabase
       .from("products")
-      .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,images,category_name,status")
+      .select(RESELLER_PRODUCT_SELECT)
       .eq("status", "active")
       .is("seller_store_id", null)
       .or("category_name.is.null,category_name.neq.Cadastro em massa")
@@ -248,13 +286,14 @@ export const loadCatalogForStore = async (storeId: string): Promise<CatalogProdu
       },
     ]),
   );
-  return ((products ?? []) as ProductRow[]).map((p) => {
+  return ((products ?? []) as ProductRowNoCost[]).map((p) => {
     const link = linkByProduct.get(p.id);
     const productImages: string[] = Array.isArray(p.images) ? p.images : [];
     const gallery = [...productImages, ...(link?.images ?? [])].filter(Boolean);
     const finalGallery = gallery.length ? gallery : (p.image_url ? [p.image_url] : []);
+    const base = mapResellerProductRow(p);
     return {
-      ...mapProductRow(p),
+      ...base,
       image: finalGallery[0] || imageByCategory(p.category_name),
       images: finalGallery,
       selected: !!link?.active,

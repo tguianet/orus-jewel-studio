@@ -1,11 +1,14 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-import type { Product } from "@/types/commerce";
+import type { ProductBase } from "@/types/commerce";
 
-export type CartItem = { product: Product; price: number; qty: number };
+/** Carrinho da loja pública — sem preços internos. */
+export type CartProduct = ProductBase;
+
+export type CartItem = { product: CartProduct; price: number; qty: number };
 
 type Ctx = {
   items: CartItem[];
-  add: (p: Product, price: number) => void;
+  add: (p: CartProduct, price: number) => void;
   remove: (id: string) => void;
   setQty: (id: string, qty: number) => void;
   clear: () => void;
@@ -18,7 +21,7 @@ const CartContext = createContext<Ctx | null>(null);
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
 
-  const add = (product: Product, price: number) => {
+  const add = (product: CartProduct, price: number) => {
     setItems(prev => {
       const found = prev.find(i => i.product.id === product.id);
       if (found) return prev.map(i => i.product.id === product.id ? { ...i, qty: i.qty + 1 } : i);

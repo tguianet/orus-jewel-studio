@@ -11,6 +11,7 @@ import { NewProductModal } from "@/components/NewProductModal";
 import { BulkUploadModal } from "@/components/BulkUploadModal";
 import { formatBRL } from "@/lib/format";
 import type { Product } from "@/types/commerce";
+import { loadAdminProducts } from "@/lib/cloudStore";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -41,31 +42,18 @@ const AdminProducts = () => {
   const [deleting, setDeleting] = useState(false);
 
   const loadProducts = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("products")
-      .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,category_name,status")
-      .is("seller_store_id", null)
-      .order("created_at", { ascending: false });
-
-    if (error) {
+    try {
+      const rows = await loadAdminProducts();
+      setItems(
+        rows.map((product) => ({
+          ...product,
+          category: product.category || "Sem categoria",
+          image: product.image || "/placeholder.svg",
+        })),
+      );
+    } catch {
       toast.error("Não foi possível carregar os produtos salvos.");
-      return;
     }
-
-    setItems((data ?? []).map((product) => ({
-      id: product.id,
-      code: product.code,
-      name: product.name,
-      category: product.category_name || "Sem categoria",
-      description: product.description,
-      costPrice: Number(product.cost_price ?? 0),
-      wholesalePrice: Number(product.wholesale_price ?? 0),
-      suggestedPrice: Number(product.suggested_price ?? 0),
-      stock: product.stock ?? 0,
-      minOrder: product.min_order ?? 1,
-      image: product.image_url || "/placeholder.svg",
-      active: product.status === "active",
-    })));
   }, []);
 
   useEffect(() => {

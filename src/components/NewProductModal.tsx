@@ -66,6 +66,7 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
     const stock = Number(form.get("stock") || 0);
     const code = `AUR-${category.charAt(0).toUpperCase()}${Date.now().toString().slice(-3)}`;
     const primary = images[0] || null;
+    const computedCost = Math.round(wholesalePrice * 0.58);
 
     try {
       const { data: savedProduct, error: productError } = await supabase
@@ -77,7 +78,7 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
           category_name: category,
           seller_store_id: null,
           description: "Produto cadastrado pelo painel Amada Amante.",
-          cost_price: Math.round(wholesalePrice * 0.58),
+          cost_price: computedCost,
           wholesale_price: wholesalePrice,
           suggested_price: suggestedPrice,
           stock,
@@ -86,7 +87,8 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
           images,
           status: "active",
         })
-        .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,images,category_name")
+        // Sem cost_price no RETURNING — coluna revogada para authenticated SELECT.
+        .select("id,code,name,description,wholesale_price,suggested_price,stock,min_order,image_url,images,category_name")
         .single();
 
       if (productError) throw productError;
@@ -98,7 +100,7 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
         name: savedProduct.name,
         category: savedProduct.category_name || category,
         description: savedProduct.description,
-        costPrice: Number(savedProduct.cost_price ?? 0),
+        costPrice: computedCost,
         wholesalePrice: Number(savedProduct.wholesale_price ?? 0),
         suggestedPrice: Number(savedProduct.suggested_price ?? 0),
         stock: savedProduct.stock ?? 0,

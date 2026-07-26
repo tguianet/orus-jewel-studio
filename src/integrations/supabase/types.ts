@@ -1031,6 +1031,7 @@ export type Database = {
       }
     }
     Functions: {
+      /** Somente is_admin — sacoleira/anon são negados no corpo da função. */
       admin_product_costs: {
         Args: never
         Returns: {

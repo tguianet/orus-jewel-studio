@@ -61,14 +61,13 @@ export type Category = {
   description?: string | null;
 };
 
-export type Product = {
+/** Campos comuns — sem preços internos. */
+export type ProductBase = {
   id: string;
   code: string;
   name: string;
   category: string;
   description: string;
-  costPrice: number;
-  wholesalePrice: number;
   suggestedPrice: number;
   stock: number;
   minOrder: number;
@@ -76,6 +75,30 @@ export type Product = {
   images?: string[];
   active: boolean;
 };
+
+/** Loja pública / cliente — sem cost nem wholesale. */
+export type PublicProduct = ProductBase & {
+  resellerPrice: number;
+  sellerStoreId?: string;
+};
+
+/** Catálogo da sacoleira — wholesale permitido; costPrice proibido. */
+export type ResellerProduct = ProductBase & {
+  wholesalePrice: number;
+  resellerPrice?: number;
+};
+
+/** Painel admin — inclui custo interno (via RPC; pode faltar se RPC falhar). */
+export type AdminProduct = ProductBase & {
+  wholesalePrice: number;
+  costPrice?: number;
+};
+
+/**
+ * Alias histórico do admin.
+ * Não usar em fluxos de sacoleira/loja pública.
+ */
+export type Product = AdminProduct;
 
 export type Sacoleira = {
   id: string;
