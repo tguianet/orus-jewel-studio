@@ -145,13 +145,30 @@ export function pageHasFilledForm(root: ParentNode = document): boolean {
   return false;
 }
 
-/** E — checkout preenchido exige confirmação */
+/** Rotas de operação crítica: atualizar no meio pode perder a operação. */
+export const PWA_CRITICAL_PATH_PATTERNS = [
+  "/checkout",
+  "/carrinho",
+  "/pagamento",
+  "/saques",
+  "/withdrawals",
+  "/devolucoes",
+  "/trocas",
+];
+
+export function isCriticalOperationPath(pathname: string): boolean {
+  const p = String(pathname || "").toLowerCase();
+  return PWA_CRITICAL_PATH_PATTERNS.some((frag) => p.includes(frag));
+}
+
+/** E — operação crítica em andamento exige confirmação */
 export function shouldConfirmBeforeUpdate(opts: {
   pathname: string;
   hasFilledForm: boolean;
 }): boolean {
-  return opts.pathname.toLowerCase().includes("/checkout") && opts.hasFilledForm;
+  return isCriticalOperationPath(opts.pathname) && opts.hasFilledForm;
 }
+
 
 export function requiresOnlineForPath(pathname: string): boolean {
   return isSensitiveOnlinePath(pathname);
