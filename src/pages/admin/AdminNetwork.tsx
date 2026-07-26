@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
-import { Network, Users, Crown } from "lucide-react";
+import { Network, Users, Crown, Loader2 } from "lucide-react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
-import { commissionRules } from "@/lib/commissionRules";
+import {
+  formatRateAsPercent,
+  getCurrentCommissionRates,
+  settingsToRules,
+  type CommissionRule,
+} from "@/lib/commissionSettings";
 import { formatBRL } from "@/lib/format";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -25,6 +30,9 @@ const AdminNetwork = () => {
   const [resellers, setResellers] = useState<Reseller[]>([]);
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [loading, setLoading] = useState(true);
+  const [rateRules, setRateRules] = useState<CommissionRule[] | null>(null);
+  const [ratesLoading, setRatesLoading] = useState(true);
+  const [ratesError, setRatesError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -35,6 +43,22 @@ const AdminNetwork = () => {
       setResellers((rs as Reseller[]) || []);
       setCommissions((cs as Commission[]) || []);
       setLoading(false);
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      setRatesLoading(true);
+      setRatesError(null);
+      try {
+        const rates = await getCurrentCommissionRates();
+        setRateRules(settingsToRules(rates));
+      } catch {
+        setRateRules(null);
+        setRatesError("Não foi possível carregar as taxas de comissão.");
+      } finally {
+        setRatesLoading(false);
+      }
     })();
   }, []);
 
@@ -51,16 +75,22 @@ const AdminNetwork = () => {
     ];
   };
   const earningsOf = (id: string) =>
-    commissionRules.map((rule) => ({
-      ...rule,
+    ([1, 2, 3] as const).map((level) => ({
+      level,
       amount: commissions
-        .filter((c) => c.reseller_id === id && c.level === rule.level && c.status === "available")
+        .filter((c) => c.reseller_id === id && c.level === level && c.status === "available")
         .reduce((sum, c) => sum + Number(c.amount || 0), 0),
     }));
 
   const totalAvailable = commissions
     .filter((c) => c.status === "available")
     .reduce((sum, c) => sum + Number(c.amount || 0), 0);
+
+  const ratesHint = ratesLoading
+    ? "…"
+    : rateRules
+      ? rateRules.map((r) => formatRateAsPercent(r.rate)).join(" · ")
+      : "indisponível";
 
   return (
     <AdminLayout>
@@ -74,7 +104,12 @@ const AdminNetwork = () => {
         <StatCard label="Revendedoras aprovadas" value={String(approved.length)} icon={Users} />
         <StatCard label="Rede total" value={String(resellers.length)} icon={Network} hint="inclui pendentes" />
         <StatCard label="Comissões disponíveis" value={formatBRL(totalAvailable)} icon={Crown} />
-        <StatCard label="Níveis ativos" value="3" icon={Network} hint="10% · 5% · 2%" />
+        <StatCard
+          label="Níveis ativos"
+          value="3"
+          icon={Network}
+          hint={ratesHint}
+        />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-5">
@@ -123,14 +158,24 @@ const AdminNetwork = () => {
         <div className="rounded-xl border border-primary/20 bg-gradient-gold-soft p-6">
           <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Regras</p>
           <h3 className="font-display text-2xl mb-4">Comissão MLM por venda</h3>
-          <div className="space-y-3">
-            {commissionRules.map((rule) => (
-              <div key={rule.level} className="flex items-center justify-between rounded-lg border border-border bg-card/70 p-3">
-                <span className="text-sm">{rule.label}</span>
-                <span className="font-display text-xl text-gold">{Math.round(rule.rate * 100)}%</span>
-              </div>
-            ))}
-          </div>
+          {ratesLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+              <Loader2 className="h-4 w-4 animate-spin" /> Carregando taxas…
+            </div>
+          ) : ratesError || !rateRules ? (
+            <p className="text-sm text-muted-foreground py-2">
+              {ratesError || "Não foi possível carregar as taxas de comissão."}
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {rateRules.map((rule) => (
+                <div key={rule.level} className="flex items-center justify-between rounded-lg border border-border bg-card/70 p-3">
+                  <span className="text-sm">{rule.label}</span>
+                  <span className="font-display text-xl text-gold">{formatRateAsPercent(rule.rate)}</span>
+                </div>
+              ))}
+            </div>
+          )}
           <p className="mt-4 text-xs text-muted-foreground">MLM sem comissão por cadastro: a carteira só recebe valores de pedidos de produto confirmados.</p>
         </div>
       </div>

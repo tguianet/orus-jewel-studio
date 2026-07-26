@@ -10,17 +10,18 @@ import { loadNetwork, NetworkMember } from "@/lib/cloudStore";
 import { waLink } from "@/lib/whatsapp";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/format";
-import { commissionRules as baseCommissionRules } from "@/lib/commissionRules";
+import {
+  formatRateAsPercent,
+  getCurrentCommissionRates,
+  settingsToRules,
+  type CommissionRule,
+} from "@/lib/commissionSettings";
 
-const commissionRules = baseCommissionRules.map((rule) => ({
-  ...rule,
-  label:
-    rule.level === 1
-      ? "Nível 1 — venda direta"
-      : rule.level === 2
-        ? "Nível 2 — indicada"
-        : "Nível 3 — sub-indicada",
-}));
+const levelLabels: Record<1 | 2 | 3, string> = {
+  1: "Nível 1 — venda direta",
+  2: "Nível 2 — indicada",
+  3: "Nível 3 — sub-indicada",
+};
 
 const SellerNetwork = () => {
   const { profile } = useAuth();
@@ -28,6 +29,9 @@ const SellerNetwork = () => {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [monthBySource, setMonthBySource] = useState<Record<string, number>>({});
+  const [rateRules, setRateRules] = useState<CommissionRule[] | null>(null);
+  const [ratesLoading, setRatesLoading] = useState(true);
+  const [ratesFailed, setRatesFailed] = useState(false);
 
   const monthLabel = new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 
@@ -68,7 +72,34 @@ const SellerNetwork = () => {
     });
   }, [profile?.resellerId]);
 
+  useEffect(() => {
+    (async () => {
+      setRatesLoading(true);
+      setRatesFailed(false);
+      try {
+        const rates = await getCurrentCommissionRates();
+        setRateRules(
+          settingsToRules(rates).map((rule) => ({
+            ...rule,
+            label: levelLabels[rule.level],
+          })),
+        );
+      } catch {
+        setRateRules(null);
+        setRatesFailed(true);
+      } finally {
+        setRatesLoading(false);
+      }
+    })();
+  }, []);
+
   const byLevel = (lvl: number) => members.filter((m) => m.level === lvl);
+
+  const ratesHint = ratesLoading
+    ? "…"
+    : ratesFailed || !rateRules
+      ? "definidas pelo admin"
+      : rateRules.map((r) => formatRateAsPercent(r.rate)).join(" · ");
 
   return (
     <SellerLayout>
@@ -91,7 +122,12 @@ const SellerNetwork = () => {
         <StatCard label="Diretas (N1)" value={String(byLevel(1).length)} icon={Users}/>
         <StatCard label="Nível 2" value={String(byLevel(2).length)} icon={Network}/>
         <StatCard label="Nível 3" value={String(byLevel(3).length)} icon={Network}/>
-        <StatCard label="Rede total" value={String(members.length)} icon={Network} hint="10% · 5% · 2%"/>
+        <StatCard
+          label="Rede total"
+          value={String(members.length)}
+          icon={Network}
+          hint={ratesHint}
+        />
       </div>
 
       {loading ? <div className="flex items-center justify-center h-40 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin mr-2"/> Carregando...</div> : (
@@ -144,14 +180,24 @@ const SellerNetwork = () => {
 
         <div className="rounded-xl border border-primary/20 bg-gradient-gold-soft p-6">
           <h3 className="font-display text-2xl mb-4">Plano MLM</h3>
-          <div className="space-y-3">
-            {commissionRules.map((r) => (
-              <div key={r.level} className="flex items-center justify-between rounded-lg border border-border bg-card/70 p-3">
-                <span className="text-sm">{r.label}</span>
-                <span className="font-display text-xl text-gold">{Math.round(r.rate * 100)}%</span>
-              </div>
-            ))}
-          </div>
+          {ratesLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+              <Loader2 className="h-4 w-4 animate-spin" /> Carregando…
+            </div>
+          ) : ratesFailed || !rateRules ? (
+            <p className="text-sm text-muted-foreground py-2">
+              Comissões definidas pelo administrador
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {rateRules.map((r) => (
+                <div key={r.level} className="flex items-center justify-between rounded-lg border border-border bg-card/70 p-3">
+                  <span className="text-sm">{r.label}</span>
+                  <span className="font-display text-xl text-gold">{formatRateAsPercent(r.rate)}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       )}

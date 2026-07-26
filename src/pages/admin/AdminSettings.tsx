@@ -18,6 +18,20 @@ import {
   slugify,
   updateImageFormat,
 } from "@/lib/marketingBanners";
+import type { CommissionSettings } from "@/lib/commissionSettings";
+import {
+  loadCommissionSettings,
+  percentToRate,
+  rateToPercent,
+  updateCommissionSettings,
+  validateCommissionPercents,
+} from "@/lib/commissionSettings";
+
+const parsePercentInput = (raw: string): number => {
+  const normalized = raw.trim().replace(",", ".");
+  if (normalized === "") return Number.NaN;
+  return Number(normalized);
+};
 
 const AdminSettings = () => {
   const [formats, setFormats] = useState<ImageFormat[]>([]);
@@ -25,6 +39,15 @@ const AdminSettings = () => {
   const [saving, setSaving] = useState(false);
   const [printing, setPrinting] = useState(false);
   const [draft, setDraft] = useState({ name: "", width: 1080, height: 1080, description: "" });
+
+  const [commissionLoading, setCommissionLoading] = useState(true);
+  const [commissionSaving, setCommissionSaving] = useState(false);
+  const [commissionSettings, setCommissionSettings] = useState<CommissionSettings | null>(null);
+  const [commissionError, setCommissionError] = useState<string | null>(null);
+  const [commissionSuccess, setCommissionSuccess] = useState<string | null>(null);
+  const [level1Percent, setLevel1Percent] = useState("");
+  const [level2Percent, setLevel2Percent] = useState("");
+  const [level3Percent, setLevel3Percent] = useState("");
 
   const printTodayOrders = async () => {
     try {
@@ -99,13 +122,50 @@ ${orders.map((o) => `
     } finally { setPrinting(false); }
   };
 
+  const applyCommissionSettings = (settings: CommissionSettings) => {
+    setCommissionSettings(settings);
+    setLevel1Percent(String(rateToPercent(Number(settings.level_1_rate))));
+    setLevel2Percent(String(rateToPercent(Number(settings.level_2_rate))));
+    setLevel3Percent(String(rateToPercent(Number(settings.level_3_rate))));
+  };
+
+  const reloadCommissions = async () => {
+    setCommissionLoading(true);
+    setCommissionError(null);
+    try {
+      const settings = await loadCommissionSettings();
+      applyCommissionSettings(settings);
+    } catch (e: unknown) {
+      setCommissionSettings(null);
+      setCommissionError(e instanceof Error ? e.message : "Falha ao carregar comissões do banco.");
+    } finally {
+      setCommissionLoading(false);
+    }
+  };
+
   const reload = async () => {
     setLoading(true);
     setFormats(await loadImageFormats(false));
     setLoading(false);
   };
 
-  useEffect(() => { reload(); }, []);
+  useEffect(() => {
+    void reload();
+    // Carga inicial da aba Comissões (admin → Supabase; sem fallback silencioso)
+    void (async () => {
+      setCommissionLoading(true);
+      setCommissionError(null);
+      try {
+        const settings = await loadCommissionSettings();
+        applyCommissionSettings(settings);
+      } catch (e: unknown) {
+        setCommissionSettings(null);
+        setCommissionError(e instanceof Error ? e.message : "Falha ao carregar comissões do banco.");
+      } finally {
+        setCommissionLoading(false);
+      }
+    })();
+  }, []);
 
   const addFormat = async () => {
     const name = draft.name.trim();
@@ -143,6 +203,54 @@ ${orders.map((o) => `
     } catch { toast.error("Falha ao remover."); }
   };
 
+  const saveCommissions = async () => {
+    setCommissionSuccess(null);
+    setCommissionError(null);
+
+    const p1 = parsePercentInput(level1Percent);
+    const p2 = parsePercentInput(level2Percent);
+    const p3 = parsePercentInput(level3Percent);
+    const validationError = validateCommissionPercents(p1, p2, p3);
+    if (validationError) {
+      setCommissionError(validationError);
+      toast.error(validationError);
+      return;
+    }
+
+    const confirmed = confirm(
+      `Confirmar novas comissões?\n\nNível 1: ${p1}%\nNível 2: ${p2}%\nNível 3: ${p3}%\n\nEssa alteração vale apenas para vendas futuras. Pedidos e comissões já gerados não serão recalculados.`,
+    );
+    if (!confirmed) return;
+
+    try {
+      setCommissionSaving(true);
+      const updated = await updateCommissionSettings({
+        level1: percentToRate(p1),
+        level2: percentToRate(p2),
+        level3: percentToRate(p3),
+      });
+      applyCommissionSettings(updated);
+      const msg = "Comissões salvas com sucesso. Válidas apenas para vendas futuras.";
+      setCommissionSuccess(msg);
+      toast.success(msg);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Falha ao salvar comissões.";
+      setCommissionError(msg);
+      toast.error(msg);
+    } finally {
+      setCommissionSaving(false);
+    }
+  };
+
+  const lastChangeLabel = (() => {
+    if (!commissionSettings) return null;
+    const when = new Date(commissionSettings.updated_at).toLocaleString("pt-BR");
+    const who = commissionSettings.updated_by
+      ? ` · por ${commissionSettings.updated_by.slice(0, 8)}…`
+      : " · usuário não registrado";
+    return `${when}${who}`;
+  })();
+
   return (
     <AdminLayout>
       <PageHeader eyebrow="Configurações" title="Ajustes gerais" description="Marca, regras de comissão e formatos de imagem para a rede." />
@@ -150,6 +258,7 @@ ${orders.map((o) => `
       <Tabs defaultValue="geral" className="max-w-4xl">
         <TabsList>
           <TabsTrigger value="geral">Geral</TabsTrigger>
+          <TabsTrigger value="comissoes">Comissões</TabsTrigger>
           <TabsTrigger value="formatos">Formatos de imagem</TabsTrigger>
         </TabsList>
 
@@ -180,6 +289,120 @@ ${orders.map((o) => `
               <div><Label>Desconto VIP (%)</Label><Input defaultValue="15" className="mt-1.5" /></div>
               <Button variant="goldOutline" className="w-full">Atualizar regras</Button>
             </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="comissoes" className="mt-6 space-y-6">
+          <div className="rounded-xl border border-border bg-card p-6 space-y-5">
+            <div>
+              <h3 className="font-display text-xl">Comissões MLM</h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Percentuais por nível da rede. Persistidos no Supabase e aplicados apenas em vendas futuras.
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-muted-foreground">
+              Alterar estes valores <span className="text-foreground font-medium">não recalcula</span> pedidos
+              nem comissões já geradas. A taxa e o valor originais permanecem nas linhas existentes.
+            </div>
+
+            {commissionLoading ? (
+              <div className="flex items-center justify-center h-28 text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin mr-2" /> Carregando comissões...
+              </div>
+            ) : !commissionSettings ? (
+              <div className="space-y-3">
+                <p className="text-sm text-destructive" role="alert">
+                  {commissionError || "Não foi possível carregar a configuração de comissões."}
+                </p>
+                <Button variant="goldOutline" onClick={() => void reloadCommissions()}>
+                  Tentar novamente
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="grid sm:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="commission-l1">Comissão do nível 1 (%)</Label>
+                    <Input
+                      id="commission-l1"
+                      type="text"
+                      inputMode="decimal"
+                      value={level1Percent}
+                      onChange={(e) => {
+                        setLevel1Percent(e.target.value);
+                        setCommissionSuccess(null);
+                        setCommissionError(null);
+                      }}
+                      className="mt-1.5"
+                      disabled={commissionSaving}
+                      placeholder="25"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="commission-l2">Comissão do nível 2 (%)</Label>
+                    <Input
+                      id="commission-l2"
+                      type="text"
+                      inputMode="decimal"
+                      value={level2Percent}
+                      onChange={(e) => {
+                        setLevel2Percent(e.target.value);
+                        setCommissionSuccess(null);
+                        setCommissionError(null);
+                      }}
+                      className="mt-1.5"
+                      disabled={commissionSaving}
+                      placeholder="3"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="commission-l3">Comissão do nível 3 (%)</Label>
+                    <Input
+                      id="commission-l3"
+                      type="text"
+                      inputMode="decimal"
+                      value={level3Percent}
+                      onChange={(e) => {
+                        setLevel3Percent(e.target.value);
+                        setCommissionSuccess(null);
+                        setCommissionError(null);
+                      }}
+                      className="mt-1.5"
+                      disabled={commissionSaving}
+                      placeholder="2"
+                    />
+                  </div>
+                </div>
+
+                {lastChangeLabel && (
+                  <p className="text-xs text-muted-foreground">
+                    Última alteração: {lastChangeLabel}
+                  </p>
+                )}
+
+                {commissionError && (
+                  <p className="text-sm text-destructive" role="alert">{commissionError}</p>
+                )}
+                {commissionSuccess && (
+                  <p className="text-sm text-emerald-600 dark:text-emerald-400" role="status">{commissionSuccess}</p>
+                )}
+
+                <div className="flex flex-wrap gap-3">
+                  <Button variant="gold" onClick={saveCommissions} disabled={commissionSaving}>
+                    {commissionSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                    Salvar comissões
+                  </Button>
+                  <Button
+                    variant="goldOutline"
+                    onClick={() => void reloadCommissions()}
+                    disabled={commissionLoading || commissionSaving}
+                  >
+                    Recarregar
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </TabsContent>
 
