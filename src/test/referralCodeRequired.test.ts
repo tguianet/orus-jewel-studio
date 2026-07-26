@@ -8,12 +8,15 @@ import {
 } from "@/lib/referralCode";
 
 const rpc = vi.fn();
+const signUp = vi.fn();
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     rpc: (...args: unknown[]) => rpc(...args),
+    auth: { signUp: (...args: unknown[]) => signUp(...args) },
   },
 }));
+
 
 describe("referralCode — cadastro obrigatório", () => {
   beforeEach(() => {
