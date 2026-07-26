@@ -10,6 +10,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  DEFAULT_RESERVE_MINUTES,
+  formatCountdown,
+  formatExpiresAt,
+  isReservationExpiredByClock,
+  isTerminalCheckoutTokenError,
+  remainingSecondsUntil,
+} from "@/lib/orderExpiry";
 import { toast } from "sonner";
 
 type Step = "form" | "processing" | "success";
@@ -28,6 +36,7 @@ type OrderResult = {
   subtotal: number;
   total: number;
   created_at: string;
+  expires_at: string | null;
   items: ConfirmedItem[];
 };
 
@@ -45,7 +54,6 @@ function newCheckoutToken(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID();
   }
-  // Fallback RFC-like UUID v4 (sem crypto.randomUUID)
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
     const v = c === "x" ? r : (r & 0x3) | 0x8;
@@ -64,7 +72,6 @@ function getOrCreateCheckoutToken(storeId: string, fingerprint: string): string 
   try {
     const prevCart = sessionStorage.getItem(checkoutCartKey(storeId));
     const existing = sessionStorage.getItem(checkoutTokenKey(storeId));
-    // Carrinho mudou → novo token (evita reutilizar pedido antigo com itens diferentes)
     if (prevCart !== fingerprint) {
       const token = newCheckoutToken();
       sessionStorage.setItem(checkoutTokenKey(storeId), token);
@@ -116,10 +123,10 @@ const StoreCheckout = () => {
   const [step, setStep] = useState<Step>("form");
   const [order, setOrder] = useState<OrderResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [nowMs, setNowMs] = useState(() => Date.now());
 
   const fingerprint = useMemo(() => cartFingerprint(items), [items]);
 
-  // Se o carrinho mudar fora do submit, invalida token antigo desta loja.
   useEffect(() => {
     if (!store?.id) return;
     try {
@@ -131,6 +138,19 @@ const StoreCheckout = () => {
       // ignore
     }
   }, [store?.id, fingerprint]);
+
+  useEffect(() => {
+    if (step !== "success" || !order?.expires_at) return;
+    const id = window.setInterval(() => setNowMs(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [step, order?.expires_at]);
+
+  const countdownSecs = order?.expires_at
+    ? remainingSecondsUntil(order.expires_at, nowMs)
+    : null;
+  const reservationExpiredUi = order?.expires_at
+    ? isReservationExpiredByClock(order.expires_at, nowMs)
+    : false;
 
   const submitOrder = async (e: FormEvent) => {
     e.preventDefault();
@@ -145,7 +165,6 @@ const StoreCheckout = () => {
       return;
     }
 
-    // Só product_id + quantity (sem preços/status). Token reutilizado no retry.
     const payloadItems = items.map((i) => ({
       product_id: i.product.id,
       quantity: i.qty,
@@ -178,10 +197,12 @@ const StoreCheckout = () => {
         subtotal: Number(row.subtotal),
         total: Number(row.total),
         created_at: row.created_at,
+        expires_at: row.expires_at ?? null,
         items: parseConfirmedItems(row.items),
       };
 
       setOrder(confirmed);
+      setNowMs(Date.now());
       clear();
       clearCheckoutToken(store.id);
       setStep("success");
@@ -192,8 +213,16 @@ const StoreCheckout = () => {
         err && typeof err === "object" && "message" in err
           ? String((err as { message: string }).message)
           : "Não foi possível enviar o pedido";
-      toast.error("Erro ao enviar pedido", { description: message });
-      // Mantém o token para retry idempotente (não cria outro pedido)
+
+      // Token terminal/expirado: limpa e gera novo na próxima tentativa
+      if (isTerminalCheckoutTokenError(message)) {
+        clearCheckoutToken(store.id);
+        toast.error("Reserva expirada ou pedido encerrado", {
+          description: "Seu carrinho foi mantido. Envie o pedido novamente para criar uma nova reserva.",
+        });
+      } else {
+        toast.error("Erro ao enviar pedido", { description: message });
+      }
       setStep("form");
     } finally {
       setSubmitting(false);
@@ -209,6 +238,9 @@ const StoreCheckout = () => {
       "",
       `*Pedido:* ${shortId}`,
       `*Status:* aguardando confirmação`,
+      order.expires_at
+        ? `*Reserva até:* ${formatExpiresAt(order.expires_at)}`
+        : "",
       "",
       `*Cliente:* ${form.name}`,
       `*WhatsApp:* ${form.phone}`,
@@ -224,6 +256,7 @@ const StoreCheckout = () => {
       `*Total confirmado:* ${formatBRL(order.total)}`,
       "",
       "_Combine o pagamento com a revendedora._",
+      "_Após o prazo a reserva de estoque expira._",
     ]
       .filter(Boolean)
       .join("\n");
@@ -248,6 +281,11 @@ const StoreCheckout = () => {
         <p className="text-sm text-muted-foreground mb-6">
           Preencha seus dados para enviar o pedido. O pagamento é combinado diretamente com a revendedora.
         </p>
+
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
+          O estoque ficará reservado por {DEFAULT_RESERVE_MINUTES} minutos após a criação do pedido.
+          Depois disso a reserva expira e será necessário criar um novo pedido.
+        </div>
 
         <div className="rounded-xl border border-border bg-card p-6 space-y-4">
           <div>
@@ -354,15 +392,37 @@ const StoreCheckout = () => {
             <div className="py-6 flex flex-col items-center gap-4 text-center">
               <CheckCircle2 className="h-16 w-16 text-green-500" />
               <DialogHeader>
-                <DialogTitle>Pedido enviado com sucesso</DialogTitle>
+                <DialogTitle>
+                  {reservationExpiredUi ? "Reserva expirada" : "Pedido enviado com sucesso"}
+                </DialogTitle>
                 <DialogDescription>
-                  Pedido aguardando confirmação. Combine o pagamento com a revendedora.
+                  {reservationExpiredUi
+                    ? "O prazo de reserva acabou. Volte ao carrinho e envie um novo pedido para reservar o estoque novamente."
+                    : "Pedido aguardando confirmação. Combine o pagamento com a revendedora."}
                 </DialogDescription>
               </DialogHeader>
               <div className="w-full space-y-2 text-sm text-left">
                 <p className="text-center text-muted-foreground">
                   Pedido <span className="font-mono">{order.order_id.slice(0, 8)}</span>
                 </p>
+                {order.expires_at ? (
+                  <div className={`rounded-lg border px-3 py-2 text-center text-xs ${
+                    reservationExpiredUi
+                      ? "border-destructive/40 bg-destructive/10 text-destructive"
+                      : "border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200"
+                  }`}>
+                    {reservationExpiredUi ? (
+                      <p>Reserva expirada em {formatExpiresAt(order.expires_at)}</p>
+                    ) : (
+                      <>
+                        <p>Estoque reservado até {formatExpiresAt(order.expires_at)}</p>
+                        {countdownSecs != null ? (
+                          <p className="mt-1 font-mono text-sm">Tempo restante: {formatCountdown(countdownSecs)}</p>
+                        ) : null}
+                      </>
+                    )}
+                  </div>
+                ) : null}
                 <div className="rounded-lg border border-border p-3 space-y-2">
                   {order.items.map((i, idx) => (
                     <div key={`${i.product_id ?? "item"}-${idx}`} className="flex justify-between gap-2">
@@ -380,9 +440,11 @@ const StoreCheckout = () => {
                 </div>
               </div>
               <div className="w-full space-y-2 pt-2">
-                <Button onClick={sendWhatsApp} variant="whatsapp" size="lg" className="w-full">
-                  <MessageCircle className="h-5 w-5" /> Enviar pedido pelo WhatsApp
-                </Button>
+                {!reservationExpiredUi ? (
+                  <Button onClick={sendWhatsApp} variant="whatsapp" size="lg" className="w-full">
+                    <MessageCircle className="h-5 w-5" /> Enviar pedido pelo WhatsApp
+                  </Button>
+                ) : null}
                 <Button onClick={finish} variant="outline" size="lg" className="w-full">
                   Voltar para a loja
                 </Button>

@@ -35,6 +35,13 @@ import {
   isStockCancelEligibleStatus,
   type CancelOrderWithStockSummary,
 } from "@/lib/orderCancel";
+import {
+  displayOrderStatusColor,
+  displayOrderStatusLabel,
+  formatExpiresAt,
+  isExpiredOrder,
+  translateExpirationReason,
+} from "@/lib/orderExpiry";
 import { formatBRL } from "@/lib/format";
 import { statusColors, statusLabels } from "@/lib/orderStatus";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -102,6 +109,7 @@ const AdminOrders = () => {
   const [loading, setLoading] = useState(true);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+  const [onlyExpired, setOnlyExpired] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [action, setAction] = useState<ReversalAction>("cancel");
   const [target, setTarget] = useState<AdminOrderRow | null>(null);
@@ -137,9 +145,10 @@ const AdminOrders = () => {
       const t = new Date(o.created_at).getTime();
       if (fromTs && t < fromTs) return false;
       if (toTs && t > toTs) return false;
+      if (onlyExpired && !isExpiredOrder(o)) return false;
       return true;
     });
-  }, [rows, from, to]);
+  }, [rows, from, to, onlyExpired]);
 
   const openReversalDialog = async (order: AdminOrderRow, next: ReversalAction) => {
     setTarget(order);
@@ -430,11 +439,15 @@ const AdminOrders = () => {
           <Label htmlFor="to" className="text-xs text-muted-foreground">Até</Label>
           <Input id="to" type="date" value={to} onChange={(e) => setTo(e.target.value)} className="h-9 w-44" />
         </div>
-        {(from || to) && (
-          <Button variant="ghost" size="sm" onClick={() => { setFrom(""); setTo(""); }}>
+        {(from || to || onlyExpired) && (
+          <Button variant="ghost" size="sm" onClick={() => { setFrom(""); setTo(""); setOnlyExpired(false); }}>
             <X className="h-4 w-4 mr-1" /> Limpar
           </Button>
         )}
+        <label className="flex h-9 items-center gap-2 text-xs text-muted-foreground">
+          <Checkbox checked={onlyExpired} onCheckedChange={(v) => setOnlyExpired(Boolean(v))} />
+          Expirados
+        </label>
         <Button asChild variant="ghost" size="sm" className="h-9">
           <Link to="/admin/devolucoes">Histórico de devoluções</Link>
         </Button>
@@ -463,21 +476,36 @@ const AdminOrders = () => {
                   <td className="px-5 py-4 hidden md:table-cell text-muted-foreground">{new Date(o.created_at).toLocaleDateString("pt-BR")}</td>
                   <td className="px-5 py-4 font-medium">{formatBRL(Number(o.total || 0))}</td>
                   <td className="px-5 py-4">
-                    {o.status === "refunded" ? (
-                      <span className={`inline-flex h-8 items-center rounded-md border px-2 text-xs ${statusColors.refunded}`}>
-                        {statusLabels.refunded}
-                      </span>
+                    {o.status === "refunded" || isExpiredOrder(o) ? (
+                      <div className="space-y-1">
+                        <span className={`inline-flex h-8 items-center rounded-md border px-2 text-xs ${displayOrderStatusColor(o, statusColors)}`}>
+                          {displayOrderStatusLabel(o, statusLabels)}
+                        </span>
+                        {isExpiredOrder(o) ? (
+                          <p className="text-[10px] text-muted-foreground max-w-[10rem]">
+                            {translateExpirationReason(o.expiration_reason)}
+                            {o.expired_at ? ` · ${formatExpiresAt(o.expired_at)}` : ""}
+                          </p>
+                        ) : null}
+                      </div>
                     ) : (
-                      <Select value={o.status} onValueChange={(v) => change(o.id, v)}>
-                        <SelectTrigger className={`w-36 h-8 text-xs ${statusColors[o.status] || ""}`}>
-                          <SelectValue>{statusLabels[o.status] || o.status}</SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {selectOptionsFor(o.status).map((s) => (
-                            <SelectItem key={s} value={s}>{statusLabels[s] || s}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="space-y-1">
+                        <Select value={o.status} onValueChange={(v) => change(o.id, v)}>
+                          <SelectTrigger className={`w-36 h-8 text-xs ${statusColors[o.status] || ""}`}>
+                            <SelectValue>{statusLabels[o.status] || o.status}</SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {selectOptionsFor(o.status).map((s) => (
+                              <SelectItem key={s} value={s}>{statusLabels[s] || s}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {o.expires_at && (o.status === "new" || o.status === "confirmed") ? (
+                          <p className="text-[10px] text-muted-foreground">
+                            Reserva até {formatExpiresAt(o.expires_at)}
+                          </p>
+                        ) : null}
+                      </div>
                     )}
                   </td>
                   <td className="px-5 py-4">

@@ -370,12 +370,17 @@ export type AdminOrderRow = {
   created_at: string;
   seller_store_id: string;
   seller_stores: { store_name: string } | null;
+  expires_at: string | null;
+  expired_at: string | null;
+  expiration_reason: string | null;
 };
 
 export const loadAllOrders = async (): Promise<AdminOrderRow[]> => {
   const { data, error } = await supabase
     .from("orders")
-    .select("id,customer_name,customer_phone,total,status,created_at,seller_store_id,seller_stores(store_name)")
+    .select(
+      "id,customer_name,customer_phone,total,status,created_at,seller_store_id,expires_at,expired_at,expiration_reason,seller_stores(store_name)",
+    )
     .order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []) as AdminOrderRow[];

@@ -42,6 +42,8 @@ export type StockCancelEligibleStatus =
   | "shipped"
   | "delivered";
 
+export type OrderExpirationReason = "abandoned_checkout_expired" | string;
+
 export type Profile = {
   id: string;
   role: ProfileRole;

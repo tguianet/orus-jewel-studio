@@ -336,6 +336,27 @@ export type Database = {
           },
         ]
       }
+      order_reservation_settings: {
+        Row: {
+          id: number
+          reserve_minutes: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: number
+          reserve_minutes?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: number
+          reserve_minutes?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           checkout_token: string | null
@@ -344,6 +365,9 @@ export type Database = {
           customer_name: string
           customer_phone: string
           discount: number
+          expiration_reason: string | null
+          expired_at: string | null
+          expires_at: string | null
           id: string
           notes: string | null
           origin: Database["public"]["Enums"]["order_origin"]
@@ -360,6 +384,9 @@ export type Database = {
           customer_name: string
           customer_phone: string
           discount?: number
+          expiration_reason?: string | null
+          expired_at?: string | null
+          expires_at?: string | null
           id?: string
           notes?: string | null
           origin?: Database["public"]["Enums"]["order_origin"]
@@ -376,6 +403,9 @@ export type Database = {
           customer_name?: string
           customer_phone?: string
           discount?: number
+          expiration_reason?: string | null
+          expired_at?: string | null
+          expires_at?: string | null
           id?: string
           notes?: string | null
           origin?: Database["public"]["Enums"]["order_origin"]
@@ -1053,6 +1083,7 @@ export type Database = {
         }
         Returns: {
           created_at: string
+          expires_at: string | null
           items: Json
           order_id: string
           status: Database["public"]["Enums"]["order_status"]
@@ -1060,6 +1091,16 @@ export type Database = {
           total: number
         }[]
       }
+      expire_abandoned_orders: {
+        Args: { _limit?: number }
+        Returns: {
+          details: Json
+          expired_count: number
+          order_ids: string[]
+          units_restored: number
+        }[]
+      }
+      get_order_reserve_minutes: { Args: never; Returns: number }
       current_reseller_id: { Args: { _user_id?: string }; Returns: string }
       current_store_id: { Args: { _user_id?: string }; Returns: string }
       get_current_commission_rates: {

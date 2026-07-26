@@ -17,6 +17,7 @@ export const statusLabels: Record<string, string> = {
   delivered: "Entregue",
   cancelled: "Cancelado",
   refunded: "Reembolsado",
+  expired: "Expirado",
   pending: "Pendente",
   available: "Disponível",
 };
@@ -38,6 +39,7 @@ export const statusColors: Record<string, string> = {
   delivered: "bg-success/15 text-success border-success/30",
   cancelled: "bg-destructive/15 text-destructive border-destructive/30",
   refunded: "bg-destructive/15 text-destructive border-destructive/30",
+  expired: "bg-amber-500/15 text-amber-700 border-amber-500/30 dark:text-amber-400",
   available: "bg-success/15 text-success border-success/30",
   pending: "bg-warning/15 text-warning border-warning/30",
 };

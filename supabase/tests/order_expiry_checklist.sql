@@ -1,0 +1,25 @@
+-- Checklist pós-migration 20260729120000_order_reservation_expiry.sql
+-- Preferir BEGIN … ROLLBACK no Lovable Cloud.
+
+-- A) new vencido → cancelled + expired_at + cancel_restore
+-- B) confirmed vencido → idem
+-- C) paid → não entra no job
+-- D) job 2× → sem duplicidade de estoque
+-- E) pagamento lock primeiro → job ignora
+-- F) expiração lock primeiro → mark_order_paid rejeita
+-- G) stock before/after coerentes
+-- H) commissions/wallet inalterados
+-- I) expires_at futuro → permanece ativo
+-- J) mark_order_paid em vencido → rejeita
+-- K) anon → sem EXECUTE / negado em expire_abandoned_orders
+-- L) sacoleira → negada
+-- M) mesmo token ativo → idempotente com expires_at
+-- N) token de pedido expirado → exception; novo token necessário
+-- O) expirado com return físico prévio → restore líquido
+-- P) _limit respeitado
+-- Q) dois jobs → SKIP LOCKED
+
+-- Job Lovable Cloud (após apply):
+-- Nome: Expire abandoned orders
+-- Frequência: a cada 5 minutos
+-- SQL: SELECT * FROM public.expire_abandoned_orders(100);
