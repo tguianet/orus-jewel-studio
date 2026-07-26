@@ -336,27 +336,6 @@ export type Database = {
           },
         ]
       }
-      order_reservation_settings: {
-        Row: {
-          id: number
-          reserve_minutes: number
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          id?: number
-          reserve_minutes?: number
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          id?: number
-          reserve_minutes?: number
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: []
-      }
       orders: {
         Row: {
           checkout_token: string | null
@@ -365,9 +344,6 @@ export type Database = {
           customer_name: string
           customer_phone: string
           discount: number
-          expiration_reason: string | null
-          expired_at: string | null
-          expires_at: string | null
           id: string
           notes: string | null
           origin: Database["public"]["Enums"]["order_origin"]
@@ -384,9 +360,6 @@ export type Database = {
           customer_name: string
           customer_phone: string
           discount?: number
-          expiration_reason?: string | null
-          expired_at?: string | null
-          expires_at?: string | null
           id?: string
           notes?: string | null
           origin?: Database["public"]["Enums"]["order_origin"]
@@ -403,9 +376,6 @@ export type Database = {
           customer_name?: string
           customer_phone?: string
           discount?: number
-          expiration_reason?: string | null
-          expired_at?: string | null
-          expires_at?: string | null
           id?: string
           notes?: string | null
           origin?: Database["public"]["Enums"]["order_origin"]
@@ -688,42 +658,36 @@ export type Database = {
       }
       resellers: {
         Row: {
-          can_receive_referrals: boolean
           created_at: string
           display_name: string
           email: string
           id: string
           parent_id: string | null
           phone: string | null
-          referral_code: string
           status: Database["public"]["Enums"]["seller_store_status"]
           tier: string
           updated_at: string
           user_id: string
         }
         Insert: {
-          can_receive_referrals?: boolean
           created_at?: string
           display_name?: string
           email?: string
           id?: string
           parent_id?: string | null
           phone?: string | null
-          referral_code?: string
           status?: Database["public"]["Enums"]["seller_store_status"]
           tier?: string
           updated_at?: string
           user_id: string
         }
         Update: {
-          can_receive_referrals?: boolean
           created_at?: string
           display_name?: string
           email?: string
           id?: string
           parent_id?: string | null
           phone?: string | null
-          referral_code?: string
           status?: Database["public"]["Enums"]["seller_store_status"]
           tier?: string
           updated_at?: string
@@ -940,42 +904,6 @@ export type Database = {
           },
         ]
       }
-      admin_role_audit_log: {
-        Row: {
-          id: string
-          target_user_id: string
-          action: string
-          previous_role: string | null
-          new_role: string | null
-          performed_by: string
-          reason: string | null
-          metadata: Json
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          target_user_id: string
-          action: string
-          previous_role?: string | null
-          new_role?: string | null
-          performed_by: string
-          reason?: string | null
-          metadata?: Json
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          target_user_id?: string
-          action?: string
-          previous_role?: string | null
-          new_role?: string | null
-          performed_by?: string
-          reason?: string | null
-          metadata?: Json
-          created_at?: string
-        }
-        Relationships: []
-      }
       user_roles: {
         Row: {
           created_at: string
@@ -1009,7 +937,6 @@ export type Database = {
           status: string
           type: string
           updated_at: string
-          withdrawal_id: string | null
         }
         Insert: {
           amount?: number
@@ -1022,7 +949,6 @@ export type Database = {
           status?: string
           type?: string
           updated_at?: string
-          withdrawal_id?: string | null
         }
         Update: {
           amount?: number
@@ -1035,7 +961,6 @@ export type Database = {
           status?: string
           type?: string
           updated_at?: string
-          withdrawal_id?: string | null
         }
         Relationships: [
           {
@@ -1059,7 +984,6 @@ export type Database = {
       reseller_wallet_summary: {
         Row: {
           available: number | null
-          blocked: number | null
           paid: number | null
           pending: number | null
           reseller_id: string | null
@@ -1077,83 +1001,6 @@ export type Database = {
       }
     }
     Functions: {
-      admin_list_administrators: {
-        Args: never
-        Returns: Json
-      }
-      admin_search_users: {
-        Args: { p_query: string; p_limit?: number }
-        Returns: Json
-      }
-      admin_grant_role: {
-        Args: { p_user_id: string; p_reason?: string | null }
-        Returns: Json
-      }
-      admin_revoke_role: {
-        Args: { p_user_id: string; p_reason: string }
-        Returns: Json
-      }
-      admin_get_role_audit: {
-        Args: { p_page?: number; p_page_size?: number }
-        Returns: Json
-      }
-      admin_grant_reseller_role: {
-        Args: {
-          p_user_id: string
-          p_reseller_name: string
-          p_store_name: string
-          p_store_slug: string
-          p_sponsor_reseller_id?: string | null
-          p_reason?: string | null
-        }
-        Returns: Json
-      }
-      validate_referral_code: {
-        Args: { p_code: string; p_client_key?: string | null }
-        Returns: Json
-      }
-      register_reseller_with_referral: {
-        Args: {
-          p_full_name: string
-          p_email: string
-          p_phone: string | null
-          p_password: string
-          p_referral_code: string
-          p_client_key?: string | null
-        }
-        Returns: Json
-      }
-      set_my_reseller_parent_by_code: {
-        Args: { p_referral_code: string }
-        Returns: Json
-      }
-      admin_regenerate_referral_code: {
-        Args: { p_reseller_id: string; p_reason?: string | null }
-        Returns: Json
-      }
-      admin_set_reseller_sponsor: {
-        Args: {
-          p_reseller_id: string
-          p_sponsor_reseller_id: string
-          p_reason: string
-        }
-        Returns: Json
-      }
-      admin_create_root_reseller: {
-        Args: {
-          p_user_id: string
-          p_reseller_name: string
-          p_store_name: string
-          p_store_slug: string
-          p_reason: string
-        }
-        Returns: Json
-      }
-      admin_revoke_reseller_role: {
-        Args: { p_user_id: string; p_reason: string }
-        Returns: Json
-      }
-      /** Somente is_admin — sacoleira/anon são negados no corpo da função. */
       admin_product_costs: {
         Args: never
         Returns: {
@@ -1162,184 +1009,6 @@ export type Database = {
           wholesale_price: number
         }[]
       }
-      report_operational_error: {
-        Args: {
-          p_correlation_id: string
-          p_error_code: string
-          p_category: string
-          p_severity: string
-          p_operation?: string | null
-          p_route?: string | null
-          p_entity_type?: string | null
-          p_entity_id?: string | null
-          p_context?: Json
-        }
-        Returns: Json
-      }
-      admin_list_operational_errors: {
-        Args: {
-          p_severity?: string | null
-          p_category?: string | null
-          p_error_code?: string | null
-          p_route?: string | null
-          p_operation?: string | null
-          p_resolved?: boolean | null
-          p_date_from?: string | null
-          p_date_to?: string | null
-          p_page?: number
-          p_page_size?: number
-        }
-        Returns: Json
-      }
-      admin_get_operational_error: {
-        Args: { p_error_id: string }
-        Returns: Json
-      }
-      admin_resolve_operational_error: {
-        Args: { p_error_id: string; p_resolution_notes: string }
-        Returns: Json
-      }
-      admin_get_sales_summary: {
-        Args: {
-          p_start_date: string
-          p_end_date: string
-          p_store_id?: string | null
-          p_reseller_id?: string | null
-        }
-        Returns: Json
-      }
-      admin_get_sales_timeseries: {
-        Args: {
-          p_start_date: string
-          p_end_date: string
-          p_granularity?: string
-          p_store_id?: string | null
-          p_reseller_id?: string | null
-        }
-        Returns: Json
-      }
-      admin_get_order_status_report: {
-        Args: {
-          p_start_date: string
-          p_end_date: string
-          p_store_id?: string | null
-          p_reseller_id?: string | null
-        }
-        Returns: Json
-      }
-      admin_get_reseller_performance: {
-        Args: {
-          p_start_date: string
-          p_end_date: string
-          p_page?: number
-          p_page_size?: number
-          p_sort_by?: string
-          p_sort_direction?: string
-          p_search?: string | null
-        }
-        Returns: Json
-      }
-      admin_get_commission_report: {
-        Args: {
-          p_start_date: string
-          p_end_date: string
-          p_level?: number | null
-          p_status?: string | null
-          p_reseller_id?: string | null
-          p_page?: number
-          p_page_size?: number
-        }
-        Returns: Json
-      }
-      admin_get_wallet_report: {
-        Args: {
-          p_start_date: string
-          p_end_date: string
-          p_reseller_id?: string | null
-          p_type?: string | null
-          p_page?: number
-          p_page_size?: number
-        }
-        Returns: Json
-      }
-      admin_get_withdrawal_report: {
-        Args: {
-          p_start_date: string
-          p_end_date: string
-          p_status?: string | null
-          p_reseller_id?: string | null
-        }
-        Returns: Json
-      }
-      admin_get_returns_report: {
-        Args: {
-          p_start_date: string
-          p_end_date: string
-          p_reseller_id?: string | null
-          p_product_id?: string | null
-        }
-        Returns: Json
-      }
-      admin_get_inventory_report: {
-        Args: {
-          p_stale_days?: number
-          p_page?: number
-          p_page_size?: number
-          p_status?: string | null
-          p_search?: string | null
-          p_sort_by?: string
-          p_sort_direction?: string
-        }
-        Returns: Json
-      }
-      admin_get_top_products: {
-        Args: {
-          p_start_date: string
-          p_end_date: string
-          p_metric?: string
-          p_limit?: number
-          p_store_id?: string | null
-        }
-        Returns: Json
-      }
-      admin_get_expired_orders_report: {
-        Args: {
-          p_start_date: string
-          p_end_date: string
-          p_store_id?: string | null
-          p_reseller_id?: string | null
-        }
-        Returns: Json
-      }
-      admin_export_report: {
-        Args: { p_report_type: string; p_filters?: Json }
-        Returns: Json
-      }
-      seller_get_sales_summary: {
-        Args: { p_start_date: string; p_end_date: string }
-        Returns: Json
-      }
-      seller_get_sales_timeseries: {
-        Args: { p_start_date: string; p_end_date: string; p_granularity?: string }
-        Returns: Json
-      }
-      seller_get_commission_summary: {
-        Args: { p_start_date: string; p_end_date: string }
-        Returns: Json
-      }
-      seller_get_order_report: {
-        Args: {
-          p_start_date: string
-          p_end_date: string
-          p_page?: number
-          p_page_size?: number
-        }
-        Returns: Json
-      }
-      seller_export_my_report: {
-        Args: { p_report_type: string; p_filters?: Json }
-        Returns: Json
-      }
       can_access_order: {
         Args: { _order_id: string; _user_id?: string }
         Returns: boolean
@@ -1347,16 +1016,6 @@ export type Database = {
       can_access_store: {
         Args: { _store_id: string; _user_id?: string }
         Returns: boolean
-      }
-      cancel_order_with_stock_restore: {
-        Args: { _order_id: string; _reason: string }
-        Returns: {
-          details: Json
-          order_id: string
-          products_touched: number
-          skipped_zero: number
-          units_restored: number
-        }[]
       }
       cancel_paid_order: {
         Args: { _order_id: string; _reason: string }
@@ -1375,7 +1034,6 @@ export type Database = {
       create_public_order: {
         Args: {
           p_checkout_token?: string
-          p_consents?: Json
           p_customer_address?: string
           p_customer_name: string
           p_customer_phone: string
@@ -1385,7 +1043,6 @@ export type Database = {
         }
         Returns: {
           created_at: string
-          expires_at: string | null
           items: Json
           order_id: string
           status: Database["public"]["Enums"]["order_status"]
@@ -1393,82 +1050,6 @@ export type Database = {
           total: number
         }[]
       }
-      get_active_legal_documents: {
-        Args: { p_audience?: string | null }
-        Returns: Json
-      }
-      validate_checkout_consents: {
-        Args: { p_consents: Json }
-        Returns: Json
-      }
-      record_checkout_consents: {
-        Args: {
-          p_order_id: string
-          p_store_id: string
-          p_customer_identifier: string
-          p_consents: Json
-          p_session_reference?: string | null
-          p_ip?: string | null
-          p_user_agent?: string | null
-        }
-        Returns: Json
-      }
-      record_authenticated_consent: {
-        Args: {
-          p_document_type: string
-          p_consent_context: string
-          p_session_reference?: string | null
-        }
-        Returns: Json
-      }
-      get_my_consents: { Args: never; Returns: Json }
-      admin_list_legal_consents: {
-        Args: {
-          p_document_type?: string | null
-          p_version?: string | null
-          p_subject_type?: string | null
-          p_reseller_id?: string | null
-          p_order_id?: string | null
-          p_context?: string | null
-          p_date_from?: string | null
-          p_date_to?: string | null
-          p_page?: number
-          p_page_size?: number
-        }
-        Returns: Json
-      }
-      admin_list_legal_documents: { Args: never; Returns: Json }
-      publish_legal_document_version: {
-        Args: {
-          p_document_type: string
-          p_title: string
-          p_version: string
-          p_content_hash?: string | null
-          p_effective_at?: string
-          p_audience: string
-          p_route_path: string
-          p_requires_acceptance?: boolean
-        }
-        Returns: Json
-      }
-      revoke_legal_consent: {
-        Args: { p_consent_id: string; p_reason: string }
-        Returns: Json
-      }
-      has_active_consent_for: {
-        Args: { p_document_type: string; p_consent_context?: string }
-        Returns: boolean
-      }
-      expire_abandoned_orders: {
-        Args: { _limit?: number }
-        Returns: {
-          details: Json
-          expired_count: number
-          order_ids: string[]
-          units_restored: number
-        }[]
-      }
-      get_order_reserve_minutes: { Args: never; Returns: number }
       current_reseller_id: { Args: { _user_id?: string }; Returns: string }
       current_store_id: { Args: { _user_id?: string }; Returns: string }
       get_current_commission_rates: {
@@ -1592,74 +1173,6 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
-      }
-      admin_list_withdrawals: {
-        Args: {
-          p_status?: string | null
-          p_reseller_id?: string | null
-          p_search?: string | null
-          p_date_from?: string | null
-          p_date_to?: string | null
-          p_amount_min?: number | null
-          p_amount_max?: number | null
-          p_page?: number
-          p_page_size?: number
-        }
-        Returns: Json
-      }
-      approve_withdrawal: {
-        Args: { p_withdrawal_id: string }
-        Returns: Json
-      }
-      cancel_withdrawal: {
-        Args: { p_withdrawal_id: string; p_reason?: string | null }
-        Returns: Json
-      }
-      get_my_withdrawal_summary: {
-        Args: never
-        Returns: Json
-      }
-      get_withdrawal_audit: {
-        Args: { p_withdrawal_id: string }
-        Returns: Json
-      }
-      get_withdrawal_details: {
-        Args: { p_withdrawal_id: string; p_reveal_payment?: boolean }
-        Returns: Json
-      }
-      list_my_withdrawals: {
-        Args: { p_page?: number; p_page_size?: number }
-        Returns: Json
-      }
-      mark_withdrawal_paid: {
-        Args: {
-          p_withdrawal_id: string
-          p_payment_reference?: string | null
-          p_receipt_url?: string | null
-          p_idempotency_key: string
-        }
-        Returns: Json
-      }
-      reject_withdrawal: {
-        Args: { p_withdrawal_id: string; p_reason: string }
-        Returns: Json
-      }
-      request_withdrawal: {
-        Args: {
-          p_amount: number
-          p_payment_method: string
-          p_payment_details: Json
-          p_idempotency_key?: string | null
-        }
-        Returns: Json
-      }
-      update_withdrawal_settings: {
-        Args: { p_minimum: number }
-        Returns: Json
-      }
-      upsert_my_payout_profile: {
-        Args: { p_payment_method: string; p_payment_details: Json }
-        Returns: Json
       }
       write_audit_log: {
         Args: {
