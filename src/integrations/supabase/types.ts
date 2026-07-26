@@ -850,6 +850,14 @@ export type Database = {
           wholesale_price: number
         }[]
       }
+      can_access_order: {
+        Args: { _order_id: string; _user_id?: string }
+        Returns: boolean
+      }
+      can_access_store: {
+        Args: { _store_id: string; _user_id?: string }
+        Returns: boolean
+      }
       cancel_paid_order: {
         Args: { _order_id: string; _reason: string }
         Returns: {
@@ -859,14 +867,6 @@ export type Database = {
           total_reversed: number
           wallet_reversals_created: number
         }[]
-      }
-      can_access_order: {
-        Args: { _order_id: string; _user_id?: string }
-        Returns: boolean
-      }
-      can_access_store: {
-        Args: { _store_id: string; _user_id?: string }
-        Returns: boolean
       }
       create_mlm_commissions_for_order: {
         Args: { _order_id: string }
