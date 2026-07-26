@@ -1551,6 +1551,19 @@ export type Database = {
         }
         Returns: undefined
       }
+      _report_biz_tz: { Args: never; Returns: string }
+      _report_paid_statuses: { Args: never; Returns: string[] }
+      _report_pct_change: {
+        Args: { p_current: number; p_previous: number }
+        Returns: number
+      }
+      _report_pending_statuses: { Args: never; Returns: string[] }
+      _report_require_admin: { Args: never; Returns: undefined }
+      _report_require_seller: { Args: never; Returns: string }
+      _report_validate_period: {
+        Args: { p_end: string; p_max_days?: number; p_start: string }
+        Returns: undefined
+      }
       _sanitize_op_context: { Args: { p_context: Json }; Returns: Json }
       _validate_payment_details: {
         Args: { p_details: Json; p_method: string }
@@ -1561,8 +1574,124 @@ export type Database = {
         Returns: number
       }
       _withdrawal_actor_role: { Args: never; Returns: string }
+      admin_export_report: {
+        Args: { p_filters?: Json; p_report_type: string }
+        Returns: Json
+      }
+      admin_get_commission_report: {
+        Args: {
+          p_end_date: string
+          p_level?: number
+          p_page?: number
+          p_page_size?: number
+          p_reseller_id?: string
+          p_start_date: string
+          p_status?: string
+        }
+        Returns: Json
+      }
+      admin_get_expired_orders_report: {
+        Args: {
+          p_end_date: string
+          p_reseller_id?: string
+          p_start_date: string
+          p_store_id?: string
+        }
+        Returns: Json
+      }
+      admin_get_inventory_report: {
+        Args: {
+          p_page?: number
+          p_page_size?: number
+          p_search?: string
+          p_sort_by?: string
+          p_sort_direction?: string
+          p_stale_days?: number
+          p_status?: string
+        }
+        Returns: Json
+      }
       admin_get_operational_error: {
         Args: { p_error_id: string }
+        Returns: Json
+      }
+      admin_get_order_status_report: {
+        Args: {
+          p_end_date: string
+          p_reseller_id?: string
+          p_start_date: string
+          p_store_id?: string
+        }
+        Returns: Json
+      }
+      admin_get_reseller_performance: {
+        Args: {
+          p_end_date: string
+          p_page?: number
+          p_page_size?: number
+          p_search?: string
+          p_sort_by?: string
+          p_sort_direction?: string
+          p_start_date: string
+        }
+        Returns: Json
+      }
+      admin_get_returns_report: {
+        Args: {
+          p_end_date: string
+          p_product_id?: string
+          p_reseller_id?: string
+          p_start_date: string
+        }
+        Returns: Json
+      }
+      admin_get_sales_summary: {
+        Args: {
+          p_end_date: string
+          p_reseller_id?: string
+          p_start_date: string
+          p_store_id?: string
+        }
+        Returns: Json
+      }
+      admin_get_sales_timeseries: {
+        Args: {
+          p_end_date: string
+          p_granularity?: string
+          p_reseller_id?: string
+          p_start_date: string
+          p_store_id?: string
+        }
+        Returns: Json
+      }
+      admin_get_top_products: {
+        Args: {
+          p_end_date: string
+          p_limit?: number
+          p_metric?: string
+          p_start_date: string
+          p_store_id?: string
+        }
+        Returns: Json
+      }
+      admin_get_wallet_report: {
+        Args: {
+          p_end_date: string
+          p_page?: number
+          p_page_size?: number
+          p_reseller_id?: string
+          p_start_date: string
+          p_type?: string
+        }
+        Returns: Json
+      }
+      admin_get_withdrawal_report: {
+        Args: {
+          p_end_date: string
+          p_reseller_id?: string
+          p_start_date: string
+          p_status?: string
+        }
         Returns: Json
       }
       admin_list_legal_consents: {
@@ -1877,6 +2006,35 @@ export type Database = {
       }
       revoke_legal_consent: {
         Args: { p_consent_id: string; p_reason: string }
+        Returns: Json
+      }
+      seller_export_my_report: {
+        Args: { p_filters?: Json; p_report_type: string }
+        Returns: Json
+      }
+      seller_get_commission_summary: {
+        Args: { p_end_date: string; p_start_date: string }
+        Returns: Json
+      }
+      seller_get_order_report: {
+        Args: {
+          p_end_date: string
+          p_page?: number
+          p_page_size?: number
+          p_start_date: string
+        }
+        Returns: Json
+      }
+      seller_get_sales_summary: {
+        Args: { p_end_date: string; p_start_date: string }
+        Returns: Json
+      }
+      seller_get_sales_timeseries: {
+        Args: {
+          p_end_date: string
+          p_granularity?: string
+          p_start_date: string
+        }
         Returns: Json
       }
       set_my_reseller_parent: {

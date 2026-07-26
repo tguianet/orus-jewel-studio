@@ -1496,3 +1496,12 @@ GRANT EXECUTE ON FUNCTION public.seller_export_my_report(text, jsonb)
 -- Anon sem acesso
 REVOKE ALL ON FUNCTION public.admin_get_sales_summary(timestamptz, timestamptz, uuid, uuid) FROM anon;
 REVOKE ALL ON FUNCTION public.seller_get_sales_summary(timestamptz, timestamptz) FROM anon;
+
+-- Helpers internos: sem EXECUTE público (usados apenas dentro de SECURITY DEFINER)
+REVOKE ALL ON FUNCTION public._report_biz_tz() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public._report_require_admin() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public._report_require_seller() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public._report_validate_period(timestamptz, timestamptz, int) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public._report_pct_change(numeric, numeric) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public._report_paid_statuses() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public._report_pending_statuses() FROM PUBLIC, anon, authenticated;
