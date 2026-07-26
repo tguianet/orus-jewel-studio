@@ -483,6 +483,78 @@ export type Database = {
           },
         ]
       }
+      operational_error_logs: {
+        Row: {
+          actor_role: string | null
+          actor_user_id: string | null
+          category: string
+          correlation_id: string
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          error_code: string
+          id: string
+          occurred_at: string
+          operation: string | null
+          reseller_id: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          route: string | null
+          sanitized_context: Json
+          severity: string
+          store_id: string | null
+          technical_summary: string | null
+          user_agent_hash: string | null
+        }
+        Insert: {
+          actor_role?: string | null
+          actor_user_id?: string | null
+          category: string
+          correlation_id: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          error_code: string
+          id?: string
+          occurred_at?: string
+          operation?: string | null
+          reseller_id?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          route?: string | null
+          sanitized_context?: Json
+          severity: string
+          store_id?: string | null
+          technical_summary?: string | null
+          user_agent_hash?: string | null
+        }
+        Update: {
+          actor_role?: string | null
+          actor_user_id?: string | null
+          category?: string
+          correlation_id?: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          error_code?: string
+          id?: string
+          occurred_at?: string
+          operation?: string | null
+          reseller_id?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          route?: string | null
+          sanitized_context?: Json
+          severity?: string
+          store_id?: string | null
+          technical_summary?: string | null
+          user_agent_hash?: string | null
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -1459,6 +1531,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      _op_error_rate_ok: { Args: never; Returns: boolean }
       _record_checkout_consents_internal: {
         Args: {
           p_consents: Json
@@ -1478,6 +1551,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      _sanitize_op_context: { Args: { p_context: Json }; Returns: Json }
       _validate_payment_details: {
         Args: { p_details: Json; p_method: string }
         Returns: undefined
@@ -1487,6 +1561,10 @@ export type Database = {
         Returns: number
       }
       _withdrawal_actor_role: { Args: never; Returns: string }
+      admin_get_operational_error: {
+        Args: { p_error_id: string }
+        Returns: Json
+      }
       admin_list_legal_consents: {
         Args: {
           p_context?: string
@@ -1503,6 +1581,21 @@ export type Database = {
         Returns: Json
       }
       admin_list_legal_documents: { Args: never; Returns: Json }
+      admin_list_operational_errors: {
+        Args: {
+          p_category?: string
+          p_date_from?: string
+          p_date_to?: string
+          p_error_code?: string
+          p_operation?: string
+          p_page?: number
+          p_page_size?: number
+          p_resolved?: boolean
+          p_route?: string
+          p_severity?: string
+        }
+        Returns: Json
+      }
       admin_list_withdrawals: {
         Args: {
           p_amount_max?: number
@@ -1524,6 +1617,10 @@ export type Database = {
           id: string
           wholesale_price: number
         }[]
+      }
+      admin_resolve_operational_error: {
+        Args: { p_error_id: string; p_resolution_notes: string }
+        Returns: Json
       }
       approve_withdrawal: { Args: { p_withdrawal_id: string }; Returns: Json }
       can_access_order: {
@@ -1739,6 +1836,20 @@ export type Database = {
       }
       reject_withdrawal: {
         Args: { p_reason: string; p_withdrawal_id: string }
+        Returns: Json
+      }
+      report_operational_error: {
+        Args: {
+          p_category: string
+          p_context?: Json
+          p_correlation_id: string
+          p_entity_id?: string
+          p_entity_type?: string
+          p_error_code: string
+          p_operation?: string
+          p_route?: string
+          p_severity: string
+        }
         Returns: Json
       }
       request_withdrawal: {
