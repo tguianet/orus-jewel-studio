@@ -237,6 +237,211 @@ export type Database = {
         }
         Relationships: []
       }
+      legal_consents: {
+        Row: {
+          accepted_at: string
+          consent_context: string
+          consent_source: string
+          content_hash: string
+          created_at: string
+          customer_identifier_hash: string | null
+          document_type: string
+          document_version: string
+          id: string
+          ip_hash: string | null
+          legal_document_id: string
+          metadata: Json
+          order_id: string | null
+          reseller_id: string | null
+          revocation_reason: string | null
+          revoked_at: string | null
+          session_reference: string | null
+          store_id: string | null
+          subject_type: string
+          subject_user_id: string | null
+          updated_at: string
+          user_agent_hash: string | null
+        }
+        Insert: {
+          accepted_at?: string
+          consent_context: string
+          consent_source: string
+          content_hash: string
+          created_at?: string
+          customer_identifier_hash?: string | null
+          document_type: string
+          document_version: string
+          id?: string
+          ip_hash?: string | null
+          legal_document_id: string
+          metadata?: Json
+          order_id?: string | null
+          reseller_id?: string | null
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          session_reference?: string | null
+          store_id?: string | null
+          subject_type: string
+          subject_user_id?: string | null
+          updated_at?: string
+          user_agent_hash?: string | null
+        }
+        Update: {
+          accepted_at?: string
+          consent_context?: string
+          consent_source?: string
+          content_hash?: string
+          created_at?: string
+          customer_identifier_hash?: string | null
+          document_type?: string
+          document_version?: string
+          id?: string
+          ip_hash?: string | null
+          legal_document_id?: string
+          metadata?: Json
+          order_id?: string | null
+          reseller_id?: string | null
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          session_reference?: string | null
+          store_id?: string | null
+          subject_type?: string
+          subject_user_id?: string | null
+          updated_at?: string
+          user_agent_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_consents_legal_document_id_fkey"
+            columns: ["legal_document_id"]
+            isOneToOne: false
+            referencedRelation: "legal_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "legal_consents_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "legal_consents_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "legal_consents_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "seller_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legal_document_audit_log: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          created_at: string
+          id: string
+          legal_document_id: string | null
+          metadata: Json
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          legal_document_id?: string | null
+          metadata?: Json
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          legal_document_id?: string | null
+          metadata?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_document_audit_log_legal_document_id_fkey"
+            columns: ["legal_document_id"]
+            isOneToOne: false
+            referencedRelation: "legal_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legal_documents: {
+        Row: {
+          audience: string
+          content_hash: string
+          created_at: string
+          document_type: string
+          effective_at: string
+          id: string
+          is_active: boolean
+          published_at: string | null
+          requires_acceptance: boolean
+          route_path: string | null
+          title: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          audience: string
+          content_hash: string
+          created_at?: string
+          document_type: string
+          effective_at: string
+          id?: string
+          is_active?: boolean
+          published_at?: string | null
+          requires_acceptance?: boolean
+          route_path?: string | null
+          title: string
+          updated_at?: string
+          version: string
+        }
+        Update: {
+          audience?: string
+          content_hash?: string
+          created_at?: string
+          document_type?: string
+          effective_at?: string
+          id?: string
+          is_active?: boolean
+          published_at?: string | null
+          requires_acceptance?: boolean
+          route_path?: string | null
+          title?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
+      }
+      legal_privacy_config: {
+        Row: {
+          created_at: string
+          hash_pepper: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          hash_pepper?: string
+          id?: number
+        }
+        Update: {
+          created_at?: string
+          hash_pepper?: string
+          id?: number
+        }
+        Relationships: []
+      }
       marketing_banners: {
         Row: {
           active: boolean
@@ -1229,6 +1434,21 @@ export type Database = {
     }
     Functions: {
       _is_safe_receipt_url: { Args: { p_url: string }; Returns: boolean }
+      _legal_content_fingerprint: {
+        Args: {
+          p_route: string
+          p_title: string
+          p_type: string
+          p_version: string
+        }
+        Returns: string
+      }
+      _legal_hash: { Args: { p_value: string }; Returns: string }
+      _legal_pepper: { Args: never; Returns: string }
+      _log_legal_doc_audit: {
+        Args: { p_action: string; p_doc_id: string; p_metadata?: Json }
+        Returns: undefined
+      }
       _log_withdrawal_audit: {
         Args: {
           p_action: string
@@ -1236,6 +1456,18 @@ export type Database = {
           p_new: string
           p_previous: string
           p_withdrawal_id: string
+        }
+        Returns: undefined
+      }
+      _record_checkout_consents_internal: {
+        Args: {
+          p_consents: Json
+          p_customer_identifier: string
+          p_ip?: string
+          p_order_id: string
+          p_session_reference?: string
+          p_store_id: string
+          p_user_agent?: string
         }
         Returns: undefined
       }
@@ -1255,6 +1487,22 @@ export type Database = {
         Returns: number
       }
       _withdrawal_actor_role: { Args: never; Returns: string }
+      admin_list_legal_consents: {
+        Args: {
+          p_context?: string
+          p_date_from?: string
+          p_date_to?: string
+          p_document_type?: string
+          p_order_id?: string
+          p_page?: number
+          p_page_size?: number
+          p_reseller_id?: string
+          p_subject_type?: string
+          p_version?: string
+        }
+        Returns: Json
+      }
+      admin_list_legal_documents: { Args: never; Returns: Json }
       admin_list_withdrawals: {
         Args: {
           p_amount_max?: number
@@ -1317,6 +1565,7 @@ export type Database = {
       create_public_order: {
         Args: {
           p_checkout_token?: string
+          p_consents?: Json
           p_customer_address?: string
           p_customer_name: string
           p_customer_phone: string
@@ -1345,6 +1594,10 @@ export type Database = {
           units_restored: number
         }[]
       }
+      get_active_legal_documents: {
+        Args: { p_audience?: string }
+        Returns: Json
+      }
       get_current_commission_rates: {
         Args: never
         Returns: {
@@ -1353,6 +1606,7 @@ export type Database = {
           level_3_rate: number
         }[]
       }
+      get_my_consents: { Args: never; Returns: Json }
       get_my_withdrawal_summary: { Args: never; Returns: Json }
       get_order_reserve_minutes: { Args: never; Returns: number }
       get_order_return_preview: {
@@ -1375,6 +1629,10 @@ export type Database = {
       get_withdrawal_details: {
         Args: { p_reveal_payment?: boolean; p_withdrawal_id: string }
         Returns: Json
+      }
+      has_active_consent_for: {
+        Args: { p_consent_context?: string; p_document_type: string }
+        Returns: boolean
       }
       has_role: {
         Args: {
@@ -1418,6 +1676,39 @@ export type Database = {
       owns_store: {
         Args: { _store_id: string; _user_id?: string }
         Returns: boolean
+      }
+      publish_legal_document_version: {
+        Args: {
+          p_audience: string
+          p_content_hash: string
+          p_document_type: string
+          p_effective_at: string
+          p_requires_acceptance?: boolean
+          p_route_path: string
+          p_title: string
+          p_version: string
+        }
+        Returns: Json
+      }
+      record_authenticated_consent: {
+        Args: {
+          p_consent_context: string
+          p_document_type: string
+          p_session_reference?: string
+        }
+        Returns: Json
+      }
+      record_checkout_consents: {
+        Args: {
+          p_consents: Json
+          p_customer_identifier: string
+          p_ip?: string
+          p_order_id: string
+          p_session_reference?: string
+          p_store_id: string
+          p_user_agent?: string
+        }
+        Returns: Json
       }
       refund_paid_order: {
         Args: { _order_id: string; _reason: string }
@@ -1473,6 +1764,10 @@ export type Database = {
           wallet_reversals_created: number
         }[]
       }
+      revoke_legal_consent: {
+        Args: { p_consent_id: string; p_reason: string }
+        Returns: Json
+      }
       set_my_reseller_parent: {
         Args: { _parent_id: string }
         Returns: undefined
@@ -1505,6 +1800,7 @@ export type Database = {
         Args: { p_payment_details: Json; p_payment_method: string }
         Returns: Json
       }
+      validate_checkout_consents: { Args: { p_consents: Json }; Returns: Json }
       write_audit_log: {
         Args: {
           p_action: string

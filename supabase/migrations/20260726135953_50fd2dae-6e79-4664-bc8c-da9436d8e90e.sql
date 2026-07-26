@@ -60,7 +60,6 @@ CREATE TRIGGER trg_legal_documents_updated
   BEFORE UPDATE ON public.legal_documents
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
--- Impede alteração de content_hash após publicação (W)
 CREATE OR REPLACE FUNCTION public.protect_legal_document_hash()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -192,7 +191,6 @@ CREATE TRIGGER trg_legal_consents_updated
 
 ALTER TABLE public.legal_consents ENABLE ROW LEVEL SECURITY;
 
--- Sem INSERT/UPDATE/DELETE para anon/authenticated (só RPC)
 DROP POLICY IF EXISTS "legal_consents_select_own" ON public.legal_consents;
 CREATE POLICY "legal_consents_select_own"
   ON public.legal_consents FOR SELECT TO authenticated
@@ -233,7 +231,7 @@ GRANT SELECT ON TABLE public.legal_document_audit_log TO authenticated;
 GRANT ALL ON TABLE public.legal_document_audit_log TO service_role;
 
 -- -----------------------------------------------------------------------------
--- Helpers de hash
+-- Helpers de hash (internos: sem execute para anon/authenticated)
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public._legal_pepper()
 RETURNS text
@@ -244,6 +242,9 @@ SET search_path = public
 AS $$
   SELECT hash_pepper FROM public.legal_privacy_config WHERE id = 1;
 $$;
+
+REVOKE ALL ON FUNCTION public._legal_pepper() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public._legal_pepper() TO service_role;
 
 CREATE OR REPLACE FUNCTION public._legal_hash(p_value text)
 RETURNS text
@@ -262,6 +263,9 @@ BEGIN
   RETURN encode(sha256(convert_to(v_pepper || '|' || trim(p_value), 'UTF8')), 'hex');
 END;
 $$;
+
+REVOKE ALL ON FUNCTION public._legal_hash(text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public._legal_hash(text) TO service_role;
 
 CREATE OR REPLACE FUNCTION public._legal_content_fingerprint(
   p_type text, p_version text, p_title text, p_route text
@@ -282,6 +286,9 @@ AS $$
   );
 $$;
 
+REVOKE ALL ON FUNCTION public._legal_content_fingerprint(text, text, text, text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public._legal_content_fingerprint(text, text, text, text) TO service_role;
+
 CREATE OR REPLACE FUNCTION public._log_legal_doc_audit(
   p_doc_id uuid, p_action text, p_metadata jsonb DEFAULT '{}'::jsonb
 )
@@ -295,6 +302,9 @@ BEGIN
   VALUES (p_doc_id, p_action, auth.uid(), COALESCE(p_metadata, '{}'::jsonb));
 END;
 $$;
+
+REVOKE ALL ON FUNCTION public._log_legal_doc_audit(uuid, text, jsonb) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public._log_legal_doc_audit(uuid, text, jsonb) TO service_role;
 
 -- -----------------------------------------------------------------------------
 -- Seed documentos iniciais (idempotente por type+audience+version)
@@ -330,11 +340,9 @@ BEGIN
       SET title = EXCLUDED.title,
           route_path = EXCLUDED.route_path,
           requires_acceptance = EXCLUDED.requires_acceptance,
-          -- não altera content_hash se já publicado
           updated_at = now()
     RETURNING id INTO v_id;
 
-    -- Garante única ativa
     UPDATE public.legal_documents
     SET is_active = false, updated_at = now()
     WHERE document_type = r.document_type
@@ -446,7 +454,6 @@ BEGIN
     END IF;
   END LOOP;
 
-  -- Rejeita tipos desconhecidos no payload
   SELECT count(*) INTO v_found
   FROM jsonb_array_elements(p_consents) e
   WHERE e->>'document_type' NOT IN (
@@ -544,7 +551,10 @@ BEGIN
 END;
 $$;
 
--- record_checkout_consents público (para uso coordenado / testes)
+REVOKE ALL ON FUNCTION public._record_checkout_consents_internal(uuid, uuid, text, jsonb, text, text, text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public._record_checkout_consents_internal(uuid, uuid, text, jsonb, text, text, text) TO service_role;
+
+-- record_checkout_consents (uso administrativo/service_role e testes)
 CREATE OR REPLACE FUNCTION public.record_checkout_consents(
   p_order_id uuid,
   p_store_id uuid,
@@ -560,6 +570,11 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
+  IF COALESCE(auth.jwt() ->> 'role', '') <> 'service_role'
+     AND (auth.uid() IS NULL OR NOT public.is_admin(auth.uid())) THEN
+    RAISE EXCEPTION 'Somente administradores';
+  END IF;
+
   PERFORM public._record_checkout_consents_internal(
     p_order_id, p_store_id, p_customer_identifier, p_consents,
     p_session_reference, p_ip, p_user_agent
@@ -568,9 +583,9 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.record_checkout_consents(uuid, uuid, text, jsonb, text, text, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.record_checkout_consents(uuid, uuid, text, jsonb, text, text, text) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.record_checkout_consents(uuid, uuid, text, jsonb, text, text, text)
-  TO anon, authenticated, service_role;
+  TO authenticated, service_role;
 
 -- -----------------------------------------------------------------------------
 -- Integra create_public_order com p_consents (transação única)
@@ -688,15 +703,6 @@ BEGIN
       'checkout_token já utilizado em pedido encerrado ou com reserva expirada. Gere um novo token e tente novamente.';
   END IF;
 
-  -- Reinicializa variáveis: o SELECT INTO acima as zera (NULL) quando não há linha
-  v_order_id := NULL;
-  v_subtotal := 0;
-  v_total := 0;
-  v_created_at := NULL;
-  v_status := 'new'::public.order_status;
-  v_expires_at := NULL;
-  v_expired_at := NULL;
-
   -- Validação LGPD antes de reservar estoque
   IF p_consents IS NULL THEN
     RAISE EXCEPTION 'Consentimentos legais são obrigatórios no checkout';
@@ -804,7 +810,7 @@ BEGIN
     END IF;
 
     v_line_total := round(v_unit_price * v_qty, 2);
-    v_subtotal := COALESCE(v_subtotal, 0) + COALESCE(v_line_total, 0);
+    v_subtotal := v_subtotal + v_line_total;
 
     UPDATE tmp_public_order_items
     SET product_name = v_product_name,
@@ -813,7 +819,6 @@ BEGIN
     WHERE product_id = v_product_id;
   END LOOP;
 
-  v_subtotal := COALESCE(v_subtotal, 0);
   v_total := v_subtotal;
 
   BEGIN
@@ -1233,7 +1238,6 @@ BEGIN
         effective_at = EXCLUDED.effective_at,
         published_at = COALESCE(public.legal_documents.published_at, now()),
         updated_at = now()
-        -- content_hash preservado pelo trigger se já publicado
   RETURNING id INTO v_id;
 
   PERFORM public._log_legal_doc_audit(
@@ -1309,7 +1313,6 @@ BEGIN
     RETURN jsonb_build_object('ok', true, 'idempotent', true, 'status', 'revoked');
   END IF;
 
-  -- Checkout vinculado a pedido: não apaga; bloqueia revogação destrutiva
   IF v_row.consent_context = 'checkout' AND v_row.order_id IS NOT NULL THEN
     RAISE EXCEPTION
       'Consentimento de checkout vinculado a pedido não pode ser revogado. Registre solicitação jurídica separadamente.';
