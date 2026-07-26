@@ -42,6 +42,8 @@ import DeliveryPolicy from "./pages/legal/DeliveryPolicy";
 import CommissionPolicy from "./pages/legal/CommissionPolicy";
 import WithdrawalPolicy from "./pages/legal/WithdrawalPolicy";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AppUpdatePrompt } from "./components/system/AppUpdatePrompt";
+import { OfflineBanner } from "./components/system/OfflineBanner";
 import { PwaManifestSwitcher } from "./pwa/PwaManifestSwitcher";
 
 const Admin = ({ children }: { children: JSX.Element }) => <ProtectedRoute role="admin">{children}</ProtectedRoute>;
@@ -56,6 +58,8 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
       <CartProvider>
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <PwaManifestSwitcher />
+          <OfflineBanner />
+          <AppUpdatePrompt />
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/login-admin" element={<LoginPage role="admin" />} />

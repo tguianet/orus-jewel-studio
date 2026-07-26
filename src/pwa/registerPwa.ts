@@ -1,32 +1,46 @@
 import { registerSW } from "virtual:pwa-register";
+import {
+  bindPwaUpdater,
+  notifyNeedRefresh,
+  releaseReloadGuardOnBoot,
+} from "@/lib/pwaUpdate";
 
 /**
- * Registra o service worker com atualização automática.
- * skipWaiting + clientsClaim (vite.config) + reload quando há nova versão.
+ * Registro central do Service Worker.
+ * Atualização é prompt-based (não auto-reload) via AppUpdatePrompt.
  */
 export function registerPwa() {
   if (typeof window === "undefined") return;
+
+  releaseReloadGuardOnBoot();
 
   const updateSW = registerSW({
     immediate: true,
     onRegisteredSW(_swUrl, registration) {
       if (!registration) return;
 
-      // Verifica atualizações periodicamente (a cada 30 min)
+      // Verifica atualizações periodicamente (a cada 60 min)
       setInterval(() => {
         void registration.update();
-      }, 30 * 60 * 1000);
+      }, 60 * 60 * 1000);
 
-      // Checagem imediata ao focar a aba
+      // Checagem ao focar a aba
       window.addEventListener("focus", () => {
+        void registration.update();
+      });
+
+      // Checagem ao voltar online
+      window.addEventListener("online", () => {
         void registration.update();
       });
     },
     onNeedRefresh() {
-      void updateSW(true);
+      notifyNeedRefresh();
     },
     onOfflineReady() {
-      // App pronto para uso offline nas rotas em cache.
+      // Shell estático pronto; dados de API nunca vêm do cache.
     },
   });
+
+  bindPwaUpdater(updateSW);
 }
