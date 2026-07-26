@@ -1574,6 +1574,43 @@ export type Database = {
         Returns: number
       }
       _withdrawal_actor_role: { Args: never; Returns: string }
+      admin_export_report: {
+        Args: { p_filters?: Json; p_report_type: string }
+        Returns: Json
+      }
+      admin_get_commission_report: {
+        Args: {
+          p_end_date: string
+          p_level?: number
+          p_page?: number
+          p_page_size?: number
+          p_reseller_id?: string
+          p_start_date: string
+          p_status?: string
+        }
+        Returns: Json
+      }
+      admin_get_expired_orders_report: {
+        Args: {
+          p_end_date: string
+          p_reseller_id?: string
+          p_start_date: string
+          p_store_id?: string
+        }
+        Returns: Json
+      }
+      admin_get_inventory_report: {
+        Args: {
+          p_page?: number
+          p_page_size?: number
+          p_search?: string
+          p_sort_by?: string
+          p_sort_direction?: string
+          p_stale_days?: number
+          p_status?: string
+        }
+        Returns: Json
+      }
       admin_get_operational_error: {
         Args: { p_error_id: string }
         Returns: Json
@@ -1599,6 +1636,15 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_get_returns_report: {
+        Args: {
+          p_end_date: string
+          p_product_id?: string
+          p_reseller_id?: string
+          p_start_date: string
+        }
+        Returns: Json
+      }
       admin_get_sales_summary: {
         Args: {
           p_end_date: string
@@ -1615,6 +1661,36 @@ export type Database = {
           p_reseller_id?: string
           p_start_date: string
           p_store_id?: string
+        }
+        Returns: Json
+      }
+      admin_get_top_products: {
+        Args: {
+          p_end_date: string
+          p_limit?: number
+          p_metric?: string
+          p_start_date: string
+          p_store_id?: string
+        }
+        Returns: Json
+      }
+      admin_get_wallet_report: {
+        Args: {
+          p_end_date: string
+          p_page?: number
+          p_page_size?: number
+          p_reseller_id?: string
+          p_start_date: string
+          p_type?: string
+        }
+        Returns: Json
+      }
+      admin_get_withdrawal_report: {
+        Args: {
+          p_end_date: string
+          p_reseller_id?: string
+          p_start_date: string
+          p_status?: string
         }
         Returns: Json
       }
