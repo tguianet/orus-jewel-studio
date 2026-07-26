@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { NewProductModal } from "@/components/NewProductModal";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchAdminSalesSummary, fetchAdminWithdrawalReport } from "@/lib/reports/api";
+import { resolveReportRange } from "@/lib/reports/periods";
 
 type DashboardOrder = {
   id: string;
@@ -41,6 +43,11 @@ const AdminDashboard = () => {
   const [topSellers, setTopSellers] = useState<DashboardSeller[]>([]);
   const [lowStock, setLowStock] = useState<LowStockProduct[]>([]);
   const [monthlyRevenue, setMonthlyRevenue] = useState(0);
+  const [netRevenue, setNetRevenue] = useState(0);
+  const [paidOrders, setPaidOrders] = useState(0);
+  const [avgTicket, setAvgTicket] = useState(0);
+  const [returnsAmount, setReturnsAmount] = useState(0);
+  const [pendingWithdrawals, setPendingWithdrawals] = useState(0);
   const [activeSellers, setActiveSellers] = useState(0);
   const [pendingOrders, setPendingOrders] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -53,15 +60,13 @@ const AdminDashboard = () => {
       setLoading(true);
       setError(null);
 
-      const monthStart = new Date();
-      monthStart.setDate(1);
-      monthStart.setHours(0, 0, 0, 0);
+      const monthRange = resolveReportRange("current_month");
 
-      const [ordersRes, storesRes, productRowsRes] = await Promise.all([
+      const [ordersRes, storesRes, productRowsRes, salesSummary, withdrawalSummary] = await Promise.all([
         supabase
           .from("orders")
           .select("id,total,status,created_at,seller_store_id")
-          .gte("created_at", monthStart.toISOString())
+          .gte("created_at", monthRange.start.toISOString())
           .order("created_at", { ascending: false })
           .limit(50),
         supabase
@@ -74,6 +79,8 @@ const AdminDashboard = () => {
           .lt("stock", 10)
           .order("stock", { ascending: true })
           .limit(8),
+        fetchAdminSalesSummary({ start: monthRange.start, end: monthRange.end }).catch(() => null),
+        fetchAdminWithdrawalReport({ start: monthRange.start, end: monthRange.end }).catch(() => null),
       ]);
 
       if (ordersRes.error || storesRes.error || productRowsRes.error) {
@@ -136,11 +143,25 @@ const AdminDashboard = () => {
           image: product.image_url || "/placeholder.svg",
         })),
       );
-      setMonthlyRevenue(orders.reduce((sum, order) => sum + Number(order.total ?? 0), 0));
+      if (salesSummary) {
+        setMonthlyRevenue(salesSummary.gross_revenue);
+        setNetRevenue(salesSummary.net_revenue);
+        setPaidOrders(salesSummary.paid_orders_count);
+        setAvgTicket(salesSummary.average_ticket);
+        setReturnsAmount(salesSummary.returns_amount ?? 0);
+        setPendingOrders(salesSummary.pending_orders_count);
+      } else {
+        setMonthlyRevenue(
+          orders
+            .filter((o) => ["paid", "separated", "shipped", "delivered"].includes(String(o.status)))
+            .reduce((sum, order) => sum + Number(order.total ?? 0), 0),
+        );
+        setPendingOrders(
+          orders.filter((order) => ["new", "confirmed"].includes(String(order.status))).length,
+        );
+      }
+      setPendingWithdrawals(Number(withdrawalSummary?.pending_count ?? 0));
       setActiveSellers(stores.length);
-      setPendingOrders(
-        orders.filter((order) => ["new", "pending", "aguardando"].includes(String(order.status))).length,
-      );
     };
 
     loadDashboard()
@@ -150,6 +171,11 @@ const AdminDashboard = () => {
         setTopSellers([]);
         setLowStock([]);
         setMonthlyRevenue(0);
+        setNetRevenue(0);
+        setPaidOrders(0);
+        setAvgTicket(0);
+        setReturnsAmount(0);
+        setPendingWithdrawals(0);
         setActiveSellers(0);
         setPendingOrders(0);
         setError(err instanceof Error ? err.message : "Não foi possível carregar o dashboard.");
@@ -180,14 +206,39 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="mb-3 flex justify-end print:hidden">
+        <Button asChild variant="outline" size="sm">
+          <Link to="/admin/relatorios">Ver relatórios</Link>
+        </Button>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-4">
         <StatCard
-          label="Faturamento (mês)"
+          label="Faturamento bruto (mês)"
           value={loading ? "…" : formatBRL(monthlyRevenue)}
           icon={DollarSign}
           trend={revenueTrend}
-          hint="pedidos do mês"
+          hint="pedidos pagos confirmados"
         />
+        <StatCard
+          label="Receita líquida"
+          value={loading ? "…" : formatBRL(netRevenue)}
+          icon={TrendingUp}
+          hint="bruto − reembolsos − devoluções"
+        />
+        <StatCard
+          label="Pedidos pagos"
+          value={loading ? "…" : String(paidOrders)}
+          icon={ShoppingBag}
+          hint={`ticket médio ${loading ? "…" : formatBRL(avgTicket)}`}
+        />
+        <StatCard
+          label="Estoque crítico/baixo"
+          value={loading ? "…" : String(lowStock.length)}
+          icon={AlertTriangle}
+          hint="amostra abaixo de 10 un."
+        />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         <StatCard
           label="Sacoleiras ativas"
           value={loading ? "…" : String(activeSellers)}
@@ -198,13 +249,19 @@ const AdminDashboard = () => {
           label="Pedidos pendentes"
           value={loading ? "…" : String(pendingOrders)}
           icon={ShoppingBag}
-          hint="aguardando ação"
+          hint="new/confirmed"
         />
         <StatCard
-          label="Estoque baixo"
-          value={loading ? "…" : String(lowStock.length)}
+          label="Saques pendentes"
+          value={loading ? "…" : String(pendingWithdrawals)}
+          icon={DollarSign}
+          hint="mês atual"
+        />
+        <StatCard
+          label="Devoluções (R$)"
+          value={loading ? "…" : formatBRL(returnsAmount)}
           icon={AlertTriangle}
-          hint="produtos a repor"
+          hint="financeiras no mês"
         />
       </div>
 

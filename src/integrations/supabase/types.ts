@@ -1081,6 +1081,147 @@ export type Database = {
         Args: { p_error_id: string; p_resolution_notes: string }
         Returns: Json
       }
+      admin_get_sales_summary: {
+        Args: {
+          p_start_date: string
+          p_end_date: string
+          p_store_id?: string | null
+          p_reseller_id?: string | null
+        }
+        Returns: Json
+      }
+      admin_get_sales_timeseries: {
+        Args: {
+          p_start_date: string
+          p_end_date: string
+          p_granularity?: string
+          p_store_id?: string | null
+          p_reseller_id?: string | null
+        }
+        Returns: Json
+      }
+      admin_get_order_status_report: {
+        Args: {
+          p_start_date: string
+          p_end_date: string
+          p_store_id?: string | null
+          p_reseller_id?: string | null
+        }
+        Returns: Json
+      }
+      admin_get_reseller_performance: {
+        Args: {
+          p_start_date: string
+          p_end_date: string
+          p_page?: number
+          p_page_size?: number
+          p_sort_by?: string
+          p_sort_direction?: string
+          p_search?: string | null
+        }
+        Returns: Json
+      }
+      admin_get_commission_report: {
+        Args: {
+          p_start_date: string
+          p_end_date: string
+          p_level?: number | null
+          p_status?: string | null
+          p_reseller_id?: string | null
+          p_page?: number
+          p_page_size?: number
+        }
+        Returns: Json
+      }
+      admin_get_wallet_report: {
+        Args: {
+          p_start_date: string
+          p_end_date: string
+          p_reseller_id?: string | null
+          p_type?: string | null
+          p_page?: number
+          p_page_size?: number
+        }
+        Returns: Json
+      }
+      admin_get_withdrawal_report: {
+        Args: {
+          p_start_date: string
+          p_end_date: string
+          p_status?: string | null
+          p_reseller_id?: string | null
+        }
+        Returns: Json
+      }
+      admin_get_returns_report: {
+        Args: {
+          p_start_date: string
+          p_end_date: string
+          p_reseller_id?: string | null
+          p_product_id?: string | null
+        }
+        Returns: Json
+      }
+      admin_get_inventory_report: {
+        Args: {
+          p_stale_days?: number
+          p_page?: number
+          p_page_size?: number
+          p_status?: string | null
+          p_search?: string | null
+          p_sort_by?: string
+          p_sort_direction?: string
+        }
+        Returns: Json
+      }
+      admin_get_top_products: {
+        Args: {
+          p_start_date: string
+          p_end_date: string
+          p_metric?: string
+          p_limit?: number
+          p_store_id?: string | null
+        }
+        Returns: Json
+      }
+      admin_get_expired_orders_report: {
+        Args: {
+          p_start_date: string
+          p_end_date: string
+          p_store_id?: string | null
+          p_reseller_id?: string | null
+        }
+        Returns: Json
+      }
+      admin_export_report: {
+        Args: { p_report_type: string; p_filters?: Json }
+        Returns: Json
+      }
+      seller_get_sales_summary: {
+        Args: { p_start_date: string; p_end_date: string }
+        Returns: Json
+      }
+      seller_get_sales_timeseries: {
+        Args: { p_start_date: string; p_end_date: string; p_granularity?: string }
+        Returns: Json
+      }
+      seller_get_commission_summary: {
+        Args: { p_start_date: string; p_end_date: string }
+        Returns: Json
+      }
+      seller_get_order_report: {
+        Args: {
+          p_start_date: string
+          p_end_date: string
+          p_page?: number
+          p_page_size?: number
+        }
+        Returns: Json
+      }
+      seller_export_my_report: {
+        Args: { p_report_type: string; p_filters?: Json }
+        Returns: Json
+      }
       can_access_order: {
         Args: { _order_id: string; _user_id?: string }
         Returns: boolean

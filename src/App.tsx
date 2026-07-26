@@ -33,6 +33,16 @@ const AdminWithdrawals = lazy(() => import("./pages/admin/AdminWithdrawals"));
 const AdminLegalDocuments = lazy(() => import("./pages/admin/AdminLegalDocuments"));
 const AdminLegalConsents = lazy(() => import("./pages/admin/AdminLegalConsents"));
 const AdminOperationalErrors = lazy(() => import("./pages/admin/AdminOperationalErrors"));
+const AdminReports = lazy(() => import("./pages/admin/AdminReports"));
+const AdminSalesReport = lazy(() => import("./pages/admin/reports/SalesReport"));
+const AdminResellerReport = lazy(() => import("./pages/admin/reports/ResellerReport"));
+const AdminCommissionReport = lazy(() => import("./pages/admin/reports/CommissionReport"));
+const AdminWalletReport = lazy(() => import("./pages/admin/reports/WalletReport"));
+const AdminWithdrawalReport = lazy(() => import("./pages/admin/reports/WithdrawalReport"));
+const AdminReturnsReport = lazy(() => import("./pages/admin/reports/ReturnsReport"));
+const AdminInventoryReport = lazy(() => import("./pages/admin/reports/InventoryReport"));
+const AdminProductsReport = lazy(() => import("./pages/admin/reports/ProductsReport"));
+const AdminExpiredOrdersReport = lazy(() => import("./pages/admin/reports/ExpiredOrdersReport"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 const AdminNetwork = lazy(() => import("./pages/admin/AdminNetwork"));
 const AdminBanners = lazy(() => import("./pages/admin/AdminBanners"));
@@ -46,6 +56,7 @@ const SellerOrders = lazy(() => import("./pages/seller/SellerOrders"));
 const SellerCustomers = lazy(() => import("./pages/seller/SellerCustomers"));
 const SellerWithdrawals = lazy(() => import("./pages/seller/SellerWithdrawals"));
 const SellerLegalConsents = lazy(() => import("./pages/seller/SellerLegalConsents"));
+const SellerReports = lazy(() => import("./pages/seller/SellerReports"));
 const SellerSettings = lazy(() => import("./pages/seller/SellerSettings"));
 const SellerNetwork = lazy(() => import("./pages/seller/SellerNetwork"));
 const SellerMarketing = lazy(() => import("./pages/seller/SellerMarketing"));
@@ -112,6 +123,16 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
                 <Route path="/admin/documentos-legais" element={<Admin><AdminLegalDocuments /></Admin>} />
                 <Route path="/admin/consentimentos" element={<Admin><AdminLegalConsents /></Admin>} />
                 <Route path="/admin/erros-operacionais" element={<Admin><AdminOperationalErrors /></Admin>} />
+                <Route path="/admin/relatorios" element={<Admin><AdminReports /></Admin>} />
+                <Route path="/admin/relatorios/vendas" element={<Admin><AdminSalesReport /></Admin>} />
+                <Route path="/admin/relatorios/sacoleiras" element={<Admin><AdminResellerReport /></Admin>} />
+                <Route path="/admin/relatorios/comissoes" element={<Admin><AdminCommissionReport /></Admin>} />
+                <Route path="/admin/relatorios/carteira" element={<Admin><AdminWalletReport /></Admin>} />
+                <Route path="/admin/relatorios/saques" element={<Admin><AdminWithdrawalReport /></Admin>} />
+                <Route path="/admin/relatorios/devolucoes" element={<Admin><AdminReturnsReport /></Admin>} />
+                <Route path="/admin/relatorios/estoque" element={<Admin><AdminInventoryReport /></Admin>} />
+                <Route path="/admin/relatorios/produtos" element={<Admin><AdminProductsReport /></Admin>} />
+                <Route path="/admin/relatorios/expirados" element={<Admin><AdminExpiredOrdersReport /></Admin>} />
                 <Route path="/admin/configuracoes" element={<Admin><AdminSettings /></Admin>} />
                 <Route path="/admin/rede" element={<Admin><AdminNetwork /></Admin>} />
                 <Route path="/admin/banners" element={<Admin><AdminBanners /></Admin>} />
@@ -126,6 +147,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
                 <Route path="/sacoleira/clientes" element={<Seller><SellerCustomers /></Seller>} />
                 <Route path="/sacoleira/saques" element={<Seller><SellerWithdrawals /></Seller>} />
                 <Route path="/sacoleira/consentimentos" element={<Seller><SellerLegalConsents /></Seller>} />
+                <Route path="/sacoleira/relatorios" element={<Seller><SellerReports /></Seller>} />
                 <Route path="/sacoleira/configuracoes" element={<Seller><SellerSettings /></Seller>} />
                 <Route path="/sacoleira/rede" element={<Seller><SellerNetwork /></Seller>} />
                 <Route path="/sacoleira/marketing" element={<Seller><SellerMarketing /></Seller>} />
