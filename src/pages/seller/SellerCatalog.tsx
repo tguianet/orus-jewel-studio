@@ -4,7 +4,7 @@ import { SellerLayout } from "@/layouts/SellerLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { formatBRL } from "@/lib/mockData";
+import { formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { CatalogProduct, loadCatalogForStore, toggleStoreProduct } from "@/lib/cloudStore";
@@ -42,8 +42,8 @@ const SellerCatalog = () => {
       });
       setItems((curr) => curr.map((x) => x.id === p.id ? { ...x, selected: !x.selected, storeProductId: id } : x));
       toast.success(p.selected ? "Removido da sua loja" : "Adicionado à sua loja");
-    } catch (e: any) {
-      toast.error("Falhou", { description: e.message });
+    } catch (e: unknown) {
+      toast.error("Falhou", { description: e instanceof Error ? e.message : "Erro desconhecido." });
     } finally { setBusy(null); }
   };
 

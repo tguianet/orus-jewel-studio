@@ -1,11 +1,12 @@
 import { Link, Outlet, useParams, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { ShoppingBag, Search, Heart, Instagram, MessageCircle, ShieldAlert, ArrowRight, ArrowLeft, X, Menu, User } from "lucide-react";
-import { getStoreBySlug, getStoreProducts, formatBRL } from "@/lib/mockData";
+import { formatBRL } from "@/lib/format";
+import type { Sacoleira } from "@/types/commerce";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { CloudStoreProduct, loadPublicStore, loadStoreProducts } from "@/lib/cloudStore";
 import { DEFAULT_BANNER, StoreTheme, defaultTheme, loadStoreThemeBySlug } from "@/lib/storeTheme";
 import { waLink } from "@/lib/whatsapp";
@@ -14,6 +15,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { EditableText } from "@/components/preview/EditableText";
 import { StorePopup } from "@/components/store/StorePopup";
 
+type PreviewMessage =
+  | { type: "lovable-preview-theme"; theme: StoreTheme }
+  | { type: "lovable-preview-store"; store: Partial<Sacoleira> };
+
 const StoreLayout = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -21,7 +26,8 @@ const StoreLayout = () => {
   const isStoreHome = location.pathname === `/loja/${slug}` || location.pathname === `/loja/${slug}/`;
   const [searchParams] = useSearchParams();
   const { profile, loading: authLoading } = useAuth();
-  const [store, setStore] = useState(() => getStoreBySlug(slug));
+  const [store, setStore] = useState<Sacoleira | null>(null);
+  const [storeError, setStoreError] = useState<string | null>(null);
   const [theme, setTheme] = useState<StoreTheme>(defaultTheme);
   const [themeLoaded, setThemeLoaded] = useState(false);
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
@@ -29,7 +35,7 @@ const StoreLayout = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [allProducts, setAllProducts] = useState<CloudStoreProduct[]>([]);
   const { count } = useCart();
 
   useEffect(() => {
@@ -38,21 +44,27 @@ const StoreLayout = () => {
 
   useEffect(() => {
     let mounted = true;
-    const mock = getStoreProducts(store.id);
-    setAllProducts(mock);
-    loadStoreProducts(store.id).then((items) => {
-      if (mounted && items && items.length) setAllProducts(items);
-    });
+    if (!store?.id) {
+      setAllProducts([]);
+      return;
+    }
+    loadStoreProducts(store.id)
+      .then((items) => {
+        if (mounted) setAllProducts(items);
+      })
+      .catch(() => {
+        if (mounted) setAllProducts([]);
+      });
     return () => { mounted = false; };
-  }, [store.id]);
+  }, [store?.id]);
 
   const searchResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return [];
-    return allProducts.filter((p: any) =>
-      [p.name, p.category, p.code, p.sku, p.id]
+    return allProducts.filter((p) =>
+      [p.name, p.category, p.code, p.id]
         .filter(Boolean)
-        .some((s: any) => String(s).toLowerCase().includes(q))
+        .some((s) => String(s).toLowerCase().includes(q))
     );
   }, [searchQuery, allProducts]);
 
@@ -71,32 +83,70 @@ const StoreLayout = () => {
   useEffect(() => {
     let mounted = true;
     setThemeLoaded(false);
-    Promise.all([loadPublicStore(slug), loadStoreThemeBySlug(slug)]).then(([cloudStore, t]) => {
-      if (!mounted) return;
-      if (cloudStore) setStore(cloudStore);
-      setTheme({ ...defaultTheme, ...(t || {}) });
-      setThemeLoaded(true);
-    });
+    setStoreError(null);
+    setStore(null);
+
+    Promise.all([loadPublicStore(slug), loadStoreThemeBySlug(slug)])
+      .then(([cloudStore, t]) => {
+        if (!mounted) return;
+        if (cloudStore) {
+          setStore(cloudStore);
+          setStoreError(null);
+        } else if (!isPreview) {
+          setStore(null);
+          setStoreError("Loja não encontrada ou ainda não aprovada.");
+        }
+        setTheme({ ...defaultTheme, ...(t || {}) });
+        setThemeLoaded(true);
+      })
+      .catch((err: unknown) => {
+        if (!mounted) return;
+        setStore(null);
+        setStoreError(err instanceof Error ? err.message : "Não foi possível carregar a loja.");
+        setThemeLoaded(true);
+      });
+
     return () => { mounted = false; };
-  }, [slug]);
+  }, [slug, isPreview]);
 
   useEffect(() => {
     if (!isPreview) return;
     const onMsg = (e: MessageEvent) => {
-      const data = e.data as any;
+      const data = e.data as PreviewMessage | null;
       if (!data || typeof data !== "object") return;
       if (data.type === "lovable-preview-theme" && data.theme) {
-        setTheme({ ...defaultTheme, ...(data.theme as StoreTheme) });
+        setTheme({ ...defaultTheme, ...data.theme });
       }
       if (data.type === "lovable-preview-store" && data.store) {
-        setStore((prev) => ({ ...prev, ...(data.store as any) }));
+        setStore((prev) => {
+          const base = prev ?? {
+            id: "",
+            profileId: "",
+            parentId: null,
+            name: "",
+            storeName: "",
+            storeSlug: slug || "",
+            email: "",
+            phone: "",
+            status: "approved" as const,
+            tier: "padrão",
+            totalSpent: 0,
+            ordersCount: 0,
+            walletAvailable: 0,
+            walletPending: 0,
+            directReferrals: 0,
+            networkSize: 0,
+          };
+          return { ...base, ...data.store };
+        });
+        setStoreError(null);
       }
     };
     window.addEventListener("message", onMsg);
     // sinaliza que está pronto pra receber estado
     try { window.parent?.postMessage({ type: "lovable-preview-ready" }, "*"); } catch { /* noop */ }
     return () => window.removeEventListener("message", onMsg);
-  }, [isPreview]);
+  }, [isPreview, slug]);
 
   const ctx = useMemo(
     () => ({ store, theme, banner: theme.bannerUrl || DEFAULT_BANNER }),
@@ -146,6 +196,23 @@ const StoreLayout = () => {
     return (
       <div className="store-light min-h-screen flex items-center justify-center bg-background">
         <div className="h-8 w-8 rounded-full border-2 border-muted border-t-foreground animate-spin" aria-label="Carregando loja" />
+      </div>
+    );
+  }
+
+  if (!store) {
+    return (
+      <div className="store-light min-h-screen flex items-center justify-center bg-background p-6">
+        <div className="max-w-md w-full text-center space-y-4 border border-border rounded-2xl p-8 bg-card">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-primary">Loja indisponível</p>
+          <h1 className="font-display text-3xl">Não encontramos esta loja</h1>
+          <p className="text-sm text-muted-foreground">
+            {storeError || "A loja solicitada não existe ou ainda não foi aprovada."}
+          </p>
+          <Button asChild variant="outline">
+            <Link to="/">Voltar ao início</Link>
+          </Button>
+        </div>
       </div>
     );
   }
@@ -360,7 +427,7 @@ const StoreLayout = () => {
               </p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 py-4">
-                {searchResults.map((p: any) => (
+                {searchResults.map((p) => (
                   <Link
                     key={p.id}
                     to={`/loja/${store.storeSlug}/produto/${p.id}`}

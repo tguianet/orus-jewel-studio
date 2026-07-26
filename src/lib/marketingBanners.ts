@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables, TablesUpdate } from "@/integrations/supabase/types";
 
 export type ImageFormat = {
   id: string;
@@ -20,12 +21,15 @@ export type MarketingBanner = {
   formatId: string | null;
 };
 
+type ImageFormatRow = Tables<"image_formats">;
+type MarketingBannerRow = Tables<"marketing_banners">;
+
 export const loadImageFormats = async (onlyActive = true): Promise<ImageFormat[]> => {
   let q = supabase.from("image_formats").select("id,name,slug,width,height,description,active,sort_order").order("sort_order", { ascending: true });
   if (onlyActive) q = q.eq("active", true);
   const { data, error } = await q;
   if (error || !data) return [];
-  return data.map((r: any) => ({
+  return (data as ImageFormatRow[]).map((r) => ({
     id: r.id,
     name: r.name,
     slug: r.slug,
@@ -45,7 +49,7 @@ export const createImageFormat = async (f: { name: string; slug: string; width: 
 };
 
 export const updateImageFormat = async (id: string, patch: Partial<{ name: string; slug: string; width: number; height: number; description: string; active: boolean; sortOrder: number }>) => {
-  const upd: any = {};
+  const upd: TablesUpdate<"image_formats"> = {};
   if (patch.name !== undefined) upd.name = patch.name;
   if (patch.slug !== undefined) upd.slug = patch.slug;
   if (patch.width !== undefined) upd.width = patch.width;
@@ -69,7 +73,7 @@ export const loadMarketingBanners = async (opts?: { onlyActive?: boolean; format
   if (opts?.formatId) q = q.eq("format_id", opts.formatId);
   const { data, error } = await q;
   if (error || !data) return [];
-  return data.map((r: any) => ({
+  return (data as MarketingBannerRow[]).map((r) => ({
     id: r.id,
     title: r.title || "",
     imageUrl: r.image_url,

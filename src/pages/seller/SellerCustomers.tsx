@@ -6,7 +6,8 @@ import { StatCard } from "@/components/StatCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { loadWalletForReseller, WalletSummary, WalletTx } from "@/lib/cloudStore";
 import { supabase } from "@/integrations/supabase/client";
-import { formatBRL, statusColors } from "@/lib/mockData";
+import { formatBRL } from "@/lib/format";
+import { statusColors } from "@/lib/orderStatus";
 
 type Breakdown = { ownSales: number; networkCommissions: number };
 
@@ -31,12 +32,19 @@ const SellerCustomers = () => {
     ]).then(([wallet, commRes]) => {
       setSummary(wallet.summary);
       setTxs(wallet.transactions);
-      const rows = commRes.data ?? [];
-      const ownSales = rows.filter((r: any) => r.level === 1).reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
-      const networkCommissions = rows.filter((r: any) => r.level > 1).reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
+      type CommissionSourceRow = {
+        id: string;
+        amount: number;
+        level: number;
+        source_reseller_id: string | null;
+        resellers: { display_name: string } | null;
+      };
+      const rows = (commRes.data ?? []) as CommissionSourceRow[];
+      const ownSales = rows.filter((r) => r.level === 1).reduce((s, r) => s + Number(r.amount || 0), 0);
+      const networkCommissions = rows.filter((r) => r.level > 1).reduce((s, r) => s + Number(r.amount || 0), 0);
       setBreakdown({ ownSales, networkCommissions });
       const map: Record<string, { name: string; level: number }> = {};
-      rows.forEach((r: any) => {
+      rows.forEach((r) => {
         map[r.id] = {
           name: r.resellers?.display_name || "Indicada",
           level: r.level,

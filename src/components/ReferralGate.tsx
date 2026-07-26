@@ -30,10 +30,10 @@ export const ReferralGate = () => {
 
     setBusy(true);
     // Lookup seguro (sem expor e-mail/telefone) + vínculo único via RPC
-    const { data: refRows, error: refErr } = await (supabase.rpc as any)("lookup_reseller_sponsor", {
+    const { data: refRows, error: refErr } = await supabase.rpc("lookup_reseller_sponsor", {
       _id: code,
     });
-    const ref = Array.isArray(refRows) ? refRows[0] : refRows;
+    const ref = Array.isArray(refRows) ? refRows[0] : null;
 
     if (refErr || !ref) {
       setBusy(false);
@@ -41,7 +41,7 @@ export const ReferralGate = () => {
       return;
     }
 
-    const { error: upErr } = await (supabase.rpc as any)("set_my_reseller_parent", {
+    const { error: upErr } = await supabase.rpc("set_my_reseller_parent", {
       _parent_id: code,
     });
 

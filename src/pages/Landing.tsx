@@ -1,8 +1,11 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Sparkles, Store, Crown, Gem, Smartphone, ShieldCheck, Network } from "lucide-react";
+import { ArrowRight, Sparkles, Store, Crown, Gem, ShieldCheck, Network } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OrusLogo } from "@/components/OrusLogo";
 import heroImg from "@/assets/hero-jewelry.jpg";
+import { supabase } from "@/integrations/supabase/client";
+import { commissionRules } from "@/lib/commissionRules";
 
 const features = [
   { icon: Store, title: "Lojas para sacoleiras", text: "Cada revendedora ganha uma loja própria com URL personalizada, catálogo e identidade visual." },
@@ -11,7 +14,27 @@ const features = [
   { icon: ShieldCheck, title: "Multi-tenant seguro", text: "Dados, pedidos e produtos de cada loja ficam isolados por revendedora." },
 ];
 
-const Landing = () => (
+const Landing = () => {
+  const [activeSellers, setActiveSellers] = useState<number | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    supabase
+      .from("seller_stores")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "approved")
+      .then(({ count, error }) => {
+        if (!mounted || error) return;
+        setActiveSellers(count ?? 0);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const commissionLevels = commissionRules.length;
+
+  return (
   <div className="min-h-screen">
     {/* Nav */}
     <header className="sticky top-0 z-30 border-b border-border/50 bg-background/80 backdrop-blur-xl">
@@ -20,7 +43,7 @@ const Landing = () => (
         <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
           <a href="#features" className="hover:text-primary transition-colors">Plataforma</a>
           <a href="#how" className="hover:text-primary transition-colors">Como funciona</a>
-          <Link to="/loja/marina-aura" className="hover:text-primary transition-colors">Loja exemplo</Link>
+          <Link to="/login-sacoleira" className="hover:text-primary transition-colors">Área da sacoleira</Link>
         </nav>
         <div className="flex items-center gap-2">
           <Link to="/login-sacoleira"><Button variant="ghost" size="sm">Entrar</Button></Link>
@@ -51,11 +74,25 @@ const Landing = () => (
             <Link to="/sacoleira"><Button variant="goldOutline" size="xl">Painel da Sacoleira</Button></Link>
           </div>
           <div className="flex items-center gap-6 pt-4 text-xs text-muted-foreground">
-            <div><span className="font-display text-2xl text-foreground">120+</span><br />sacoleiras na rede</div>
+            <div>
+              <span className="font-display text-2xl text-foreground">
+                {activeSellers === null ? "…" : activeSellers}
+              </span>
+              <br />
+              sacoleiras ativas
+            </div>
             <div className="h-10 w-px bg-border" />
-            <div><span className="font-display text-2xl text-foreground">3 níveis</span><br />de comissão</div>
+            <div>
+              <span className="font-display text-2xl text-foreground">{commissionLevels} níveis</span>
+              <br />
+              de comissão
+            </div>
             <div className="h-10 w-px bg-border" />
-            <div><span className="font-display text-2xl text-foreground">4.9★</span><br />satisfação</div>
+            <div>
+              <span className="font-display text-2xl text-foreground">Lojas</span>
+              <br />
+              virtuais individuais
+            </div>
           </div>
         </div>
         <div className="relative animate-fade-in">
@@ -67,8 +104,8 @@ const Landing = () => (
             <div className="flex items-center gap-3">
               <Crown className="h-5 w-5 text-primary" />
               <div>
-                <p className="text-xs text-muted-foreground">Tier VIP desbloqueado</p>
-                <p className="text-sm font-medium">+15% margem extra</p>
+                <p className="text-xs text-muted-foreground">Rede multinível</p>
+                <p className="text-sm font-medium">Comissões por venda real</p>
               </div>
             </div>
           </div>
@@ -120,7 +157,7 @@ const Landing = () => (
           <h2 className="font-display text-4xl sm:text-5xl font-light max-w-2xl mx-auto">Pronta para operar sua rede multinível de joias?</h2>
           <div className="flex flex-wrap justify-center gap-3 mt-8">
             <Link to="/admin"><Button variant="gold" size="xl">Acessar Admin</Button></Link>
-            <Link to="/loja/marina-aura"><Button variant="outline" size="xl">Ver loja exemplo</Button></Link>
+            <Link to="/login-sacoleira"><Button variant="outline" size="xl">Entrar como sacoleira</Button></Link>
           </div>
         </div>
       </div>
@@ -133,6 +170,7 @@ const Landing = () => (
       </div>
     </footer>
   </div>
-);
+  );
+};
 
 export default Landing;

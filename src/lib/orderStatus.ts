@@ -1,0 +1,41 @@
+export const statusLabels: Record<string, string> = {
+  // Legacy PT labels (UI)
+  aguardando: "Aguardando pagamento",
+  pago: "Pago",
+  separado: "Separado",
+  enviado: "Enviado",
+  entregue: "Entregue",
+  cancelado: "Cancelado",
+  novo: "Novo",
+  confirmado: "Confirmado",
+  // Database enum values
+  new: "Novo",
+  confirmed: "Confirmado",
+  paid: "Pago",
+  separated: "Separado",
+  shipped: "Enviado",
+  delivered: "Entregue",
+  cancelled: "Cancelado",
+  pending: "Pendente",
+  available: "Disponível",
+};
+
+export const statusColors: Record<string, string> = {
+  aguardando: "bg-warning/15 text-warning border-warning/30",
+  pago: "bg-primary/15 text-primary border-primary/30",
+  separado: "bg-blue-500/15 text-blue-400 border-blue-500/30",
+  enviado: "bg-purple-500/15 text-purple-400 border-purple-500/30",
+  entregue: "bg-success/15 text-success border-success/30",
+  cancelado: "bg-destructive/15 text-destructive border-destructive/30",
+  novo: "bg-warning/15 text-warning border-warning/30",
+  confirmado: "bg-success/15 text-success border-success/30",
+  new: "bg-warning/15 text-warning border-warning/30",
+  confirmed: "bg-success/15 text-success border-success/30",
+  paid: "bg-primary/15 text-primary border-primary/30",
+  separated: "bg-blue-500/15 text-blue-400 border-blue-500/30",
+  shipped: "bg-purple-500/15 text-purple-400 border-purple-500/30",
+  delivered: "bg-success/15 text-success border-success/30",
+  cancelled: "bg-destructive/15 text-destructive border-destructive/30",
+  available: "bg-success/15 text-success border-success/30",
+  pending: "bg-warning/15 text-warning border-warning/30",
+};

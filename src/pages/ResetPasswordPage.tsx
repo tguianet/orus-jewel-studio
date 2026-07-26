@@ -15,7 +15,12 @@ const ResetPasswordPage = () => {
 
   useEffect(() => {
     let cancelled = false;
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    const timeoutId = setTimeout(() => {
+      if (!cancelled) {
+        setError((prev) => prev ?? "Não foi possível validar o link. Tente solicitar um novo.");
+      }
+    }, 8000);
 
     const finish = (ok: boolean, message?: string) => {
       if (cancelled) return;
@@ -25,7 +30,7 @@ const ResetPasswordPage = () => {
       } else {
         setError(message || "Não foi possível validar o link de recuperação.");
       }
-      if (timeoutId) clearTimeout(timeoutId);
+      clearTimeout(timeoutId);
     };
 
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
@@ -62,19 +67,13 @@ const ResetPasswordPage = () => {
         const { data } = await supabase.auth.getSession();
         if (data.session) finish(true);
       } catch (e) {
-        finish(false, (e as Error).message || "Erro ao validar o link.");
+        finish(false, e instanceof Error ? e.message : "Erro ao validar o link.");
       }
     })();
 
-    timeoutId = setTimeout(() => {
-      if (!cancelled) {
-        setError((prev) => prev ?? "Não foi possível validar o link. Tente solicitar um novo.");
-      }
-    }, 8000);
-
     return () => {
       cancelled = true;
-      if (timeoutId) clearTimeout(timeoutId);
+      clearTimeout(timeoutId);
       sub.subscription.unsubscribe();
     };
   }, []);

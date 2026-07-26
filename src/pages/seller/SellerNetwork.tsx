@@ -9,13 +9,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { loadNetwork, NetworkMember } from "@/lib/cloudStore";
 import { waLink } from "@/lib/whatsapp";
 import { supabase } from "@/integrations/supabase/client";
-import { formatBRL } from "@/lib/mockData";
+import { formatBRL } from "@/lib/format";
+import { commissionRules as baseCommissionRules } from "@/lib/commissionRules";
 
-const commissionRules = [
-  { level: 1, rate: 0.1, label: "Nível 1 — venda direta" },
-  { level: 2, rate: 0.05, label: "Nível 2 — indicada" },
-  { level: 3, rate: 0.02, label: "Nível 3 — sub-indicada" },
-];
+const commissionRules = baseCommissionRules.map((rule) => ({
+  ...rule,
+  label:
+    rule.level === 1
+      ? "Nível 1 — venda direta"
+      : rule.level === 2
+        ? "Nível 2 — indicada"
+        : "Nível 3 — sub-indicada",
+}));
 
 const SellerNetwork = () => {
   const { profile } = useAuth();
@@ -53,7 +58,8 @@ const SellerNetwork = () => {
     ]).then(([m, commRes]) => {
       setMembers(m);
       const map: Record<string, number> = {};
-      (commRes.data ?? []).forEach((r: any) => {
+      type MonthCommissionRow = { amount: number; source_reseller_id: string | null };
+      ((commRes.data ?? []) as MonthCommissionRow[]).forEach((r) => {
         if (!r.source_reseller_id) return;
         map[r.source_reseller_id] = (map[r.source_reseller_id] || 0) + Number(r.amount || 0);
       });

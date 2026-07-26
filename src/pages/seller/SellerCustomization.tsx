@@ -1037,19 +1037,19 @@ const SellerCustomization = () => {
           <div className="rounded-xl border border-border bg-card p-6 space-y-3">
             <h3 className="font-display text-xl">12. Seções visíveis</h3>
             <p className="text-xs text-muted-foreground -mt-1">Mostre ou esconda blocos da sua loja.</p>
-            {[
+            {([
               { key: "showCollections", label: "Coleções (categorias em destaque)" },
               { key: "showMaterials", label: "Materiais (Ouro, Prata, Folheado)" },
               { key: "showCare", label: "Cuidados com as joias" },
               { key: "showGuarantee", label: "Garantia, troca e pagamento" },
               { key: "showFinalCta", label: "Chamada final (WhatsApp/Instagram)" },
-            ].map((s) => {
-              const value = (theme as any)[s.key];
+            ] as const).map((s) => {
+              const value = theme[s.key];
               const checked = value === undefined ? true : !!value;
               return (
                 <div key={s.key} className="flex items-center justify-between py-1.5 border-b border-border last:border-0">
                   <span className="text-sm">{s.label}</span>
-                  <Switch checked={checked} onCheckedChange={(v) => setTheme({ ...theme, [s.key]: v } as StoreTheme)} />
+                  <Switch checked={checked} onCheckedChange={(v) => setTheme({ ...theme, [s.key]: v })} />
                 </div>
               );
             })}

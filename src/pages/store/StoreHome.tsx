@@ -2,7 +2,8 @@ import { Link, useOutletContext, useSearchParams, useNavigate } from "react-rout
 import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ArrowRight, Sparkles, Instagram, MessageCircle, Heart, Truck, ShieldCheck, Gem, Crown, Award, Droplet, Sun, Sparkle, CheckCircle2, Package, RefreshCw, CreditCard, ChevronLeft, ChevronRight, Menu, Check } from "lucide-react";
-import { formatBRL, getStoreProducts, Sacoleira } from "@/lib/mockData";
+import { formatBRL } from "@/lib/format";
+import type { Sacoleira } from "@/types/commerce";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import heroImg from "@/assets/hero-jewelry.jpg";
@@ -32,35 +33,47 @@ const StoreHome = () => {
     return () => clearInterval(id);
   }, [banners.length]);
   const [cloudProducts, setCloudProducts] = useState<CloudStoreProduct[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [productsError, setProductsError] = useState<string | null>(null);
   const [activeCat, setActiveCat] = useState<string>("Todos");
   const [catMenuOpen, setCatMenuOpen] = useState(false);
-  const [quickProduct, setQuickProduct] = useState<any | null>(null);
+  const [quickProduct, setQuickProduct] = useState<CloudStoreProduct | null>(null);
   const navigate = useNavigate();
-  const mockProducts = getStoreProducts(store.id);
-  const allProducts: CloudStoreProduct[] | any[] = cloudProducts.length ? cloudProducts : mockProducts;
+  const allProducts = cloudProducts;
 
   useEffect(() => {
     let mounted = true;
-    loadStoreProducts(store.id).then((items) => {
-      if (mounted) setCloudProducts(items);
-    });
+    setProductsLoading(true);
+    setProductsError(null);
+    loadStoreProducts(store.id)
+      .then((items) => {
+        if (mounted) setCloudProducts(items);
+      })
+      .catch((err: unknown) => {
+        if (!mounted) return;
+        setCloudProducts([]);
+        setProductsError(err instanceof Error ? err.message : "Não foi possível carregar os produtos.");
+      })
+      .finally(() => {
+        if (mounted) setProductsLoading(false);
+      });
     return () => { mounted = false; };
   }, [store.id]);
 
   const cats = useMemo(() => {
     const set = new Set<string>();
-    allProducts.forEach((p: any) => p.category && set.add(p.category));
+    allProducts.forEach((p) => p.category && set.add(p.category));
     return ["Todos", ...Array.from(set)];
   }, [allProducts]);
 
   const byCategory = activeCat === "Todos"
     ? allProducts
-    : allProducts.filter((p: any) => p.category === activeCat);
+    : allProducts.filter((p) => p.category === activeCat);
   const filtered = query
-    ? byCategory.filter((p: any) =>
-        [p.name, p.category, p.code, p.sku, p.id]
+    ? byCategory.filter((p) =>
+        [p.name, p.category, p.code, p.id]
           .filter(Boolean)
-          .some((s: any) => String(s).toLowerCase().includes(query))
+          .some((s) => String(s).toLowerCase().includes(query))
       )
     : byCategory;
 
@@ -240,7 +253,7 @@ const StoreHome = () => {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
               {collections.map((c) => {
-                const sample = allProducts.find((p: any) => p.category === c);
+                const sample = allProducts.find((p) => p.category === c);
                 const img = (t.categoryImages || {})[c] || sample?.image;
                 return (
                   <button
@@ -330,14 +343,22 @@ const StoreHome = () => {
           </p>
         )}
 
-        {filtered.length === 0 ? (
+        {productsLoading ? (
+          <p className="text-center text-sm text-muted-foreground py-12">Carregando produtos…</p>
+        ) : productsError ? (
+          <p className="text-center text-sm text-destructive py-12">{productsError}</p>
+        ) : filtered.length === 0 ? (
           <p className="text-center text-sm text-muted-foreground py-12">
-            {query ? `Nenhuma peça encontrada para "${query}".` : "Ainda não há produtos nesta categoria."}
+            {query
+              ? `Nenhuma peça encontrada para "${query}".`
+              : allProducts.length === 0
+                ? "Esta loja ainda não possui produtos cadastrados."
+                : "Ainda não há produtos nesta categoria."}
           </p>
         ) : (
           <>
           <div className="grid grid-cols-3 gap-2 sm:hidden">
-            {filtered.map((p: any) => (
+            {filtered.map((p) => (
               <button
                 key={p.id}
                 type="button"
@@ -354,7 +375,7 @@ const StoreHome = () => {
             ))}
           </div>
           <div className="hidden sm:grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
-            {filtered.map((p: any) => (
+            {filtered.map((p) => (
               <Link key={p.id} to={`/loja/${store.storeSlug}/produto/${p.id}`} className="group block">
                 <div className="relative aspect-square overflow-hidden bg-secondary/50 mb-5 transition-all duration-500 group-hover:shadow-[0_30px_60px_-20px_rgba(17,17,17,0.18)]">
                   <img src={p.image} alt={p.name} loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-105" />

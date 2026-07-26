@@ -9,12 +9,14 @@ export const normalizeSlug = (value: string) =>
     .replace(/-{2,}/g, "-")
     .slice(0, 60);
 
-export const sanitizeText = (value: string, maxLength = 500) =>
-  value
-    .replace(/[<>]/g, "")
-    .replace(/[\u0000-\u001F\u007F]/g, "")
-    .trim()
-    .slice(0, maxLength);
+export const sanitizeText = (value: string, maxLength = 500) => {
+  let cleaned = "";
+  for (const ch of value.replace(/[<>]/g, "")) {
+    const code = ch.charCodeAt(0);
+    if (code >= 32 && code !== 127) cleaned += ch;
+  }
+  return cleaned.trim().slice(0, maxLength);
+};
 
 export const sanitizePhone = (value: string) => value.replace(/\D/g, "").slice(0, 14);
 

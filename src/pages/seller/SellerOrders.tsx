@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { loadOrdersForStore, SellerOrderRow, loadOrderDetail, OrderDetail } from "@/lib/cloudStore";
-import { formatBRL, statusColors } from "@/lib/mockData";
+import { formatBRL } from "@/lib/format";
+import { statusColors } from "@/lib/orderStatus";
 import { Loader2, MessageCircle, Eye } from "lucide-react";
 import { waLink } from "@/lib/whatsapp";
 

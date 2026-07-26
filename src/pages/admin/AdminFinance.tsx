@@ -5,7 +5,8 @@ import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { formatBRL, statusColors } from "@/lib/mockData";
+import { formatBRL } from "@/lib/format";
+import { statusColors } from "@/lib/orderStatus";
 
 type ResellerRow = {
   id: string;
@@ -36,6 +37,42 @@ type CommissionRow = {
   resellerName: string;
 };
 
+type WalletSummaryRow = {
+  reseller_id: string | null;
+  pending: number | null;
+  available: number | null;
+  paid: number | null;
+  total_balance: number | null;
+};
+
+type ResellerQueryRow = {
+  id: string;
+  display_name: string;
+  email: string;
+  tier: string;
+  status: string;
+  parent_id: string | null;
+  seller_stores: { id: string; store_name: string }[] | null;
+};
+
+type CommissionQueryRow = {
+  id: string;
+  order_id: string;
+  amount: number;
+  rate: number;
+  level: number;
+  status: string;
+  reseller_id: string;
+};
+
+type OrderQueryRow = {
+  id: string;
+  total: number;
+  status: string;
+  seller_store_id: string;
+  seller_stores: { reseller_id: string | null } | null;
+};
+
 const statusLabel = (s: string) => s === "available" ? "Disponível" : s === "pending" ? "Pendente" : s === "paid" ? "Pago" : s;
 
 const AdminFinance = () => {
@@ -53,24 +90,26 @@ const AdminFinance = () => {
         supabase.from("orders").select("id,total,status,seller_store_id,seller_stores(reseller_id)"),
       ]);
 
-      const walletMap = new Map<string, any>();
-      (walletRes.data ?? []).forEach((w: any) => walletMap.set(w.reseller_id, w));
+      const walletMap = new Map<string, WalletSummaryRow>();
+      ((walletRes.data ?? []) as WalletSummaryRow[]).forEach((w) => {
+        if (w.reseller_id) walletMap.set(w.reseller_id, w);
+      });
 
-      const resellersData = resRes.data ?? [];
-      const commData = commRes.data ?? [];
-      const ordersData = ordersRes.data ?? [];
+      const resellersData = (resRes.data ?? []) as ResellerQueryRow[];
+      const commData = (commRes.data ?? []) as CommissionQueryRow[];
+      const ordersData = (ordersRes.data ?? []) as OrderQueryRow[];
 
       // Aggregate sales (level=1 commissions = own sales) & referrals (level>1)
       const salesByReseller = new Map<string, number>();
       const refByReseller = new Map<string, number>();
-      commData.forEach((c: any) => {
+      commData.forEach((c) => {
         const map = c.level === 1 ? salesByReseller : refByReseller;
         map.set(c.reseller_id, (map.get(c.reseller_id) || 0) + Number(c.amount || 0));
       });
 
       // orders per reseller (via store)
       const ordersByReseller = new Map<string, number>();
-      ordersData.forEach((o: any) => {
+      ordersData.forEach((o) => {
         const rid = o.seller_stores?.reseller_id;
         if (!rid) return;
         ordersByReseller.set(rid, (ordersByReseller.get(rid) || 0) + 1);
@@ -79,7 +118,7 @@ const AdminFinance = () => {
       // network counts
       const directByParent = new Map<string, number>();
       const childrenByParent = new Map<string, string[]>();
-      resellersData.forEach((r: any) => {
+      resellersData.forEach((r) => {
         if (r.parent_id) {
           directByParent.set(r.parent_id, (directByParent.get(r.parent_id) || 0) + 1);
           const arr = childrenByParent.get(r.parent_id) || [];
@@ -100,10 +139,10 @@ const AdminFinance = () => {
       };
 
       const resellerNameById = new Map<string, string>();
-      resellersData.forEach((r: any) => resellerNameById.set(r.id, r.seller_stores?.[0]?.store_name || r.display_name));
+      resellersData.forEach((r) => resellerNameById.set(r.id, r.seller_stores?.[0]?.store_name || r.display_name));
 
-      const rows: ResellerRow[] = resellersData.map((r: any) => {
-        const w = walletMap.get(r.id) || {};
+      const rows: ResellerRow[] = resellersData.map((r) => {
+        const w = walletMap.get(r.id);
         return {
           id: r.id,
           display_name: r.display_name,
@@ -111,10 +150,10 @@ const AdminFinance = () => {
           tier: r.tier,
           status: r.status,
           store_name: r.seller_stores?.[0]?.store_name || null,
-          pending: Number(w.pending || 0),
-          available: Number(w.available || 0),
-          paid: Number(w.paid || 0),
-          total: Number(w.total_balance || 0),
+          pending: Number(w?.pending || 0),
+          available: Number(w?.available || 0),
+          paid: Number(w?.paid || 0),
+          total: Number(w?.total_balance || 0),
           sales: salesByReseller.get(r.id) || 0,
           referrals: refByReseller.get(r.id) || 0,
           ordersCount: ordersByReseller.get(r.id) || 0,
@@ -123,16 +162,16 @@ const AdminFinance = () => {
         };
       }).sort((a, b) => (b.available + b.pending) - (a.available + a.pending));
 
-      const paidOrders = ordersData.filter((o: any) => ["paid","confirmed","shipped","delivered"].includes(o.status));
-      const pendingOrders = ordersData.filter((o: any) => ["new","aguardando","pending"].includes(o.status));
+      const paidOrders = ordersData.filter((o) => ["paid","confirmed","shipped","delivered"].includes(o.status));
+      const pendingOrders = ordersData.filter((o) => ["new","aguardando","pending"].includes(o.status));
       setTotals({
-        paid: paidOrders.reduce((s: number, o: any) => s + Number(o.total || 0), 0),
-        pending: pendingOrders.reduce((s: number, o: any) => s + Number(o.total || 0), 0),
+        paid: paidOrders.reduce((s, o) => s + Number(o.total || 0), 0),
+        pending: pendingOrders.reduce((s, o) => s + Number(o.total || 0), 0),
         ordersPaid: paidOrders.length,
       });
 
       setResellers(rows);
-      setCommissions(commData.map((c: any) => ({
+      setCommissions(commData.map((c) => ({
         id: c.id,
         order_id: c.order_id,
         amount: Number(c.amount || 0),

@@ -3,7 +3,8 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { categories, Product } from "@/lib/mockData";
+import type { Category, Product } from "@/types/commerce";
+import { loadCategories } from "@/lib/categories";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ProductImageGallery } from "@/components/ProductImageGallery";
@@ -25,6 +26,7 @@ const getErrorMessage = (error: unknown) => {
 export const EditProductModal = ({ product, open, onOpenChange, onUpdated }: EditProductModalProps) => {
   const [images, setImages] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     if (open && product) {
@@ -32,6 +34,21 @@ export const EditProductModal = ({ product, open, onOpenChange, onUpdated }: Edi
       setImages(gallery);
     }
   }, [open, product]);
+
+  useEffect(() => {
+    if (!open) return;
+    let mounted = true;
+    loadCategories()
+      .then((rows) => {
+        if (mounted) setCategories(rows.filter((c) => c.active !== false));
+      })
+      .catch(() => {
+        if (mounted) setCategories([]);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -50,6 +67,7 @@ export const EditProductModal = ({ product, open, onOpenChange, onUpdated }: Edi
     const form = new FormData(event.currentTarget);
     const name = String(form.get("name") || product.name);
     const category = String(form.get("category") || product.category);
+    const selectedCategory = categories.find((c) => c.name === category);
     const wholesalePrice = Number(form.get("wholesalePrice") || product.wholesalePrice);
     const suggestedPrice = Number(form.get("suggestedPrice") || product.suggestedPrice);
     const stock = Number(form.get("stock") || product.stock);
@@ -62,6 +80,7 @@ export const EditProductModal = ({ product, open, onOpenChange, onUpdated }: Edi
         .from("products")
         .update({
           name,
+          category_id: selectedCategory?.id ?? null,
           category_name: category,
           wholesale_price: wholesalePrice,
           suggested_price: suggestedPrice,
@@ -71,7 +90,7 @@ export const EditProductModal = ({ product, open, onOpenChange, onUpdated }: Edi
           image_url: primary,
           images,
           status: status as "active" | "inactive",
-        } as never)
+        })
         .eq("id", product.id);
 
 

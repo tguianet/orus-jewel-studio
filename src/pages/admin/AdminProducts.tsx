@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { NewProductModal } from "@/components/NewProductModal";
 import { BulkUploadModal } from "@/components/BulkUploadModal";
-import { formatBRL, Product } from "@/lib/mockData";
+import { formatBRL } from "@/lib/format";
+import type { Product } from "@/types/commerce";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -148,8 +149,8 @@ const AdminProducts = () => {
       setDeleteSelectedOpen(false);
       setConfirmText("");
       await loadProducts();
-    } catch (err: any) {
-      toast.error(err?.message || "Não foi possível excluir os produtos.");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível excluir os produtos.");
     } finally {
       setDeleting(false);
     }

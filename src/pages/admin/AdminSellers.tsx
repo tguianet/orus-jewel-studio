@@ -6,7 +6,7 @@ import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { loadAllSellers, updateResellerStatus } from "@/lib/cloudStore";
+import { AdminSellerRow, loadAllSellers, updateResellerStatus } from "@/lib/cloudStore";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -17,7 +17,7 @@ const tone: Record<string, string> = {
 };
 
 const AdminSellers = () => {
-  const [rows, setRows] = useState<any[]>([]);
+  const [rows, setRows] = useState<AdminSellerRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [previewStore, setPreviewStore] = useState<{ slug: string; name: string } | null>(null);
   const [search, setSearch] = useState("");
@@ -25,12 +25,13 @@ const AdminSellers = () => {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return rows.filter((s: any) => {
+    return rows.filter((s) => {
       if (statusFilter !== "all" && s.status !== statusFilter) return false;
       if (!q) return true;
       const store = s.seller_stores?.[0];
       return [s.display_name, s.email, s.phone, store?.store_name, store?.store_slug]
-        .filter(Boolean).some((v: string) => v.toLowerCase().includes(q));
+        .filter((v): v is string => Boolean(v))
+        .some((v) => v.toLowerCase().includes(q));
     });
   }, [rows, search, statusFilter]);
 
@@ -39,7 +40,7 @@ const AdminSellers = () => {
 
   const setStatus = async (id: string, status: "approved" | "pending" | "blocked") => {
     try { await updateResellerStatus(id, status); toast.success("Status atualizado"); refresh(); }
-    catch (e: any) { toast.error("Falhou", { description: e.message }); }
+    catch (e: unknown) { toast.error("Falhou", { description: e instanceof Error ? e.message : "Erro desconhecido." }); }
   };
 
   return (
@@ -52,7 +53,7 @@ const AdminSellers = () => {
           <div className="rounded-xl border border-primary/30 bg-gradient-gold-soft px-4 py-2 text-right">
             <p className="text-[10px] uppercase tracking-[0.25em] text-primary">Cadastradas</p>
             <p className="font-display text-2xl text-foreground leading-tight">{loading ? "…" : rows.length}</p>
-            <p className="text-[10px] text-muted-foreground">{rows.filter((r:any)=>r.status==="approved").length} aprovadas · {rows.filter((r:any)=>r.status==="pending").length} pendentes</p>
+            <p className="text-[10px] text-muted-foreground">{rows.filter((r) => r.status === "approved").length} aprovadas · {rows.filter((r) => r.status === "pending").length} pendentes</p>
           </div>
         }
       />
@@ -93,7 +94,7 @@ const AdminSellers = () => {
               <th className="px-5 py-3" />
             </tr></thead>
             <tbody className="divide-y divide-border">
-              {filtered.map((s: any) => {
+              {filtered.map((s) => {
                 const store = s.seller_stores?.[0];
                 return (
                 <tr key={s.id} className="hover:bg-secondary/30">

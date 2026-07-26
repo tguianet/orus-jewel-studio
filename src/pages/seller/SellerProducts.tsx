@@ -4,7 +4,7 @@ import { SellerLayout } from "@/layouts/SellerLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { formatBRL } from "@/lib/mockData";
+import { formatBRL } from "@/lib/format";
 import { useAuth } from "@/contexts/AuthContext";
 import { CatalogProduct, loadCatalogForStore, toggleStoreProduct } from "@/lib/cloudStore";
 import { toast } from "sonner";
@@ -18,7 +18,7 @@ const SellerProducts = () => {
   const [loading, setLoading] = useState(true);
   const [prices, setPrices] = useState<Record<string, number>>({});
 
-  const reload = () => {
+  useEffect(() => {
     if (!storeId) { setLoading(false); return; }
     setLoading(true);
     loadCatalogForStore(storeId).then((list) => {
@@ -27,9 +27,7 @@ const SellerProducts = () => {
       setPrices(Object.fromEntries(mine.map((p) => [p.id, p.resellerPrice])));
       setLoading(false);
     });
-  };
-
-  useEffect(() => { reload(); }, [storeId]);
+  }, [storeId]);
 
   const myProducts = useMemo(() => items, [items]);
 

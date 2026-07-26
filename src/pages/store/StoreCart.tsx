@@ -1,7 +1,8 @@
 import { Link, useOutletContext } from "react-router-dom";
 import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
-import { Sacoleira, formatBRL } from "@/lib/mockData";
+import { formatBRL } from "@/lib/format";
+import type { Sacoleira } from "@/types/commerce";
 import { Button } from "@/components/ui/button";
 
 const StoreCart = () => {

@@ -88,8 +88,12 @@ export const BulkUploadModal = ({ onDone }: BulkUploadModalProps) => {
         if (insErr) throw insErr;
         next[i] = { ...next[i], status: "done" };
         ok++;
-      } catch (e: any) {
-        next[i] = { ...next[i], status: "error", error: e?.message || "Falha" };
+      } catch (e: unknown) {
+        next[i] = {
+          ...next[i],
+          status: "error",
+          error: e instanceof Error ? e.message : "Falha",
+        };
       }
       setFiles([...next]);
     }

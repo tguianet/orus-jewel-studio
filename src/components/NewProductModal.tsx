@@ -3,11 +3,11 @@ import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { categories, fallbackProduct, Product } from "@/lib/mockData";
+import type { Category, Product } from "@/types/commerce";
+import { loadCategories } from "@/lib/categories";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ProductImageGallery } from "@/components/ProductImageGallery";
-
 
 interface NewProductModalProps {
   onCreate?: (product: Product) => void | Promise<void>;
@@ -23,6 +23,8 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
   const [open, setOpen] = useState(false);
   const [images, setImages] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -33,6 +35,24 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
     return () => document.removeEventListener("keydown", handleEscape);
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    let mounted = true;
+    setCategoriesError(null);
+    loadCategories()
+      .then((rows) => {
+        if (mounted) setCategories(rows.filter((c) => c.active !== false));
+      })
+      .catch((err: unknown) => {
+        if (!mounted) return;
+        setCategories([]);
+        setCategoriesError(err instanceof Error ? err.message : "Não foi possível carregar categorias.");
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [open]);
+
   const handleCreate = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSaving(true);
@@ -40,11 +60,12 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
     const form = new FormData(formEl);
     const name = String(form.get("name") || "Nova joia Amada Amante");
     const category = String(form.get("category") || categories[0]?.name || "Joias");
+    const selectedCategory = categories.find((c) => c.name === category);
     const wholesalePrice = Number(form.get("wholesalePrice") || 0);
     const suggestedPrice = Number(form.get("suggestedPrice") || wholesalePrice * 2);
     const stock = Number(form.get("stock") || 0);
     const code = `AUR-${category.charAt(0).toUpperCase()}${Date.now().toString().slice(-3)}`;
-    const primary = images[0] || fallbackProduct.image;
+    const primary = images[0] || null;
 
     try {
       const { data: savedProduct, error: productError } = await supabase
@@ -52,7 +73,7 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
         .insert({
           code,
           name,
-          category_id: null,
+          category_id: selectedCategory?.id ?? null,
           category_name: category,
           seller_store_id: null,
           description: "Produto cadastrado pelo painel Amada Amante.",
@@ -64,13 +85,13 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
           image_url: primary,
           images,
           status: "active",
-        } as never)
+        })
         .select("id,code,name,description,cost_price,wholesale_price,suggested_price,stock,min_order,image_url,images,category_name")
         .single();
 
       if (productError) throw productError;
 
-      const savedImages: string[] = (savedProduct as any).images || images;
+      const savedImages: string[] = Array.isArray(savedProduct.images) ? savedProduct.images : images;
       const createdProduct: Product = {
         id: savedProduct.id,
         code: savedProduct.code,
@@ -82,7 +103,7 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
         suggestedPrice: Number(savedProduct.suggested_price ?? 0),
         stock: savedProduct.stock ?? 0,
         minOrder: savedProduct.min_order ?? 1,
-        image: savedProduct.image_url || primary,
+        image: savedProduct.image_url || primary || "/placeholder.svg",
         images: savedImages,
         active: true,
       };
@@ -105,7 +126,6 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
       setSaving(false);
     }
   };
-
 
   return (
     <>
@@ -133,9 +153,14 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="category">Categoria</Label>
-                  <select id="category" name="category" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                    {categories.map(category => <option key={category.id}>{category.name}</option>)}
+                  <select id="category" name="category" required className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" disabled={categories.length === 0}>
+                    {categories.length === 0 ? (
+                      <option value="">Nenhuma categoria disponível</option>
+                    ) : (
+                      categories.map((category) => <option key={category.id} value={category.name}>{category.name}</option>)
+                    )}
                   </select>
+                  {categoriesError && <p className="text-xs text-destructive">{categoriesError}</p>}
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="stock">Estoque</Label>
@@ -145,14 +170,14 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="wholesalePrice">Preço atacado</Label>
-                  <Input id="wholesalePrice" name="wholesalePrice" type="number" min="1" defaultValue="59" required />
+                  <Input id="wholesalePrice" name="wholesalePrice" type="number" min="1" required />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="suggestedPrice">Preço sugerido</Label>
-                  <Input id="suggestedPrice" name="suggestedPrice" type="number" min="1" defaultValue="139" required />
+                  <Input id="suggestedPrice" name="suggestedPrice" type="number" min="1" required />
                 </div>
               </div>
-              <Button type="submit" variant="gold" className="w-full" disabled={saving}>{saving ? "Salvando..." : "Cadastrar produto"}</Button>
+              <Button type="submit" variant="gold" className="w-full" disabled={saving || categories.length === 0}>{saving ? "Salvando..." : "Cadastrar produto"}</Button>
             </form>
           </div>
         </div>

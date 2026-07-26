@@ -2,7 +2,8 @@ import { useOutletContext, useNavigate } from "react-router-dom";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { MessageCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
-import { Sacoleira, formatBRL } from "@/lib/mockData";
+import { formatBRL } from "@/lib/format";
+import type { Sacoleira } from "@/types/commerce";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -154,7 +155,7 @@ const StoreCheckout = () => {
     setSubmitting(true);
     setStep("processing");
     try {
-      const { data, error } = await (supabase.rpc as any)("create_public_order", {
+      const { data, error } = await supabase.rpc("create_public_order", {
         p_seller_store_id: store.id,
         p_customer_name: form.name.trim(),
         p_customer_phone: form.phone.trim(),

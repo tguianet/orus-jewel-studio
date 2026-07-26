@@ -1,39 +1,63 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Plus, Edit2, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import { categories } from "@/lib/mockData";
+import { createCategory, loadCategories } from "@/lib/categories";
+import type { Category } from "@/types/commerce";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-
-const slugify = (value: string) => value
-  .toLowerCase()
-  .normalize("NFD")
-  .replace(/[\u0300-\u036f]/g, "")
-  .replace(/[^a-z0-9]+/g, "-")
-  .replace(/(^-|-$)/g, "");
+import { toast } from "sonner";
 
 const AdminCategories = () => {
-  const [items, setItems] = useState(categories);
+  const [items, setItems] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const refresh = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const rows = await loadCategories();
+      setItems(rows);
+    } catch (err: unknown) {
+      setItems([]);
+      setError(err instanceof Error ? err.message : "Não foi possível carregar as categorias.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void refresh();
+  }, []);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const trimmedName = name.trim();
     if (!trimmedName) return;
 
-    setItems((current) => [
-      { id: `cat-${Date.now()}`, name: trimmedName, slug: slugify(trimmedName), count: 0, active: true },
-      ...current,
-    ]);
-    setName("");
-    setDescription("");
-    setOpen(false);
+    setSaving(true);
+    try {
+      const created = await createCategory({ name: trimmedName, description });
+      setItems((current) => [created, ...current]);
+      setName("");
+      setDescription("");
+      setOpen(false);
+      toast.success("Categoria salva com sucesso.");
+    } catch (err: unknown) {
+      toast.error("Não foi possível salvar a categoria.", {
+        description: err instanceof Error ? err.message : "Erro desconhecido.",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -63,7 +87,7 @@ const AdminCategories = () => {
                 </div>
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-                  <Button type="submit" variant="gold">Salvar categoria</Button>
+                  <Button type="submit" variant="gold" disabled={saving}>{saving ? "Salvando..." : "Salvar categoria"}</Button>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -71,31 +95,43 @@ const AdminCategories = () => {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map(c => (
-          <div key={c.id} className="group rounded-xl border border-border bg-card p-5 hover:border-primary/40 transition-all">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">/{c.slug}</p>
-                <h3 className="font-display text-2xl">{c.name}</h3>
-                <p className="text-sm text-muted-foreground mt-1">{c.count} produtos</p>
+      {error && (
+        <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <p className="text-sm text-muted-foreground py-12 text-center">Carregando categorias…</p>
+      ) : !error && items.length === 0 ? (
+        <p className="text-sm text-muted-foreground py-12 text-center">Nenhuma categoria cadastrada ainda.</p>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map((c) => (
+            <div key={c.id} className="group rounded-xl border border-border bg-card p-5 hover:border-primary/40 transition-all">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">/{c.slug}</p>
+                  <h3 className="font-display text-2xl">{c.name}</h3>
+                  <p className="text-sm text-muted-foreground mt-1">{c.count} produtos</p>
+                </div>
+                <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => {
+                  setName(c.name);
+                  setDescription(c.description || "");
+                  setOpen(true);
+                }}>
+                  <Edit2 className="h-4 w-4" />
+                </Button>
               </div>
-              <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => {
-                setName(c.name);
-                setDescription("");
-                setOpen(true);
-              }}>
-                <Edit2 className="h-4 w-4" />
-              </Button>
+              <Link to={`/admin/produtos?categoria=${encodeURIComponent(c.name)}`}>
+                <Button variant="goldOutline" className="mt-4 w-full justify-between">
+                  Ver categoria <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
             </div>
-            <Link to={`/admin/produtos?categoria=${encodeURIComponent(c.name)}`}>
-              <Button variant="goldOutline" className="mt-4 w-full justify-between">
-                Ver categoria <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </AdminLayout>
   );
 };

@@ -3,7 +3,8 @@ import { Network, Users, Crown } from "lucide-react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
-import { commissionRules, formatBRL } from "@/lib/mockData";
+import { commissionRules } from "@/lib/commissionRules";
+import { formatBRL } from "@/lib/format";
 import { supabase } from "@/integrations/supabase/client";
 
 type Reseller = {

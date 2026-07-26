@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables, TablesUpdate } from "@/integrations/supabase/types";
 
 export type StorePopup = {
   id: string;
@@ -11,7 +12,9 @@ export type StorePopup = {
   createdAt: string;
 };
 
-const map = (r: any): StorePopup => ({
+type StorePopupRow = Tables<"store_popups">;
+
+const map = (r: StorePopupRow): StorePopup => ({
   id: r.id,
   title: r.title || "",
   message: r.message || "",
@@ -56,7 +59,7 @@ export const createStorePopup = async (p: Omit<StorePopup, "id" | "createdAt">) 
 };
 
 export const updateStorePopup = async (id: string, p: Partial<Omit<StorePopup, "id" | "createdAt">>) => {
-  const patch: any = {};
+  const patch: TablesUpdate<"store_popups"> = {};
   if (p.title !== undefined) patch.title = p.title;
   if (p.message !== undefined) patch.message = p.message;
   if (p.imageUrl !== undefined) patch.image_url = p.imageUrl;

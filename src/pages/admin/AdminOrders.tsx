@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Loader2, X } from "lucide-react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
-import { loadAllOrders, updateOrderStatus } from "@/lib/cloudStore";
-import { formatBRL, statusColors } from "@/lib/mockData";
+import { AdminOrderRow, loadAllOrders, updateOrderStatus } from "@/lib/cloudStore";
+import { formatBRL } from "@/lib/format";
+import { statusColors } from "@/lib/orderStatus";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +22,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const AdminOrders = () => {
-  const [rows, setRows] = useState<any[]>([]);
+  const [rows, setRows] = useState<AdminOrderRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -51,7 +52,9 @@ const AdminOrders = () => {
         toast.success("Status atualizado");
       }
       refresh();
-    } catch (e: any) { toast.error("Falhou", { description: e.message }); }
+    } catch (e: unknown) {
+      toast.error("Falhou", { description: e instanceof Error ? e.message : "Erro desconhecido." });
+    }
   };
 
   return (
@@ -85,7 +88,7 @@ const AdminOrders = () => {
               <th className="px-5 py-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Status</th>
             </tr></thead>
             <tbody className="divide-y divide-border">
-              {filtered.map((o: any) => (
+              {filtered.map((o) => (
                 <tr key={o.id} className="hover:bg-secondary/30">
                   <td className="px-5 py-4"><p className="font-medium">{o.customer_name}</p><p className="text-xs text-muted-foreground">{o.customer_phone}</p></td>
                   <td className="px-5 py-4 hidden sm:table-cell text-muted-foreground">{o.seller_stores?.store_name || "—"}</td>

@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { formatBRL } from "@/lib/mockData";
+import { formatBRL } from "@/lib/format";
 import {
   ImageFormat,
   createImageFormat,
@@ -38,10 +38,28 @@ const AdminSettings = () => {
         .lte("created_at", end.toISOString())
         .order("created_at", { ascending: true });
       if (error) throw error;
-      const orders = data || [];
+      type PrintOrderItem = {
+        product_name: string;
+        quantity: number;
+        unit_price: number;
+        total: number;
+        products: { code: string } | null;
+      };
+      type PrintOrder = {
+        customer_name: string;
+        customer_phone: string;
+        customer_address: string | null;
+        total: number;
+        status: string;
+        notes: string | null;
+        created_at: string;
+        seller_stores: { store_name: string } | null;
+        order_items: PrintOrderItem[] | null;
+      };
+      const orders = (data || []) as PrintOrder[];
       if (orders.length === 0) { toast.info("Nenhum pedido hoje."); return; }
       const today = new Date().toLocaleDateString("pt-BR");
-      const totalDay = orders.reduce((s: number, o: any) => s + Number(o.total || 0), 0);
+      const totalDay = orders.reduce((s, o) => s + Number(o.total || 0), 0);
       const html = `<!doctype html><html><head><meta charset="utf-8"><title>Pedidos ${today}</title>
 <style>
   body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#111;padding:24px;}
@@ -57,7 +75,7 @@ const AdminSettings = () => {
 </style></head><body>
 <div class="noprint" style="text-align:right;margin-bottom:8px;"><button onclick="window.print()">Imprimir</button></div>
 <h1>Pedidos do dia</h1><p class="muted">${today} · ${orders.length} pedido(s)</p>
-${orders.map((o: any) => `
+${orders.map((o) => `
   <div class="order">
     <div class="row"><strong>${o.customer_name || "-"}</strong><span>${new Date(o.created_at).toLocaleTimeString("pt-BR")}</span></div>
     <div class="row muted"><span>${o.customer_phone || ""}${o.seller_stores?.store_name ? " · " + o.seller_stores.store_name : ""}</span><span>Status: ${o.status}</span></div>
@@ -66,7 +84,7 @@ ${orders.map((o: any) => `
     <table><thead><tr><th>Código</th><th>Produto</th><th>Qtd</th><th>Unit.</th><th>Total</th></tr></thead><tbody>
       ${(o.order_items || []).length === 0
         ? `<tr><td colspan="5" style="text-align:center;color:#999;">Sem itens registrados</td></tr>`
-        : (o.order_items || []).map((it: any) => `<tr><td>${it.products?.code || "-"}</td><td>${it.product_name}</td><td>${it.quantity}</td><td>${formatBRL(Number(it.unit_price||0))}</td><td>${formatBRL(Number(it.total||0))}</td></tr>`).join("")}
+        : (o.order_items || []).map((it) => `<tr><td>${it.products?.code || "-"}</td><td>${it.product_name}</td><td>${it.quantity}</td><td>${formatBRL(Number(it.unit_price||0))}</td><td>${formatBRL(Number(it.total||0))}</td></tr>`).join("")}
     </tbody></table>
     <div class="total">Total: ${formatBRL(Number(o.total||0))}</div>
   </div>`).join("")}
@@ -76,8 +94,8 @@ ${orders.map((o: any) => `
       const w = window.open("", "_blank");
       if (!w) { toast.error("Permita pop-ups para imprimir."); return; }
       w.document.write(html); w.document.close();
-    } catch (e: any) {
-      toast.error("Falha ao gerar impressão", { description: e.message });
+    } catch (e: unknown) {
+      toast.error("Falha ao gerar impressão", { description: e instanceof Error ? e.message : "Erro desconhecido." });
     } finally { setPrinting(false); }
   };
 

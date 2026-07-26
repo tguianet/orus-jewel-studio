@@ -1,7 +1,8 @@
 import { useParams, useOutletContext, Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { Minus, Plus, ShoppingBag, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
-import { getProductById, getStoreProducts, formatBRL, Sacoleira } from "@/lib/mockData";
+import { formatBRL } from "@/lib/format";
+import type { Sacoleira } from "@/types/commerce";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
@@ -11,10 +12,10 @@ const StoreProduct = () => {
   const { id } = useParams();
   const { store } = useOutletContext<{ store: Sacoleira }>();
   const [cloudProducts, setCloudProducts] = useState<CloudStoreProduct[]>([]);
-  const fallbackProduct = getProductById(id);
-  const product = cloudProducts.find((item) => item.id === id) || fallbackProduct;
-  const storeProduct = cloudProducts.find((item) => item.id === product.id) || getStoreProducts(store.id).find((item) => item.id === product.id);
-  const resellerPrice = storeProduct?.resellerPrice ?? product.suggestedPrice;
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const product = cloudProducts.find((item) => item.id === id) ?? null;
+  const resellerPrice = product?.resellerPrice ?? product?.suggestedPrice ?? 0;
   const { add } = useCart();
   const navigate = useNavigate();
   const [qty, setQty] = useState(1);
@@ -22,21 +23,65 @@ const StoreProduct = () => {
 
   useEffect(() => {
     let mounted = true;
-    loadStoreProducts(store.id).then((items) => {
-      if (mounted) setCloudProducts(items);
-    });
-    return () => { mounted = false; };
+    setLoading(true);
+    setError(null);
+    loadStoreProducts(store.id)
+      .then((items) => {
+        if (!mounted) return;
+        setCloudProducts(items);
+      })
+      .catch((err: unknown) => {
+        if (!mounted) return;
+        setCloudProducts([]);
+        setError(err instanceof Error ? err.message : "Não foi possível carregar o produto.");
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
   }, [store.id]);
 
   const gallery = useMemo(() => {
-    const imgs = (product as any)?.images as string[] | undefined;
-    if (imgs && imgs.length) return imgs;
-    return product?.image ? [product.image] : [];
+    if (!product) return [] as string[];
+    if (product.images && product.images.length) return product.images;
+    return product.image ? [product.image] : [];
   }, [product]);
 
-  useEffect(() => { setSlide(0); }, [product?.id]);
+  useEffect(() => {
+    setSlide(0);
+  }, [product?.id]);
 
-  if (!product) return <div className="container py-16 text-center text-muted-foreground">Produto não encontrado.</div>;
+  if (loading) {
+    return (
+      <div className="container py-16 flex justify-center">
+        <div className="h-8 w-8 rounded-full border-2 border-muted border-t-foreground animate-spin" aria-label="Carregando produto" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container py-16 text-center space-y-3">
+        <p className="text-destructive text-sm">{error}</p>
+        <Link to={`/loja/${store.storeSlug}`} className="text-sm text-muted-foreground hover:text-primary">
+          Voltar à loja
+        </Link>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="container py-16 text-center space-y-3">
+        <p className="text-muted-foreground">Produto não encontrado.</p>
+        <Link to={`/loja/${store.storeSlug}`} className="text-sm text-primary hover:underline">
+          Voltar à loja
+        </Link>
+      </div>
+    );
+  }
 
   const handleAdd = () => {
     for (let i = 0; i < qty; i++) add(product, resellerPrice);
@@ -86,7 +131,6 @@ const StoreProduct = () => {
             </div>
           )}
         </div>
-
 
         <div className="flex flex-col">
           <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">{product.category}</p>

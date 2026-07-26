@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ElementType, type FocusEvent, type KeyboardEvent, type CSSProperties } from "react";
 
 const isPreviewMode = () =>
   typeof window !== "undefined" &&
@@ -7,9 +7,9 @@ const isPreviewMode = () =>
 type Props = {
   field: string;
   value: string;
-  as?: string;
+  as?: ElementType;
   className?: string;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
   multiline?: boolean;
   placeholder?: string;
 };
@@ -21,7 +21,7 @@ type Props = {
 export const EditableText = ({
   field,
   value,
-  as = "span",
+  as: Tag = "span",
   className = "",
   style,
   multiline,
@@ -29,7 +29,6 @@ export const EditableText = ({
 }: Props) => {
   const editable = isPreviewMode();
   const ref = useRef<HTMLElement>(null);
-  const Tag: any = as;
 
   useEffect(() => {
     if (!editable) return;
@@ -59,7 +58,7 @@ export const EditableText = ({
           /* noop */
         }
       }}
-      onBlur={(e: any) => {
+      onBlur={(e: FocusEvent<HTMLElement>) => {
         const text = (e.currentTarget.innerText || "").replace(/\u00A0/g, " ").trim();
         try {
           window.parent?.postMessage({ type: "lovable-edit-field", field, value: text }, "*");
@@ -67,13 +66,13 @@ export const EditableText = ({
           /* noop */
         }
       }}
-      onKeyDown={(e: any) => {
+      onKeyDown={(e: KeyboardEvent<HTMLElement>) => {
         if (!multiline && e.key === "Enter") {
           e.preventDefault();
-          (e.currentTarget as HTMLElement).blur();
+          e.currentTarget.blur();
         }
         if (e.key === "Escape") {
-          (e.currentTarget as HTMLElement).blur();
+          e.currentTarget.blur();
         }
       }}
     >

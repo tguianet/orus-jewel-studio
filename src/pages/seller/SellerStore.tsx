@@ -34,10 +34,11 @@ const SellerStore = () => {
           .select("total,status")
           .eq("seller_store_id", storeId),
       ]);
-      const orders = ordersRes.data ?? [];
+      type StoreOrderStat = { total: number; status: string };
+      const orders = (ordersRes.data ?? []) as StoreOrderStat[];
       const revenue = orders
-        .filter((o: any) => ["paid", "confirmed", "shipped", "delivered"].includes(o.status))
-        .reduce((s: number, o: any) => s + Number(o.total || 0), 0);
+        .filter((o) => ["paid", "confirmed", "shipped", "delivered"].includes(o.status))
+        .reduce((s, o) => s + Number(o.total || 0), 0);
       setStats({ products: products ?? 0, orders: orders.length, revenue });
     })();
   }, [storeId]);
