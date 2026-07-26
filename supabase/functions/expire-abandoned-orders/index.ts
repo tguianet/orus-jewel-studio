@@ -37,6 +37,8 @@ function isAuthorized(req: Request): boolean {
   if (SERVICE_ROLE_KEY && safeEqual(bearer, SERVICE_ROLE_KEY)) return true;
   // B/C) segredo interno guardado em Cloud -> Secrets
   if (JOB_SECRET && (safeEqual(headerSecret, JOB_SECRET) || safeEqual(bearer, JOB_SECRET))) return true;
+  // C) segredo do agendador interno (pg_cron -> pg_net)
+  if (CRON_SECRET && (safeEqual(headerSecret, CRON_SECRET) || safeEqual(bearer, CRON_SECRET))) return true;
   return false;
 }
 
