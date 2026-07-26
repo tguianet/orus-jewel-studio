@@ -94,9 +94,12 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
       <CartProvider>
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <AreaProvider>
+          <PwaInstallProvider>
+          <PwaUpdateProvider>
           <PwaManifestSwitcher />
           <OfflineBanner />
           <AppUpdatePrompt />
+
           <LazyRouteErrorBoundary>
             <RouteErrorBoundary name="app-routes">
             <Suspense fallback={<RouteFallback />}>
