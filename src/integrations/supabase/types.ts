@@ -773,7 +773,6 @@ export type Database = {
           created_at: string
           description: string
           id: string
-          reason: string | null
           reseller_id: string
           status: string
           type: string
@@ -785,7 +784,6 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
-          reason?: string | null
           reseller_id: string
           status?: string
           type?: string
@@ -797,7 +795,6 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
-          reason?: string | null
           reseller_id?: string
           status?: string
           type?: string
@@ -848,16 +845,6 @@ export type Database = {
           cost_price: number
           id: string
           wholesale_price: number
-        }[]
-      }
-      cancel_paid_order: {
-        Args: { _order_id: string; _reason: string }
-        Returns: {
-          already_reversed: boolean
-          commissions_reversed: number
-          order_id: string
-          total_reversed: number
-          wallet_reversals_created: number
         }[]
       }
       can_access_order: {
@@ -932,29 +919,9 @@ export type Database = {
         Args: { _store_id: string; _user_id?: string }
         Returns: boolean
       }
-      refund_paid_order: {
-        Args: { _order_id: string; _reason: string }
-        Returns: {
-          already_reversed: boolean
-          commissions_reversed: number
-          order_id: string
-          total_reversed: number
-          wallet_reversals_created: number
-        }[]
-      }
       reseller_can_access_store: {
         Args: { _store_id: string; _user_id?: string }
         Returns: boolean
-      }
-      reverse_mlm_commissions_for_order: {
-        Args: { _order_id: string; _reason: string }
-        Returns: {
-          already_reversed: boolean
-          commissions_reversed: number
-          order_id: string
-          total_reversed: number
-          wallet_reversals_created: number
-        }[]
       }
       set_my_reseller_parent: {
         Args: { _parent_id: string }
@@ -1006,7 +973,6 @@ export type Database = {
         | "shipped"
         | "delivered"
         | "cancelled"
-        | "refunded"
       product_status: "active" | "inactive"
       seller_store_status: "pending" | "approved" | "blocked"
     }
@@ -1146,7 +1112,6 @@ export const Constants = {
         "shipped",
         "delivered",
         "cancelled",
-        "refunded",
       ],
       product_status: ["active", "inactive"],
       seller_store_status: ["pending", "approved", "blocked"],
