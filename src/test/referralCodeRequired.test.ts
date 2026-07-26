@@ -21,6 +21,7 @@ vi.mock("@/integrations/supabase/client", () => ({
 describe("referralCode — cadastro obrigatório", () => {
   beforeEach(() => {
     rpc.mockReset();
+    signUp.mockReset();
     try {
       sessionStorage.clear();
     } catch {
