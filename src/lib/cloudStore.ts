@@ -382,6 +382,13 @@ export const loadAllOrders = async (): Promise<AdminOrderRow[]> => {
 };
 
 export const updateOrderStatus = async (orderId: string, status: OrderStatus | string) => {
+  // cancelled via UPDATE direto está bloqueado no banco e depreciado no frontend.
+  // Use cancel_order_with_stock_restore (não pago) ou cancel_paid_order (pago).
+  if (status === "cancelled") {
+    throw new Error(
+      "Cancelamento direto depreciado. Use “Cancelar pedido” ou “Cancelar pago”.",
+    );
+  }
   const { error } = await supabase.from("orders").update({ status: status as OrderStatus }).eq("id", orderId);
   if (error) throw error;
 };

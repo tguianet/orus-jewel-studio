@@ -1,0 +1,22 @@
+-- Checklist pós-migration 20260728120000_liquid_cancel_restore.sql
+-- Preferir BEGIN … ROLLBACK no Lovable Cloud.
+
+-- A) qty 3 sem devolução → cancel_restore +3
+-- B) return físico 1 → cancel_restore +2; return_restore + cancel = 3
+-- C) return físico 3 → nenhum cancel_restore novo
+-- D) return avariado sem restock 1 → cancel_restore +2
+-- E) duas linhas mesmo produto 2+1 → um cancel_restore agregado qty 3
+-- F) segunda chamada RPC → already_cancelled / remaining 0
+-- G) concorrência return×cancel → locks; soma ≤ purchased
+-- H) stock before/after coerentes
+-- I) commissions + wallet inalterados
+-- J) product_returns preservados
+-- K) paid → exception orientando cancel_paid_order
+-- L) sacoleira negada
+-- M) anon sem EXECUTE / negado
+-- N) UPDATE direto status=cancelled → “Use cancel_order_with_stock_restore…”
+-- O) cancel_paid_order com skip continua sem restore
+
+-- Estrutura:
+-- SELECT proname FROM pg_proc WHERE proname IN ('cancel_order_with_stock_restore','protect_direct_order_cancel');
+-- SELECT tgname FROM pg_trigger WHERE tgrelid = 'public.orders'::regclass;

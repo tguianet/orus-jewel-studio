@@ -28,6 +28,13 @@ import {
   type ReturnResolution,
   type ReturnStockAction,
 } from "@/lib/physicalReturns";
+import {
+  cancelOrderWithStockRestore,
+  formatDetailLine,
+  formatStockCancelToast,
+  isStockCancelEligibleStatus,
+  type CancelOrderWithStockSummary,
+} from "@/lib/orderCancel";
 import { formatBRL } from "@/lib/format";
 import { statusColors, statusLabels } from "@/lib/orderStatus";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -57,7 +64,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const SELECT_STATUSES = ["new", "paid", "shipped", "delivered", "cancelled"] as const;
+/** cancelled removido: usar RPC cancel_order_with_stock_restore ou cancel_paid_order */
+const SELECT_STATUSES = ["new", "paid", "shipped", "delivered"] as const;
 
 type ReversalAction = "cancel" | "refund";
 
@@ -112,6 +120,12 @@ const AdminOrders = () => {
   const [drafts, setDrafts] = useState<Record<string, LineDraft>>({});
   const [products, setProducts] = useState<ProductOption[]>([]);
   const [returnSubmitting, setReturnSubmitting] = useState(false);
+
+  const [stockCancelOpen, setStockCancelOpen] = useState(false);
+  const [stockCancelTarget, setStockCancelTarget] = useState<AdminOrderRow | null>(null);
+  const [stockCancelReason, setStockCancelReason] = useState("");
+  const [stockCancelSubmitting, setStockCancelSubmitting] = useState(false);
+  const [stockCancelResult, setStockCancelResult] = useState<CancelOrderWithStockSummary | null>(null);
 
   const refresh = () => loadAllOrders().then((d) => { setRows(d); setLoading(false); });
   useEffect(() => { refresh(); }, []);
@@ -194,15 +208,17 @@ const AdminOrders = () => {
     const order = rows.find((r) => r.id === id);
     if (!order) return;
 
-    if (order.status === "paid") {
-      if (status === "cancelled") {
-        toast.error("Use “Cancelar pedido pago” para estornar comissões com segurança.");
-        return;
-      }
-      if (status === "refunded") {
-        toast.error("Use “Registrar reembolso” para estornar comissões com segurança.");
-        return;
-      }
+    if (status === "cancelled") {
+      toast.error(
+        order.status === "paid"
+          ? "Use “Cancelar pago” para estornar comissões."
+          : "Use “Cancelar pedido” para restore líquido de estoque.",
+      );
+      return;
+    }
+    if (order.status === "paid" && status === "refunded") {
+      toast.error("Use “Registrar reembolso” para estornar comissões com segurança.");
+      return;
     }
 
     try {
@@ -217,6 +233,35 @@ const AdminOrders = () => {
       refresh();
     } catch (e: unknown) {
       toast.error("Falhou", { description: e instanceof Error ? e.message : "Erro desconhecido." });
+    }
+  };
+
+  const openStockCancelDialog = (order: AdminOrderRow) => {
+    setStockCancelTarget(order);
+    setStockCancelReason("");
+    setStockCancelResult(null);
+    setStockCancelOpen(true);
+  };
+
+  const confirmStockCancel = async () => {
+    if (!stockCancelTarget || stockCancelSubmitting) return;
+    const trimmed = stockCancelReason.trim();
+    if (!trimmed) {
+      toast.error("Informe o motivo obrigatório.");
+      return;
+    }
+    setStockCancelSubmitting(true);
+    try {
+      const summary = await cancelOrderWithStockRestore(stockCancelTarget.id, trimmed);
+      setStockCancelResult(summary);
+      toast.success("Pedido cancelado", { description: formatStockCancelToast(summary) });
+      refresh();
+    } catch (e: unknown) {
+      toast.error("Não foi possível cancelar", {
+        description: e instanceof Error ? e.message : "Erro desconhecido.",
+      });
+    } finally {
+      setStockCancelSubmitting(false);
     }
   };
 
@@ -249,12 +294,7 @@ const AdminOrders = () => {
     }
   };
 
-  const selectOptionsFor = (status: string) => {
-    if (status === "paid" || status === "refunded") {
-      return SELECT_STATUSES.filter((s) => s !== "cancelled");
-    }
-    return SELECT_STATUSES;
-  };
+  const selectOptionsFor = (_status: string) => SELECT_STATUSES;
 
   const updateDraft = (orderItemId: string, patch: Partial<LineDraft>) => {
     setDrafts((prev) => {
@@ -379,7 +419,7 @@ const AdminOrders = () => {
       <PageHeader
         eyebrow="Pedidos"
         title="Todos os pedidos"
-        description="Financeiro (cancelar/reembolsar) e físico (devolução) são operações separadas. Comissão só muda no fluxo financeiro."
+        description="Cancelar pedido (estoque líquido) · Cancelar pago/reembolso (financeiro) · Devolução física (peça). Operações separadas."
       />
       <div className="mb-4 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card p-4">
         <div className="flex flex-col gap-1">
@@ -441,7 +481,17 @@ const AdminOrders = () => {
                     )}
                   </td>
                   <td className="px-5 py-4">
-                    <div className="flex flex-col gap-1.5 min-w-[10rem]">
+                    <div className="flex flex-col gap-1.5 min-w-[10.5rem]">
+                      {isStockCancelEligibleStatus(o.status) ? (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 text-xs text-destructive hover:text-destructive"
+                          onClick={() => openStockCancelDialog(o)}
+                        >
+                          Cancelar pedido
+                        </Button>
+                      ) : null}
                       {o.status === "paid" ? (
                         <>
                           <Button
@@ -472,11 +522,12 @@ const AdminOrders = () => {
                           <PackageOpen className="mr-1 h-3.5 w-3.5" />
                           Devolução física
                         </Button>
-                      ) : (
-                        o.status !== "paid" ? (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        ) : null
-                      )}
+                      ) : null}
+                      {!isStockCancelEligibleStatus(o.status)
+                        && o.status !== "paid"
+                        && !isOrderStatusEligibleForReturnUi(o.status) ? (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      ) : null}
                     </div>
                   </td>
                 </tr>
@@ -817,6 +868,80 @@ const AdminOrders = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={stockCancelOpen}
+        onOpenChange={(open) => {
+          if (!stockCancelSubmitting) {
+            setStockCancelOpen(open);
+            if (!open) setStockCancelResult(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar pedido</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>
+                  Pedido{" "}
+                  <span className="font-mono text-foreground">{stockCancelTarget?.id.slice(0, 8)}</span>
+                  {" · "}
+                  {stockCancelTarget
+                    ? (statusLabels[stockCancelTarget.status] || stockCancelTarget.status)
+                    : ""}
+                  {" · "}
+                  {stockCancelTarget?.customer_name}
+                </p>
+                <p className="text-amber-700 dark:text-amber-400">
+                  O estoque será restaurado somente pela quantidade ainda não devolvida fisicamente.
+                  Comissão e carteira não serão alteradas.
+                </p>
+                {stockCancelResult ? (
+                  <div className="space-y-1 rounded-md border border-border bg-secondary/30 p-3 text-foreground">
+                    <p>{formatStockCancelToast(stockCancelResult)}</p>
+                    {stockCancelResult.details.map((d, idx) => (
+                      <p key={`${d.product_id || "x"}-${idx}`} className="text-xs text-muted-foreground">
+                        {formatDetailLine(d)}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {!stockCancelResult ? (
+            <div className="space-y-2">
+              <Label htmlFor="stock-cancel-reason">Motivo (obrigatório)</Label>
+              <Textarea
+                id="stock-cancel-reason"
+                value={stockCancelReason}
+                onChange={(e) => setStockCancelReason(e.target.value)}
+                placeholder="Descreva o motivo do cancelamento"
+                maxLength={500}
+                disabled={stockCancelSubmitting}
+              />
+            </div>
+          ) : null}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={stockCancelSubmitting}>
+              {stockCancelResult ? "Fechar" : "Voltar"}
+            </AlertDialogCancel>
+            {!stockCancelResult ? (
+              <AlertDialogAction
+                disabled={stockCancelSubmitting || !stockCancelReason.trim()}
+                onClick={(e) => {
+                  e.preventDefault();
+                  void confirmStockCancel();
+                }}
+              >
+                {stockCancelSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                Confirmar cancelamento
+              </AlertDialogAction>
+            ) : null}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 };

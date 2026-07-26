@@ -34,6 +34,14 @@ export type ReturnStockAction =
 
 export type ReturnResolution = "devolucao" | "troca";
 
+/** Status elegíveis a cancel_order_with_stock_restore (restore líquido). */
+export type StockCancelEligibleStatus =
+  | "new"
+  | "confirmed"
+  | "separated"
+  | "shipped"
+  | "delivered";
+
 export type Profile = {
   id: string;
   role: ProfileRole;
