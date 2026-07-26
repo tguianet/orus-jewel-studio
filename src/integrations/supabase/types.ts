@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_role_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          metadata: Json
+          new_role: string | null
+          performed_by: string
+          previous_role: string | null
+          reason: string | null
+          target_user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          new_role?: string | null
+          performed_by: string
+          previous_role?: string | null
+          reason?: string | null
+          target_user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          new_role?: string | null
+          performed_by?: string
+          previous_role?: string | null
+          reason?: string | null
+          target_user_id?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -1505,6 +1541,7 @@ export type Database = {
       }
     }
     Functions: {
+      _admin_active_count: { Args: never; Returns: number }
       _is_safe_receipt_url: { Args: { p_url: string }; Returns: boolean }
       _legal_content_fingerprint: {
         Args: {
@@ -1645,6 +1682,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_get_role_audit: {
+        Args: { p_page?: number; p_page_size?: number }
+        Returns: Json
+      }
       admin_get_sales_summary: {
         Args: {
           p_end_date: string
@@ -1694,6 +1735,11 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_grant_role: {
+        Args: { p_reason?: string; p_user_id: string }
+        Returns: Json
+      }
+      admin_list_administrators: { Args: never; Returns: Json }
       admin_list_legal_consents: {
         Args: {
           p_context?: string
@@ -1749,6 +1795,14 @@ export type Database = {
       }
       admin_resolve_operational_error: {
         Args: { p_error_id: string; p_resolution_notes: string }
+        Returns: Json
+      }
+      admin_revoke_role: {
+        Args: { p_reason: string; p_user_id: string }
+        Returns: Json
+      }
+      admin_search_users: {
+        Args: { p_limit?: number; p_query: string }
         Returns: Json
       }
       approve_withdrawal: { Args: { p_withdrawal_id: string }; Returns: Json }
