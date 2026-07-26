@@ -17,6 +17,24 @@ import { StorePopup } from "@/components/store/StorePopup";
 import { LEGAL_LINKS } from "@/lib/legalLinks";
 import { applyLojaPwaBranding } from "@/pwa/applyManifest";
 import { truncateShortName } from "@/pwa/manifestConfig";
+import {
+  OFFICIAL_APP_ORIGIN,
+  officialStoreUrl,
+  resolveStoreOgImageUrl,
+  STORE_OG_DESCRIPTION,
+  storeOgTitle,
+} from "@/lib/storeShare";
+
+function upsertMeta(attr: "property" | "name", key: string, content: string) {
+  const selector = `meta[${attr}="${key}"]`;
+  let el = document.head.querySelector(selector) as HTMLMetaElement | null;
+  if (!el) {
+    el = document.createElement("meta");
+    el.setAttribute(attr, key);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", content);
+}
 
 type PreviewMessage =
   | { type: "lovable-preview-theme"; theme: StoreTheme }
@@ -176,6 +194,32 @@ const StoreLayout = () => {
     theme.headerBgColor,
     theme.logoUrl,
   ]);
+
+  // Meta OG no cliente (navegadores). Crawlers do WhatsApp usam middleware + /api/og-loja.
+  useEffect(() => {
+    if (!slug || !store?.storeName) return;
+    const title = storeOgTitle(store.storeName);
+    const url = officialStoreUrl(slug);
+    const banner =
+      (theme.bannerUrls && theme.bannerUrls[0]) || theme.bannerUrl || null;
+    const image = resolveStoreOgImageUrl({
+      logoUrl: theme.logoUrl,
+      bannerUrl: banner,
+      origin: OFFICIAL_APP_ORIGIN,
+      version: Date.now(),
+    });
+
+    document.title = title;
+    upsertMeta("property", "og:type", "website");
+    upsertMeta("property", "og:title", title);
+    upsertMeta("property", "og:description", STORE_OG_DESCRIPTION);
+    upsertMeta("property", "og:url", url);
+    upsertMeta("property", "og:image", image);
+    upsertMeta("name", "twitter:card", "summary_large_image");
+    upsertMeta("name", "twitter:title", title);
+    upsertMeta("name", "twitter:description", STORE_OG_DESCRIPTION);
+    upsertMeta("name", "twitter:image", image);
+  }, [slug, store?.storeName, theme.logoUrl, theme.bannerUrl, theme.bannerUrls]);
 
   // Block sacoleiras from viewing another reseller's store/data.
   // Admins and unauthenticated visitors are allowed.

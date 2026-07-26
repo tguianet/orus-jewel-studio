@@ -107,6 +107,7 @@ export default defineConfig(({ mode }) => ({
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [
           /^\/api\//,
+          /^\/og\//,
           /^\/manifests\//,
           /^\/icons\//,
           /^\/loja\/[^/]+\/manifest\.webmanifest$/,

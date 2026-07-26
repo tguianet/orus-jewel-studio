@@ -1,5 +1,5 @@
 import { ExternalLink, Share2, Check, MessageCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SellerLayout } from "@/layouts/SellerLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,10 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  buildWhatsAppShareHref,
+  officialStoreUrl,
+} from "@/lib/storeShare";
 
 const formatBRL = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -16,7 +20,11 @@ const SellerStore = () => {
   const slug = profile?.storeSlug;
   const storeId = profile?.storeId;
   const storePath = slug ? `/loja/${slug}` : null;
-  const fullUrl = storePath ? `${window.location.origin}${storePath}` : "";
+  const fullUrl = useMemo(() => (slug ? officialStoreUrl(slug) : ""), [slug]);
+  const whatsappHref = useMemo(
+    () => (slug ? buildWhatsAppShareHref(slug) : ""),
+    [slug],
+  );
   const [copied, setCopied] = useState(false);
   const [stats, setStats] = useState<{ products: number; orders: number; revenue: number } | null>(null);
 
@@ -108,9 +116,7 @@ const SellerStore = () => {
                   {copied ? "Copiado" : "Copiar"}
                 </Button>
                 <a
-                  href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
-                    `✨ Acabei de garimpar joias incríveis pra você! Dá uma olhada na minha loja: ${fullUrl}`,
-                  )}`}
+                  href={whatsappHref || undefined}
                   target="_blank"
                   rel="noreferrer"
                   className={!storePath ? "pointer-events-none opacity-50" : ""}

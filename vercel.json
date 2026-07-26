@@ -1,11 +1,24 @@
 {
   "rewrites": [
     {
-      "source": "/((?!icons/|manifests/|assets/|sw\\.js|workbox-|pwa-sw-extra\\.js|loja/[^/]+/manifest\\.webmanifest).*)",
+      "source": "/((?!api/|icons/|og/|manifests/|assets/|sw\\.js|workbox-|pwa-sw-extra\\.js|loja/[^/]+/manifest\\.webmanifest).*)",
       "destination": "/index.html"
     }
   ],
   "headers": [
+    {
+      "source": "/og/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400, must-revalidate" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    },
+    {
+      "source": "/api/og-loja",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=300, must-revalidate" }
+      ]
+    },
     {
       "source": "/sw.js",
       "headers": [
