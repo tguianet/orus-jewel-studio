@@ -395,165 +395,6 @@ export type Database = {
           },
         ]
       }
-      product_return_items: {
-        Row: {
-          condition: Database["public"]["Enums"]["return_item_condition"]
-          created_at: string
-          id: string
-          notes: string | null
-          order_item_id: string
-          product_id: string
-          quantity: number
-          reason: string | null
-          replacement_product_id: string | null
-          replacement_quantity: number | null
-          resolution: Database["public"]["Enums"]["return_resolution"]
-          return_id: string
-          stock_action: Database["public"]["Enums"]["return_stock_action"]
-          stock_after: number | null
-          stock_before: number | null
-          stock_movement_id: string | null
-          unit_price_original: number
-          unit_price_replacement: number | null
-          value_difference: number
-        }
-        Insert: {
-          condition: Database["public"]["Enums"]["return_item_condition"]
-          created_at?: string
-          id?: string
-          notes?: string | null
-          order_item_id: string
-          product_id: string
-          quantity: number
-          reason?: string | null
-          replacement_product_id?: string | null
-          replacement_quantity?: number | null
-          resolution?: Database["public"]["Enums"]["return_resolution"]
-          return_id: string
-          stock_action: Database["public"]["Enums"]["return_stock_action"]
-          stock_after?: number | null
-          stock_before?: number | null
-          stock_movement_id?: string | null
-          unit_price_original: number
-          unit_price_replacement?: number | null
-          value_difference?: number
-        }
-        Update: {
-          condition?: Database["public"]["Enums"]["return_item_condition"]
-          created_at?: string
-          id?: string
-          notes?: string | null
-          order_item_id?: string
-          product_id?: string
-          quantity?: number
-          reason?: string | null
-          replacement_product_id?: string | null
-          replacement_quantity?: number | null
-          resolution?: Database["public"]["Enums"]["return_resolution"]
-          return_id?: string
-          stock_action?: Database["public"]["Enums"]["return_stock_action"]
-          stock_after?: number | null
-          stock_before?: number | null
-          stock_movement_id?: string | null
-          unit_price_original?: number
-          unit_price_replacement?: number | null
-          value_difference?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "product_return_items_order_item_id_fkey"
-            columns: ["order_item_id"]
-            isOneToOne: false
-            referencedRelation: "order_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "product_return_items_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "product_return_items_replacement_product_id_fkey"
-            columns: ["replacement_product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "product_return_items_return_id_fkey"
-            columns: ["return_id"]
-            isOneToOne: false
-            referencedRelation: "product_returns"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "product_return_items_stock_movement_id_fkey"
-            columns: ["stock_movement_id"]
-            isOneToOne: true
-            referencedRelation: "stock_movements"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      product_returns: {
-        Row: {
-          created_at: string
-          financial_pending_amount: number
-          financial_pending_notes: string | null
-          id: string
-          notes: string | null
-          order_id: string
-          performed_by: string
-          reason: string
-          seller_store_id: string | null
-          status: Database["public"]["Enums"]["product_return_status"]
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          financial_pending_amount?: number
-          financial_pending_notes?: string | null
-          id?: string
-          notes?: string | null
-          order_id: string
-          performed_by: string
-          reason: string
-          seller_store_id?: string | null
-          status?: Database["public"]["Enums"]["product_return_status"]
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          financial_pending_amount?: number
-          financial_pending_notes?: string | null
-          id?: string
-          notes?: string | null
-          order_id?: string
-          performed_by?: string
-          reason?: string
-          seller_store_id?: string | null
-          status?: Database["public"]["Enums"]["product_return_status"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "product_returns_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "product_returns_seller_store_id_fkey"
-            columns: ["seller_store_id"]
-            isOneToOne: false
-            referencedRelation: "seller_stores"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       products: {
         Row: {
           category_id: string | null
@@ -1060,21 +901,6 @@ export type Database = {
           level_3_rate: number
         }[]
       }
-      get_order_return_preview: {
-        Args: { _order_id: string }
-        Returns: {
-          eligibility_reason: string
-          eligible: boolean
-          order_item_id: string
-          order_status: Database["public"]["Enums"]["order_status"]
-          product_id: string | null
-          product_name: string
-          quantity_purchased: number
-          quantity_remaining: number
-          quantity_returned: number
-          unit_price: number
-        }[]
-      }
       get_store_reseller_id: { Args: { _store_id: string }; Returns: string }
       has_role: {
         Args: {
@@ -1114,23 +940,6 @@ export type Database = {
           order_id: string
           total_reversed: number
           wallet_reversals_created: number
-        }[]
-      }
-      register_physical_return: {
-        Args: {
-          _items: Json
-          _notes?: string
-          _order_id: string
-          _reason: string
-        }
-        Returns: {
-          financial_pending_amount: number
-          items_count: number
-          order_id: string
-          return_id: string
-          units_not_restocked: number
-          units_restocked: number
-          units_returned: number
         }[]
       }
       reseller_can_access_store: {
@@ -1198,20 +1007,7 @@ export type Database = {
         | "delivered"
         | "cancelled"
         | "refunded"
-      product_return_status: "registered"
       product_status: "active" | "inactive"
-      return_item_condition:
-        | "perfeito_estado"
-        | "embalagem_aberta"
-        | "avariado"
-        | "incompleto"
-        | "usado"
-        | "outro"
-      return_resolution: "devolucao" | "troca"
-      return_stock_action:
-        | "retornar_ao_estoque"
-        | "nao_retornar_ao_estoque"
-        | "enviar_para_avaliacao"
       seller_store_status: "pending" | "approved" | "blocked"
     }
     CompositeTypes: {
@@ -1352,22 +1148,7 @@ export const Constants = {
         "cancelled",
         "refunded",
       ],
-      product_return_status: ["registered"],
       product_status: ["active", "inactive"],
-      return_item_condition: [
-        "perfeito_estado",
-        "embalagem_aberta",
-        "avariado",
-        "incompleto",
-        "usado",
-        "outro",
-      ],
-      return_resolution: ["devolucao", "troca"],
-      return_stock_action: [
-        "retornar_ao_estoque",
-        "nao_retornar_ao_estoque",
-        "enviar_para_avaliacao",
-      ],
       seller_store_status: ["pending", "approved", "blocked"],
     },
   },
