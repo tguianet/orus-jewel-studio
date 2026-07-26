@@ -17,6 +17,8 @@ import { RouteFallback } from "./components/system/RouteFallback";
 import { AppErrorBoundary } from "./components/errors/AppErrorBoundary";
 import { RouteErrorBoundary } from "./components/errors/RouteErrorBoundary";
 import { PwaManifestSwitcher } from "./pwa/PwaManifestSwitcher";
+import { PwaInstallFab } from "./components/system/PwaInstallFab";
+
 
 const Landing = lazy(() => import("./pages/Landing"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
