@@ -75,7 +75,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 const loadExtras = async (user: User): Promise<Omit<AuthProfile, "user" | "session">> => {
   const [{ data: roleRows }, { data: reseller }, { data: store }, { data: prof }] = await Promise.all([
     supabase.from("user_roles").select("role").eq("user_id", user.id),
-    sbLoose.from("resellers").select("id, parent_id, referral_code").eq("user_id", user.id).maybeSingle(),
+    supabase.from("resellers").select("id, parent_id, referral_code").eq("user_id", user.id).maybeSingle(),
     supabase.from("seller_stores").select("id, store_slug").eq("owner_user_id", user.id).maybeSingle(),
     supabase.from("profiles").select("display_name").eq("user_id", user.id).maybeSingle(),
   ]);

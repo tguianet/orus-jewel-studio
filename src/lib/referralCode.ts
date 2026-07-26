@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import { sbLoose } from "@/lib/supabaseLoose";
 
 export type ReferralValidationReason =
   | "ok"
@@ -91,7 +90,7 @@ export async function validateReferralCode(code: string): Promise<ReferralValida
     };
   }
 
-  const { data, error } = await sbLoose.rpc("validate_referral_code", {
+  const { data, error } = await supabase.rpc("validate_referral_code", {
     p_code: normalized,
     p_client_key: getReferralClientKey(),
   });

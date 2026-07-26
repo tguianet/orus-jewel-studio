@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { sbLoose } from "@/lib/supabaseLoose";
 import { toast } from "sonner";
 import {
   friendlyReferralMessage,
@@ -56,7 +55,7 @@ export const ReferralGate = () => {
     }
 
     setBusy(true);
-    const { data, error } = await sbLoose.rpc("set_my_reseller_parent_by_code", {
+    const { data, error } = await supabase.rpc("set_my_reseller_parent_by_code", {
       p_referral_code: normalized,
     });
     setBusy(false);
