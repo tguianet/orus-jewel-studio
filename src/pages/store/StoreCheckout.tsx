@@ -257,7 +257,15 @@ const StoreCheckout = () => {
 
       if (error) throw error;
 
-      const row = (Array.isArray(data) ? data[0] : data) as unknown as Record<string, unknown> & { order_id?: string };
+      const row = (Array.isArray(data) ? data[0] : data) as unknown as {
+        order_id?: string;
+        status?: OrderResult["status"];
+        subtotal?: number | string;
+        total?: number | string;
+        created_at?: string;
+        expires_at?: string | null;
+        items?: unknown;
+      } | null;
       if (!row?.order_id) {
         throw new Error("Resposta inválida do servidor");
       }
