@@ -1017,6 +1017,16 @@ export type Database = {
         Args: { _store_id: string; _user_id?: string }
         Returns: boolean
       }
+      cancel_order_with_stock_restore: {
+        Args: { _order_id: string; _reason: string }
+        Returns: {
+          details: Json
+          order_id: string
+          products_touched: number
+          skipped_zero: number
+          units_restored: number
+        }[]
+      }
       cancel_paid_order: {
         Args: { _order_id: string; _reason: string }
         Returns: {
