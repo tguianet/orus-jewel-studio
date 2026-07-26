@@ -2,6 +2,31 @@
 
 **Não executar `supabase db push` deste workspace.** Aplicar migrations pelo fluxo Lovable Cloud.
 
+## 0. Estado real verificado (auditoria 2026-07-26)
+
+Auditoria direta no banco do Lovable Cloud. **As migrations 1–9 (`20260729120000` … `20260806120000`) NÃO estão aplicadas.**
+
+| Item | Estado real |
+|---|---|
+| Última migration aplicada | `20260728120000_liquid_cancel_restore.sql` |
+| `orders.expires_at` / `expire_abandoned_orders` | ausentes |
+| `cost_price` restrito (migration 2) | não aplicada (base `admin_product_costs` existe) |
+| Tabelas de saques | ausentes |
+| LGPD / `p_consents` no checkout | ausente (só 1 assinatura de `create_public_order`, sem `p_consents`) |
+| `operational_error_logs` + RPCs | ausentes |
+| RPCs de relatórios (`admin_get_*`, `seller_get_*`) | ausentes |
+| Gerenciamento de admins (`admin_list_administrators` etc.) | ausentes |
+| Multi-role RPCs | ausentes (mas `user_roles` já suporta múltiplas roles) |
+| `resellers.referral_code` / RPCs de indicação obrigatória | ausentes |
+| Extensões `pg_cron` / `pg_net` | **não instaladas** → nenhum Job de expiração existe |
+| Usuário `4fc3feca-…` (Tiago) | possui `admin` **e** `sacoleira`; reseller `384eddbb-…`; loja `loja-tiago` (approved) |
+| PWA `PwaInstallContext` / `PwaUpdateContext` | **não existem** (só `src/pwa/applyManifest.ts`, `registerType: "prompt"` no Vite) |
+| `src/lib/supabaseLoose.ts` | ainda necessário — cobre exatamente os objetos das migrations 1–9 |
+
+Consequência: os blocos de auditoria 2, 4, 5 (parcial), 6, 9, 11, 12, 16 **não podem ser executados** até as migrations serem aplicadas. Recomendação atual: **NO-GO para publicação**.
+
+
+
 ## 1. Antes de aplicar
 
 1. Export/backup do projeto no Lovable Cloud (snapshot).
