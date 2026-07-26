@@ -78,9 +78,22 @@ Crawlers não executam JS, então metadados por loja exigem HTML servido pelo se
 
 ## 6. Pendências operacionais
 
-1. **Job de expiração** — `pg_cron` não está instalado. Criar em Cloud → Jobs:
-   - Nome: `Expire abandoned orders` · A cada 5 minutos
-   - SQL: `SELECT * FROM public.expire_abandoned_orders(100);`
+1. **Job de expiração** — criar em Cloud → Jobs:
+   - Nome: `Expire abandoned orders` · A cada 5 minutos (`*/5 * * * *`)
+   - SQL (obrigatório o `set_config`: a função e os triggers exigem
+     `service_role` + admin no claim JWT; sem isso o Job falha com
+     "Somente service_role ou admin podem expirar pedidos abandonados"):
+     ```sql
+     SELECT set_config(
+       'request.jwt.claims',
+       '{"role":"service_role","sub":"4fc3feca-1da4-4004-b3f3-d2dfdca3d187"}',
+       true
+     );
+     SELECT * FROM public.expire_abandoned_orders(100);
+     ```
+   - Validação 2026-07-26 (teste em transação revertida): 1 pedido expirado,
+     2 unidades restauradas, 2ª execução `0/0`, estoque 10 → 8 → 10 (sem duplo
+     restock), 1 único movimento `cancel_restore`, pedido `paid` intacto.
    - Hoje: `0` pedidos vencidos pendentes, `0` já expirados — sem passivo acumulado.
 2. **LGPD** — conferir manualmente `content_hash` dos seeds vs. HTML das páginas legais.
 
