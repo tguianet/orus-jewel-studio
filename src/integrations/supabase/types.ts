@@ -1079,6 +1079,7 @@ export type Database = {
       create_public_order: {
         Args: {
           p_checkout_token?: string
+          p_consents?: Json
           p_customer_address?: string
           p_customer_name: string
           p_customer_phone: string
@@ -1095,6 +1096,72 @@ export type Database = {
           subtotal: number
           total: number
         }[]
+      }
+      get_active_legal_documents: {
+        Args: { p_audience?: string | null }
+        Returns: Json
+      }
+      validate_checkout_consents: {
+        Args: { p_consents: Json }
+        Returns: Json
+      }
+      record_checkout_consents: {
+        Args: {
+          p_order_id: string
+          p_store_id: string
+          p_customer_identifier: string
+          p_consents: Json
+          p_session_reference?: string | null
+          p_ip?: string | null
+          p_user_agent?: string | null
+        }
+        Returns: Json
+      }
+      record_authenticated_consent: {
+        Args: {
+          p_document_type: string
+          p_consent_context: string
+          p_session_reference?: string | null
+        }
+        Returns: Json
+      }
+      get_my_consents: { Args: never; Returns: Json }
+      admin_list_legal_consents: {
+        Args: {
+          p_document_type?: string | null
+          p_version?: string | null
+          p_subject_type?: string | null
+          p_reseller_id?: string | null
+          p_order_id?: string | null
+          p_context?: string | null
+          p_date_from?: string | null
+          p_date_to?: string | null
+          p_page?: number
+          p_page_size?: number
+        }
+        Returns: Json
+      }
+      admin_list_legal_documents: { Args: never; Returns: Json }
+      publish_legal_document_version: {
+        Args: {
+          p_document_type: string
+          p_title: string
+          p_version: string
+          p_content_hash?: string | null
+          p_effective_at?: string
+          p_audience: string
+          p_route_path: string
+          p_requires_acceptance?: boolean
+        }
+        Returns: Json
+      }
+      revoke_legal_consent: {
+        Args: { p_consent_id: string; p_reason: string }
+        Returns: Json
+      }
+      has_active_consent_for: {
+        Args: { p_document_type: string; p_consent_context?: string }
+        Returns: boolean
       }
       expire_abandoned_orders: {
         Args: { _limit?: number }

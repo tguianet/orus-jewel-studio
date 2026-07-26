@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Loader2, Wallet, Lock, Banknote } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { SellerLayout } from "@/layouts/SellerLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
@@ -17,10 +17,15 @@ import {
   listMyWithdrawals,
 } from "@/lib/withdrawals";
 import { canSellerCancel } from "@/lib/withdrawalStatus";
+import {
+  hasActiveConsentFor,
+  recordAuthenticatedConsent,
+} from "@/lib/legalConsents";
 import type { WithdrawalListItem, WithdrawalSummary } from "@/types/withdrawals";
 import { toast } from "sonner";
 
 const SellerWithdrawals = () => {
+  const nav = useNavigate();
   const [summary, setSummary] = useState<WithdrawalSummary | null>(null);
   const [items, setItems] = useState<WithdrawalListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -107,7 +112,29 @@ const SellerWithdrawals = () => {
             <Button
               variant="gold"
               disabled={(summary?.available ?? 0) < (summary?.minimum_withdrawal_amount ?? 50)}
-              onClick={() => setModalOpen(true)}
+              onClick={async () => {
+                const ok = await hasActiveConsentFor("withdrawal_policy");
+                if (!ok) {
+                  const accept = window.confirm(
+                    "É necessário aceitar a Política de Saques vigente antes de solicitar. Deseja aceitar agora?",
+                  );
+                  if (!accept) {
+                    nav("/sacoleira/consentimentos");
+                    return;
+                  }
+                  try {
+                    await recordAuthenticatedConsent("withdrawal_policy", "withdrawal_request");
+                    toast.success("Política de Saques aceita");
+                  } catch (e) {
+                    toast.error("Aceite a política em Consentimentos", {
+                      description: e instanceof Error ? e.message : "Erro",
+                    });
+                    nav("/sacoleira/consentimentos");
+                    return;
+                  }
+                }
+                setModalOpen(true);
+              }}
             >
               Solicitar saque
             </Button>

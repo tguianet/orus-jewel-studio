@@ -19,7 +19,15 @@ import {
   isTerminalCheckoutTokenError,
   remainingSecondsUntil,
 } from "@/lib/orderExpiry";
-import { LEGAL_LINKS } from "@/lib/legalLinks";
+import {
+  buildCheckoutConsentPayload,
+  consentsToJson,
+  fetchActiveLegalDocuments,
+  friendlyLegalError,
+  isCheckoutConsentComplete,
+  reconcileAcceptedWithDocs,
+} from "@/lib/legalConsents";
+import type { LegalDocument } from "@/types/legal";
 import { toast } from "sonner";
 
 type Step = "form" | "processing" | "success";
@@ -122,13 +130,49 @@ const StoreCheckout = () => {
   const { items, total, clear } = useCart();
   const nav = useNavigate();
   const [form, setForm] = useState({ name: "", phone: "", address: "", notes: "" });
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [legalDocs, setLegalDocs] = useState<LegalDocument[]>([]);
+  const [acceptedTypes, setAcceptedTypes] = useState<Set<string>>(() => new Set());
+  const [legalLoading, setLegalLoading] = useState(true);
   const [step, setStep] = useState<Step>("form");
   const [order, setOrder] = useState<OrderResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [nowMs, setNowMs] = useState(() => Date.now());
 
   const fingerprint = useMemo(() => cartFingerprint(items), [items]);
+  const consentsOk = isCheckoutConsentComplete(legalDocs, acceptedTypes);
+
+  useEffect(() => {
+    let alive = true;
+    const applyDocs = (docs: LegalDocument[]) => {
+      if (!alive) return;
+      setLegalDocs((prev) => {
+        setAcceptedTypes((acc) => reconcileAcceptedWithDocs(acc, prev, docs));
+        return docs;
+      });
+    };
+
+    setLegalLoading(true);
+    fetchActiveLegalDocuments("checkout")
+      .then(applyDocs)
+      .catch(() => {
+        if (!alive) return;
+        toast.error("Não foi possível carregar os termos legais", {
+          description: "Recarregue a página antes de enviar o pedido.",
+        });
+      })
+      .finally(() => {
+        if (alive) setLegalLoading(false);
+      });
+
+    const onFocus = () => {
+      fetchActiveLegalDocuments("checkout").then(applyDocs).catch(() => undefined);
+    };
+    window.addEventListener("focus", onFocus);
+    return () => {
+      alive = false;
+      window.removeEventListener("focus", onFocus);
+    };
+  }, []);
 
   useEffect(() => {
     if (!store?.id) return;
@@ -163,12 +207,22 @@ const StoreCheckout = () => {
       toast.error("Preencha nome e WhatsApp");
       return;
     }
-    if (!acceptedTerms) {
-      toast.error("Aceite os Termos de Uso e a Política de Privacidade para continuar");
+    if (legalLoading || legalDocs.length === 0) {
+      toast.error("Aguarde o carregamento dos documentos legais");
+      return;
+    }
+    if (!consentsOk) {
+      toast.error("Aceite todos os documentos legais obrigatórios para continuar");
       return;
     }
     if (items.length === 0) {
       toast.error("Seu carrinho está vazio");
+      return;
+    }
+
+    const consentPayload = buildCheckoutConsentPayload(legalDocs, acceptedTypes);
+    if (consentPayload.length === 0) {
+      toast.error("Aceite todos os documentos legais obrigatórios para continuar");
       return;
     }
 
@@ -189,6 +243,7 @@ const StoreCheckout = () => {
         p_notes: form.notes.trim() || null,
         p_items: payloadItems,
         p_checkout_token: checkoutToken,
+        p_consents: consentsToJson(consentPayload),
       });
 
       if (error) throw error;
@@ -227,6 +282,13 @@ const StoreCheckout = () => {
         toast.error("Reserva expirada ou pedido encerrado", {
           description: "Seu carrinho foi mantido. Envie o pedido novamente para criar uma nova reserva.",
         });
+      } else if (
+        message.toLowerCase().includes("termos foram atualizados")
+        || message.toLowerCase().includes("consentimento")
+      ) {
+        toast.error(friendlyLegalError(message));
+        setAcceptedTypes(new Set());
+        void fetchActiveLegalDocuments("checkout").then(setLegalDocs);
       } else {
         toast.error("Erro ao enviar pedido", { description: message });
       }
@@ -337,59 +399,67 @@ const StoreCheckout = () => {
             />
           </div>
 
-          <div className="flex items-start gap-3 rounded-lg border border-border/70 bg-muted/20 px-3 py-3">
-            <Checkbox
-              id="accept-legal"
-              checked={acceptedTerms}
-              onCheckedChange={(v) => setAcceptedTerms(Boolean(v))}
-              disabled={submitting}
-              className="mt-0.5"
-            />
-            <label htmlFor="accept-legal" className="text-sm leading-relaxed cursor-pointer">
-              Li e concordo com os{" "}
-              <Link
-                to="/termos-de-uso"
-                target="_blank"
-                rel="noreferrer"
-                className="text-primary underline underline-offset-2"
-                onClick={(e) => e.stopPropagation()}
-              >
-                Termos de Uso
-              </Link>{" "}
-              e a{" "}
-              <Link
-                to="/politica-de-privacidade"
-                target="_blank"
-                rel="noreferrer"
-                className="text-primary underline underline-offset-2"
-                onClick={(e) => e.stopPropagation()}
-              >
-                Política de Privacidade
-              </Link>
-              .
-            </label>
+          <div className="rounded-lg border border-border/70 bg-muted/20 px-3 py-3 space-y-3">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">
+              Documentos legais obrigatórios
+            </p>
+            {legalLoading ? (
+              <p className="text-sm text-muted-foreground flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" /> Carregando termos…
+              </p>
+            ) : legalDocs.length === 0 ? (
+              <p className="text-sm text-destructive">
+                Não foi possível carregar os documentos. Recarregue a página.
+              </p>
+            ) : (
+              legalDocs
+                .filter((d) => d.requires_acceptance)
+                .map((doc) => {
+                  const checked = acceptedTypes.has(doc.document_type);
+                  const id = `accept-${doc.document_type}`;
+                  return (
+                    <div key={doc.id} className="flex items-start gap-3">
+                      <Checkbox
+                        id={id}
+                        checked={checked}
+                        disabled={submitting}
+                        className="mt-0.5"
+                        onCheckedChange={(v) => {
+                          setAcceptedTypes((prev) => {
+                            const next = new Set(prev);
+                            if (v) next.add(doc.document_type);
+                            else next.delete(doc.document_type);
+                            return next;
+                          });
+                        }}
+                      />
+                      <label htmlFor={id} className="text-sm leading-relaxed cursor-pointer">
+                        Li e aceito{" "}
+                        <Link
+                          to={doc.route_path || "/"}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary underline underline-offset-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {doc.title}
+                        </Link>
+                        <span className="block text-[11px] text-muted-foreground mt-0.5">
+                          Versão {doc.version}
+                        </span>
+                      </label>
+                    </div>
+                  );
+                })
+            )}
           </div>
         </div>
-
-        <nav aria-label="Políticas da loja" className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-          {LEGAL_LINKS.map((link) => (
-            <Link
-              key={link.path}
-              to={link.path}
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-primary underline-offset-2 hover:underline"
-            >
-              {link.shortLabel || link.label}
-            </Link>
-          ))}
-        </nav>
 
         <Button
           type="submit"
           size="lg"
           className="w-full"
-          disabled={submitting || items.length === 0 || !acceptedTerms}
+          disabled={submitting || items.length === 0 || !consentsOk || legalLoading}
         >
           {submitting ? (
             <>
