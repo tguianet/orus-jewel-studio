@@ -35,6 +35,12 @@ import StoreHome from "./pages/store/StoreHome";
 import StoreProduct from "./pages/store/StoreProduct";
 import StoreCart from "./pages/store/StoreCart";
 import StoreCheckout from "./pages/store/StoreCheckout";
+import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
+import TermsOfUse from "./pages/legal/TermsOfUse";
+import ReturnsPolicy from "./pages/legal/ReturnsPolicy";
+import DeliveryPolicy from "./pages/legal/DeliveryPolicy";
+import CommissionPolicy from "./pages/legal/CommissionPolicy";
+import WithdrawalPolicy from "./pages/legal/WithdrawalPolicy";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { PwaManifestSwitcher } from "./pwa/PwaManifestSwitcher";
 
@@ -56,6 +62,14 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
             <Route path="/login-sacoleira" element={<LoginPage role="sacoleira" />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+
+            {/* Legal / LGPD (público) */}
+            <Route path="/politica-de-privacidade" element={<PrivacyPolicy />} />
+            <Route path="/termos-de-uso" element={<TermsOfUse />} />
+            <Route path="/trocas-e-devolucoes" element={<ReturnsPolicy />} />
+            <Route path="/politica-de-entrega" element={<DeliveryPolicy />} />
+            <Route path="/politica-de-comissoes" element={<CommissionPolicy />} />
+            <Route path="/politica-de-saques" element={<WithdrawalPolicy />} />
 
             {/* Admin */}
             <Route path="/admin" element={<Admin><AdminDashboard /></Admin>} />

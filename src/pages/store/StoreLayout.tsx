@@ -14,6 +14,7 @@ import { themeCssVars } from "@/lib/colorUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import { EditableText } from "@/components/preview/EditableText";
 import { StorePopup } from "@/components/store/StorePopup";
+import { LEGAL_LINKS } from "@/lib/legalLinks";
 
 type PreviewMessage =
   | { type: "lovable-preview-theme"; theme: StoreTheme }
@@ -498,6 +499,20 @@ const StoreLayout = () => {
               ))}
             </nav>
           )}
+          <nav
+            aria-label="Políticas e termos"
+            className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 pt-3 text-[11px] opacity-90"
+          >
+            {LEGAL_LINKS.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className="hover:underline underline-offset-4"
+              >
+                {link.shortLabel || link.label}
+              </Link>
+            ))}
+          </nav>
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs opacity-80 pt-1">
             {(theme.whatsapp || store.phone) && (
               <a

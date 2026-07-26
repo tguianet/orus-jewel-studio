@@ -1,4 +1,4 @@
-import { useOutletContext, useNavigate } from "react-router-dom";
+import { Link, useOutletContext, useNavigate } from "react-router-dom";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { MessageCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
@@ -6,6 +6,7 @@ import { formatBRL } from "@/lib/format";
 import type { Sacoleira } from "@/types/commerce";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,6 +19,7 @@ import {
   isTerminalCheckoutTokenError,
   remainingSecondsUntil,
 } from "@/lib/orderExpiry";
+import { LEGAL_LINKS } from "@/lib/legalLinks";
 import { toast } from "sonner";
 
 type Step = "form" | "processing" | "success";
@@ -120,6 +122,7 @@ const StoreCheckout = () => {
   const { items, total, clear } = useCart();
   const nav = useNavigate();
   const [form, setForm] = useState({ name: "", phone: "", address: "", notes: "" });
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [step, setStep] = useState<Step>("form");
   const [order, setOrder] = useState<OrderResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -158,6 +161,10 @@ const StoreCheckout = () => {
 
     if (!form.name.trim() || !form.phone.trim()) {
       toast.error("Preencha nome e WhatsApp");
+      return;
+    }
+    if (!acceptedTerms) {
+      toast.error("Aceite os Termos de Uso e a Política de Privacidade para continuar");
       return;
     }
     if (items.length === 0) {
@@ -329,9 +336,61 @@ const StoreCheckout = () => {
               disabled={submitting}
             />
           </div>
+
+          <div className="flex items-start gap-3 rounded-lg border border-border/70 bg-muted/20 px-3 py-3">
+            <Checkbox
+              id="accept-legal"
+              checked={acceptedTerms}
+              onCheckedChange={(v) => setAcceptedTerms(Boolean(v))}
+              disabled={submitting}
+              className="mt-0.5"
+            />
+            <label htmlFor="accept-legal" className="text-sm leading-relaxed cursor-pointer">
+              Li e concordo com os{" "}
+              <Link
+                to="/termos-de-uso"
+                target="_blank"
+                rel="noreferrer"
+                className="text-primary underline underline-offset-2"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Termos de Uso
+              </Link>{" "}
+              e a{" "}
+              <Link
+                to="/politica-de-privacidade"
+                target="_blank"
+                rel="noreferrer"
+                className="text-primary underline underline-offset-2"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Política de Privacidade
+              </Link>
+              .
+            </label>
+          </div>
         </div>
 
-        <Button type="submit" size="lg" className="w-full" disabled={submitting || items.length === 0}>
+        <nav aria-label="Políticas da loja" className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+          {LEGAL_LINKS.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-primary underline-offset-2 hover:underline"
+            >
+              {link.shortLabel || link.label}
+            </Link>
+          ))}
+        </nav>
+
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full"
+          disabled={submitting || items.length === 0 || !acceptedTerms}
+        >
           {submitting ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" /> Enviando pedido...
