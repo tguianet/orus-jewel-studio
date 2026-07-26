@@ -259,7 +259,7 @@ BEGIN
     RETURN NULL;
   END IF;
   v_pepper := public._legal_pepper();
-  RETURN encode(digest(convert_to(v_pepper || '|' || trim(p_value), 'UTF8'), 'sha256'), 'hex');
+  RETURN encode(sha256(convert_to(v_pepper || '|' || trim(p_value), 'UTF8')), 'hex');
 END;
 $$;
 
@@ -272,12 +272,11 @@ IMMUTABLE
 SET search_path = public
 AS $$
   SELECT encode(
-    digest(
+    sha256(
       convert_to(
         trim(p_type) || '|' || trim(p_version) || '|' || trim(p_title) || '|' || trim(COALESCE(p_route, '')),
         'UTF8'
-      ),
-      'sha256'
+      )
     ),
     'hex'
   );
@@ -689,6 +688,15 @@ BEGIN
       'checkout_token já utilizado em pedido encerrado ou com reserva expirada. Gere um novo token e tente novamente.';
   END IF;
 
+  -- Reinicializa variáveis: o SELECT INTO acima as zera (NULL) quando não há linha
+  v_order_id := NULL;
+  v_subtotal := 0;
+  v_total := 0;
+  v_created_at := NULL;
+  v_status := 'new'::public.order_status;
+  v_expires_at := NULL;
+  v_expired_at := NULL;
+
   -- Validação LGPD antes de reservar estoque
   IF p_consents IS NULL THEN
     RAISE EXCEPTION 'Consentimentos legais são obrigatórios no checkout';
@@ -796,7 +804,7 @@ BEGIN
     END IF;
 
     v_line_total := round(v_unit_price * v_qty, 2);
-    v_subtotal := v_subtotal + v_line_total;
+    v_subtotal := COALESCE(v_subtotal, 0) + COALESCE(v_line_total, 0);
 
     UPDATE tmp_public_order_items
     SET product_name = v_product_name,
@@ -805,6 +813,7 @@ BEGIN
     WHERE product_id = v_product_id;
   END LOOP;
 
+  v_subtotal := COALESCE(v_subtotal, 0);
   v_total := v_subtotal;
 
   BEGIN
