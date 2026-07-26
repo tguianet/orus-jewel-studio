@@ -3,7 +3,7 @@ import earringsImg from "@/assets/product-earrings.jpg";
 import necklaceImg from "@/assets/product-necklace.jpg";
 import braceletImg from "@/assets/product-bracelet.jpg";
 import { supabase } from "@/integrations/supabase/client";
-import { sbLoose } from "@/lib/supabaseLoose";
+
 import type { Database, Tables } from "@/integrations/supabase/types";
 import type {
   AdminProduct,
@@ -506,7 +506,7 @@ export type WalletTx = {
 
 export const loadWalletForReseller = async (resellerId: string) => {
   const [{ data: summary, error: summaryError }, { data: txs, error: txsError }] = await Promise.all([
-    sbLoose
+    supabase
       .from("reseller_wallet_summary")
       .select("reseller_id,pending,available,paid,total_balance,blocked")
       .eq("reseller_id", resellerId)

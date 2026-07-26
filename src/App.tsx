@@ -6,6 +6,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AreaProvider } from "@/contexts/AreaContext";
+import { PwaInstallProvider } from "@/contexts/PwaInstallContext";
+import { PwaUpdateProvider } from "@/contexts/PwaUpdateContext";
+
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AppUpdatePrompt } from "./components/system/AppUpdatePrompt";
 import { LazyRouteErrorBoundary } from "./components/system/LazyRouteErrorBoundary";
@@ -14,6 +17,8 @@ import { RouteFallback } from "./components/system/RouteFallback";
 import { AppErrorBoundary } from "./components/errors/AppErrorBoundary";
 import { RouteErrorBoundary } from "./components/errors/RouteErrorBoundary";
 import { PwaManifestSwitcher } from "./pwa/PwaManifestSwitcher";
+import { PwaInstallFab } from "./components/system/PwaInstallFab";
+
 
 const Landing = lazy(() => import("./pages/Landing"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
@@ -94,9 +99,14 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
       <CartProvider>
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <AreaProvider>
+          <PwaInstallProvider>
+          <PwaUpdateProvider>
           <PwaManifestSwitcher />
+          <PwaInstallFab />
           <OfflineBanner />
+
           <AppUpdatePrompt />
+
           <LazyRouteErrorBoundary>
             <RouteErrorBoundary name="app-routes">
             <Suspense fallback={<RouteFallback />}>
@@ -173,7 +183,10 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
             </Suspense>
             </RouteErrorBoundary>
           </LazyRouteErrorBoundary>
+          </PwaUpdateProvider>
+          </PwaInstallProvider>
           </AreaProvider>
+
         </BrowserRouter>
       </CartProvider>
     </AuthProvider>
