@@ -576,7 +576,7 @@ export type AdminSellerRow = {
 };
 
 export const loadAllSellers = async (): Promise<AdminSellerRow[]> => {
-  const { data, error } = await sbLoose
+  const { data, error } = await supabase
     .from("resellers")
     .select("id,user_id,display_name,email,phone,status,created_at,referral_code,parent_id,seller_stores(id,store_name,store_slug,status)")
     .order("created_at", { ascending: false });
