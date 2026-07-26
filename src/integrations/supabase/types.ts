@@ -2008,6 +2008,35 @@ export type Database = {
         Args: { p_consent_id: string; p_reason: string }
         Returns: Json
       }
+      seller_export_my_report: {
+        Args: { p_filters?: Json; p_report_type: string }
+        Returns: Json
+      }
+      seller_get_commission_summary: {
+        Args: { p_end_date: string; p_start_date: string }
+        Returns: Json
+      }
+      seller_get_order_report: {
+        Args: {
+          p_end_date: string
+          p_page?: number
+          p_page_size?: number
+          p_start_date: string
+        }
+        Returns: Json
+      }
+      seller_get_sales_summary: {
+        Args: { p_end_date: string; p_start_date: string }
+        Returns: Json
+      }
+      seller_get_sales_timeseries: {
+        Args: {
+          p_end_date: string
+          p_granularity?: string
+          p_start_date: string
+        }
+        Returns: Json
+      }
       set_my_reseller_parent: {
         Args: { _parent_id: string }
         Returns: undefined
