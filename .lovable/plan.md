@@ -1,46 +1,46 @@
-## Objetivo
+# Etapa 1 — Expiração de reservas (com 1 bloqueio a resolver)
 
-Aplicar exclusivamente a migration já versionada `supabase/migrations/20260725220000_commission_settings.sql`, sem tocar em pedidos, estoque, checkout, produtos ou usuários.
+## Estado verificado agora (leitura no banco)
 
-## Verificações já feitas (antes de aplicar)
+- Arquivos das 9 migrations existem no repositório, na ordem indicada.
+- `orders` **não** tem `expires_at`, `expired_at` nem `expiration_reason` → a migration 1 ainda não foi aplicada.
+- Funções presentes hoje: `mark_order_paid`, `restore_stock_on_order_cancelled`, `register_physical_return`, `cancel_paid_order`.
+- Seu acesso admin está intacto: `user_roles` tem 1 `admin` e 6 `sacoleira`.
+- Pedidos atuais: 8 `paid`, 1 `new`. `stock_movements` está vazio (0 linhas).
+- Não tenho como inspecionar o GitHub (`tguianet/orus-jewel-studio`) nem a branch a partir daqui — o sync é gerenciado pela plataforma; posso confirmar apenas o conteúdo do workspace.
 
-- `public.commission_settings` **não existe** (`to_regclass` retornou vazio).
-- `get_current_commission_rates` e `update_commission_settings` **não existem** no schema `public`.
-- `create_mlm_commissions_for_order` já existe e será substituída via `CREATE OR REPLACE` (mesma assinatura).
-- Em `public.commissions` existe hoje `commissions_rate_check` (limita taxas a 0.10/0.05/0.02) e **não** existe `commissions_rate_range_check`.
-- Dados atuais preservados como baseline: 9 pedidos, 14 comissões.
-- É a única migration pendente no repositório sem correspondência no banco; nenhuma outra será enviada.
+## Bloqueio encontrado
 
-## O que a migration faz
+A migration **`20260728120000_liquid_cancel_restore.sql` não está aplicada**:
+- `cancel_order_with_stock_restore` e `protect_direct_order_cancel` não existem no banco;
+- a versão atual de `restore_stock_on_order_cancelled` grava movimentos `cancel_restore`, mas **não publica** os contadores `app.cancel_restore_units / _products / _skipped / _details`.
 
-1. Cria a tabela singleton `commission_settings` (taxas nível 1/2/3 como frações 0–1, `active_from`, `updated_by`), com checks de faixa e de soma ≤ 100%.
-2. Insere o seed oficial: `0.25` / `0.03` / `0.02` (com `ON CONFLICT DO NOTHING`).
-3. Substitui `commissions_rate_check` por `commissions_rate_range_check` (aceita qualquer taxa de 0 a 1) — apenas troca de constraint, não altera linhas existentes.
-4. Ativa RLS, revoga acesso de `anon`/`public` e cria a policy `"Admins can select commission settings"`; escrita apenas via RPC.
-5. Cria `update_commission_settings` (admin-only, com auditoria before/after) e `get_current_commission_rates` (leitura para autenticados).
-6. Recria `create_mlm_commissions_for_order` para ler as taxas vigentes no momento do pagamento, mantendo `ON CONFLICT DO NOTHING` — comissões já gravadas conservam `rate` e `amount` originais.
+A migration 1 (`20260729120000_order_reservation_expiry.sql`) **lê exatamente esses contadores** (linhas 213–227) para relatar unidades restauradas por pedido expirado. Aplicada sozinha, `expire_abandoned_orders` funciona no cancelamento, mas reporta sempre 0 unidades restauradas, e a proteção líquida contra double-restock (net de devoluções físicas) da 20260728 fica ausente.
 
-## Execução
+## Proposta
 
-- Envio do conteúdo do arquivo, sem alterações, via ferramenta de migration do Lovable Cloud (você aprova antes de rodar).
-- Nenhum `DROP TABLE`, `DELETE`, `UPDATE` de pedidos/comissões ou recriação de tabelas existentes.
+1. Aplicar primeiro `20260728120000_liquid_cancel_restore.sql` (pré-requisito, não estava na sua lista porque presumivelmente já era considerado aplicado). Validar: trigger de restore líquido, bloqueio de cancelamento direto, restore não duplicado com devolução física prévia.
+2. Parar, reportar e aguardar sua autorização.
+3. Só então aplicar `20260729120000_order_reservation_expiry.sql`.
 
-## Verificações depois de aplicar
+Se preferir, aplico apenas a 1 e aceito o relatório de unidades zerado — mas não recomendo.
 
-1. Tabela `public.commission_settings` criada.
-2. Funções presentes: `update_commission_settings`, `get_current_commission_rates`, `create_mlm_commissions_for_order`.
-3. Policy `"Admins can select commission settings"` existente em `commission_settings`.
-4. Constraint `commissions_rate_range_check` presente e `commissions_rate_check` removida.
-5. Valores iniciais conferidos: `0.25` / `0.03` / `0.02`.
-6. Contagem e soma de `commissions` e `orders` iguais ao baseline (9 pedidos / 14 comissões, `rate` e `amount` inalterados) — nada recalculado.
-7. Compilação/typecheck do projeto executada e resultado reportado.
-8. Sem publicação automática.
+## Validações da migration de expiração (etapa 3)
 
-## Notas técnicas
+Objetos: `orders.expires_at/expired_at/expiration_reason`, índice parcial de ativos, tabela `order_reservation_settings` (RLS + grants: leitura para `authenticated`, tudo para `service_role`, `anon` revogado), `get_order_reserve_minutes`, `mark_order_paid` (reescrita), `expire_abandoned_orders`, `create_public_order` (reescrita com `expires_at`).
 
-- `src/lib/commissionSettings.ts` já referencia `Tables<"commission_settings">` e as duas RPCs; os tipos do backend são regenerados após a migration, então o typecheck só passa depois de aplicá-la. Se algum erro de tipo restar, reporto sem alterar lógica de negócio.
-- Risco residual: a nova constraint de faixa é mais permissiva que a antiga (por design, para permitir taxas configuráveis).
+Testes, todos em transação com `ROLLBACK`, sem tocar em pedidos reais:
+- pedido `new` vencido → cancelado + `expired_at` + restore uma única vez;
+- pedido `new` dentro do prazo → permanece ativo;
+- pedido `paid` → nunca expira; `mark_order_paid` em pedido vencido → rejeitado;
+- pedido já `cancelled`/expirado → não expira de novo;
+- `expire_abandoned_orders` executada 2× → idempotente, sem restore duplicado;
+- estoque e `stock_movements` conferidos antes/depois;
+- locking (`FOR UPDATE SKIP LOCKED`) verificado com duas sessões;
+- `anon` sem EXECUTE em `expire_abandoned_orders`; sacoleira negada;
+- assinatura de `create_public_order` conferida contra as chamadas do frontend (`StoreCheckout.tsx`) — sem overload ambíguo;
+- baseline de pedidos/comissões/carteira reconferido ao final.
 
-## Entrega final
+## Regras mantidas
 
-Relato: se a migration foi aplicada, objetos criados, valores iniciais, resultado da compilação e qualquer erro ou risco restante.
+Sem publicação do frontend, sem alterar código nesta etapa, uma migration por vez, nenhuma migration antiga substituída, seu papel de admin preservado. Interrupção imediata se aparecer erro em estoque, pedidos, comissões, carteira, roles, auth ou checkout.
