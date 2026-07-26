@@ -1,9 +1,9 @@
-import { ReactNode } from "react";
-import { LayoutDashboard, Store, Palette, BookOpen, Sparkles, ShoppingBag, Network, Wallet, Settings, Megaphone, Banknote, ScrollText, BarChart3 } from "lucide-react";
+import { ReactNode, useMemo } from "react";
+import { LayoutDashboard, Store, Palette, BookOpen, Sparkles, ShoppingBag, Network, Wallet, Settings, Megaphone, Banknote, ScrollText, BarChart3, Shield } from "lucide-react";
 import { AppShell, NavItem } from "@/components/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
 
-const nav: NavItem[] = [
+const baseNav: NavItem[] = [
   { label: "Dashboard", to: "/sacoleira", icon: LayoutDashboard },
   { label: "Minha loja", to: "/sacoleira/loja", icon: Store },
   { label: "Personalização", to: "/sacoleira/personalizacao", icon: Palette },
@@ -20,9 +20,21 @@ const nav: NavItem[] = [
 ];
 
 export const SellerLayout = ({ children }: { children: ReactNode }) => {
-  const { profile } = useAuth();
+  const { profile, isAdmin } = useAuth();
+  const nav = useMemo(() => {
+    if (!isAdmin) return baseNav;
+    return [
+      ...baseNav,
+      { label: "Voltar ao Admin", to: "/admin", icon: Shield },
+    ];
+  }, [isAdmin]);
+
   return (
-    <AppShell nav={nav} scopeLabel={profile?.storeSlug ? `loja/${profile.storeSlug}` : "Minha loja"} userName={profile?.displayName || "Sacoleira"}>
+    <AppShell
+      nav={nav}
+      scopeLabel={profile?.storeSlug ? `loja/${profile.storeSlug}` : "Minha loja"}
+      userName={profile?.displayName || "Sacoleira"}
+    >
       {children}
     </AppShell>
   );

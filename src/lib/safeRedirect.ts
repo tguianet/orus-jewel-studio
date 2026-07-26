@@ -59,20 +59,29 @@ export function isPathAllowedForRole(path: string, roles: AppRole[]): boolean {
     return isAdmin || isSeller;
   }
 
+  // Escolha de área — só quem tem as duas roles
+  if (p === "/escolher-area" || p.startsWith("/escolher-area/")) {
+    return isAdmin && isSeller;
+  }
+
   if (isAdmin && (p === "/admin" || p.startsWith("/admin/"))) return true;
   if (isSeller && (p === "/sacoleira" || p.startsWith("/sacoleira/"))) return true;
   if (isSeller && (p === "/loja" || p.startsWith("/loja/"))) return true;
 
-  // Admin também pode ir à home; não às rotas exclusivas da sacoleira
-  if (isAdmin && (p.startsWith("/sacoleira") || p.startsWith("/loja/"))) return false;
-  if (isSeller && p.startsWith("/admin")) return false;
+  // Admin sem role sacoleira não entra em painel seller
+  if (isAdmin && !isSeller && (p.startsWith("/sacoleira") || p.startsWith("/loja/"))) return false;
+  // Sacoleira sem admin não entra em /admin
+  if (isSeller && !isAdmin && p.startsWith("/admin")) return false;
 
   return false;
 }
 
 export function fallbackPathForRoles(roles: AppRole[]): string {
-  if (roles.includes("admin")) return "/admin";
-  if (roles.includes("sacoleira")) return "/sacoleira";
+  const isAdmin = roles.includes("admin");
+  const isSeller = roles.includes("sacoleira");
+  if (isAdmin && isSeller) return "/escolher-area";
+  if (isAdmin) return "/admin";
+  if (isSeller) return "/sacoleira";
   return "/acesso-pendente";
 }
 

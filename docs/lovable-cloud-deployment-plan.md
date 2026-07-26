@@ -22,6 +22,7 @@ Aplicar **nesta ordem** (já cronológica no repo):
 | 5 | `20260802120000_operational_error_logs.sql` | Observabilidade | `report_operational_error` |
 | 6 | `20260803120000_operational_reports.sql` | Relatórios | `admin_get_sales_summary` |
 | 7 | `20260804120000_admin_management.sql` | Admins | `admin_list_administrators`; INSERT direto em `user_roles` bloqueado |
+| 8 | `20260805120000_multi_role_users.sql` | Multi-role | `admin_grant_reseller_role`; UNIQUE(user_id,role); current_reseller_id |
 
 Dependências anteriores já devem existir: stock, cancel restore, physical returns, commissions, wallet, `admin_product_costs` base, checkout token, `user_roles`/`is_admin()`.
 
@@ -32,6 +33,7 @@ Dependências anteriores já devem existir: stock, cancel restore, physical retu
 - **Bloco C (checkout legal):** 4 — **validação obrigatória imediata** (checkout quebra sem consents).
 - **Bloco D (ops):** 5+6 — podem ir juntos após B/C.
 - **Bloco E (admins):** 7 — após `is_admin()`/`user_roles` estáveis; publicar FE da tela só depois do SQL.
+- **Bloco F (multi-role):** 8 — após 7; publicar FE de `/escolher-area` só depois do SQL.
 
 Não pular a 4 se o frontend já envia `p_consents`.
 

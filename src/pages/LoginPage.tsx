@@ -101,7 +101,7 @@ const LoginPage = ({ role }: Props) => {
         nav(fallbackPathForRoles(roles), { replace: true });
         return;
       }
-      if (!isAdmin && !roles.includes("sacoleira") && !roles.includes("admin")) {
+      if (!isAdmin && !roles.includes("sacoleira")) {
         showAppError(
           new AppError({
             code: "AUTH_ACCESS_DENIED",

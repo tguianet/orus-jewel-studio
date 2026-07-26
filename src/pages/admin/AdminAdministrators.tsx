@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2, ShieldPlus, UserMinus } from "lucide-react";
+import { ArrowLeft, Loader2, ShieldPlus, Store, UserMinus } from "lucide-react";
 import { toast } from "sonner";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -16,10 +20,12 @@ import { AdminRoleConfirmDialog } from "@/components/admin/AdminRoleConfirmDialo
 import { AdminRoleAuditTable } from "@/components/admin/AdminRoleAuditTable";
 import { useAuth } from "@/contexts/AuthContext";
 import {
+  administratorBadge,
   canRevokeAdministrator,
   formatAdminDate,
   getAdminRoleAudit,
   grantAdminRole,
+  grantResellerRole,
   listAdministrators,
   revokeAdminRole,
   searchUsersForAdmin,
@@ -33,9 +39,18 @@ import type {
 
 const AUDIT_PAGE_SIZE = 10;
 
+const slugify = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48);
+
 const AdminAdministrators = () => {
   const navigate = useNavigate();
-  const { profile, refreshUserRole } = useAuth();
+  const { profile, refreshUserRoles } = useAuth();
   const [admins, setAdmins] = useState<AdministratorRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
@@ -48,6 +63,11 @@ const AdminAdministrators = () => {
   const [auditTotal, setAuditTotal] = useState(0);
   const [auditPage, setAuditPage] = useState(1);
   const [auditLoading, setAuditLoading] = useState(true);
+  const [resellerTarget, setResellerTarget] = useState<AdministratorRow | null>(null);
+  const [resellerName, setResellerName] = useState("");
+  const [storeName, setStoreName] = useState("");
+  const [storeSlug, setStoreSlug] = useState("");
+  const [resellerReason, setResellerReason] = useState("");
 
   const currentUserId = profile?.user.id ?? "";
 
@@ -144,7 +164,7 @@ const AdminAdministrators = () => {
           toast.success("Acesso administrativo revogado.");
         }
 
-        const roles = await refreshUserRole();
+        const roles = await refreshUserRoles();
         const stillAdmin = roles.includes("admin");
 
         if (result.self_revoke || selectedUserId === currentUserId) {
@@ -163,8 +183,7 @@ const AdminAdministrators = () => {
       await reloadAudit(1);
       setAuditPage(1);
 
-      // Atualiza role local após qualquer alteração (inclui se alguém removeu o próprio usuário em outra aba).
-      await refreshUserRole();
+      await refreshUserRoles();
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Falha temporária. Tente novamente.";
       toast.error(msg);
@@ -220,6 +239,7 @@ const AdminAdministrators = () => {
               <tr>
                 <th className="px-4 py-3 font-medium">Nome</th>
                 <th className="px-4 py-3 font-medium">E-mail</th>
+                <th className="px-4 py-3 font-medium">Perfis</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Admin desde</th>
                 <th className="px-4 py-3 font-medium">Concedido por</th>
@@ -241,6 +261,14 @@ const AdminAdministrators = () => {
                       )}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{admin.email || "—"}</td>
+                    <td className="px-4 py-3">
+                      <span className="inline-block rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-primary">
+                        {administratorBadge(admin)}
+                      </span>
+                      {admin.store_slug && (
+                        <p className="mt-1 text-[11px] text-muted-foreground">/loja/{admin.store_slug}</p>
+                      )}
+                    </td>
                     <td className="px-4 py-3 capitalize">{admin.status}</td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {formatAdminDate(admin.granted_at || admin.created_at)}
@@ -248,7 +276,25 @@ const AdminAdministrators = () => {
                     <td className="px-4 py-3 text-muted-foreground">
                       {admin.granted_by_name || (admin.granted_by ? `${admin.granted_by.slice(0, 8)}…` : "—")}
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right space-x-1 whitespace-nowrap">
+                      {!admin.is_sacoleira && (
+                        <Button
+                          type="button"
+                          variant="goldOutline"
+                          size="sm"
+                          disabled={submitting}
+                          onClick={() => {
+                            setResellerTarget(admin);
+                            setResellerName(admin.nome || "");
+                            setStoreName(admin.nome ? `Loja ${admin.nome}` : "");
+                            setStoreSlug(slugify(admin.nome || admin.email.split("@")[0] || "loja"));
+                            setResellerReason("");
+                          }}
+                        >
+                          <Store className="h-4 w-4" />
+                          Criar área de sacoleira
+                        </Button>
+                      )}
                       <Button
                         type="button"
                         variant="outline"
@@ -310,6 +356,124 @@ const AdminAdministrators = () => {
         }}
         onConfirm={() => void handleConfirm()}
       />
+
+      <Dialog
+        open={!!resellerTarget}
+        onOpenChange={(open) => {
+          if (!open && !submitting) setResellerTarget(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Criar área de sacoleira</DialogTitle>
+            <DialogDescription>
+              Mantém a role admin e adiciona sacoleira + loja própria (mesmo login).
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 text-sm">
+            <p>
+              <span className="text-muted-foreground">Admin:</span>{" "}
+              <span className="font-medium">{resellerTarget?.nome}</span>
+              <br />
+              <span className="text-muted-foreground">{resellerTarget?.email}</span>
+            </p>
+            <div>
+              <Label htmlFor="reseller-name">Nome da sacoleira</Label>
+              <Input
+                id="reseller-name"
+                className="mt-1.5"
+                value={resellerName}
+                onChange={(e) => setResellerName(e.target.value)}
+                disabled={submitting}
+              />
+            </div>
+            <div>
+              <Label htmlFor="store-name">Nome da loja</Label>
+              <Input
+                id="store-name"
+                className="mt-1.5"
+                value={storeName}
+                onChange={(e) => {
+                  setStoreName(e.target.value);
+                  if (!storeSlug || storeSlug === slugify(resellerTarget?.nome || "")) {
+                    setStoreSlug(slugify(e.target.value));
+                  }
+                }}
+                disabled={submitting}
+              />
+            </div>
+            <div>
+              <Label htmlFor="store-slug">Slug da loja</Label>
+              <Input
+                id="store-slug"
+                className="mt-1.5"
+                value={storeSlug}
+                onChange={(e) => setStoreSlug(slugify(e.target.value))}
+                disabled={submitting}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">/loja/{storeSlug || "…"}</p>
+            </div>
+            <div>
+              <Label htmlFor="reseller-reason">Motivo (opcional)</Label>
+              <Input
+                id="reseller-reason"
+                className="mt-1.5"
+                value={resellerReason}
+                onChange={(e) => setResellerReason(e.target.value)}
+                disabled={submitting}
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={submitting}
+              onClick={() => setResellerTarget(null)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              variant="gold"
+              disabled={submitting || !storeName.trim() || !storeSlug.trim()}
+              onClick={() => {
+                if (!resellerTarget) return;
+                void (async () => {
+                  try {
+                    setSubmitting(true);
+                    const result = await grantResellerRole({
+                      userId: resellerTarget.user_id,
+                      resellerName,
+                      storeName,
+                      storeSlug,
+                      reason: resellerReason,
+                    });
+                    if (result.already_linked) {
+                      toast.info("Operação já realizada.");
+                    } else {
+                      toast.success("Área de sacoleira criada. Role admin preservada.");
+                    }
+                    setResellerTarget(null);
+                    await reloadAdmins();
+                    await reloadAudit(1);
+                    setAuditPage(1);
+                    await refreshUserRoles();
+                  } catch (e) {
+                    toast.error(e instanceof Error ? e.message : "Falha temporária.");
+                    showAppError(normalizeError(e, { operation: "admin_grant_reseller_role" }));
+                  } finally {
+                    setSubmitting(false);
+                  }
+                })();
+              }}
+            >
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };

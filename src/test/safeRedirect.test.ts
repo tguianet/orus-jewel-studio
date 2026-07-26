@@ -56,12 +56,19 @@ describe("safeRedirect", () => {
     expect(getSafeRedirectForRole("https://evil.com", ["sacoleira"])).toBe("/sacoleira");
   });
 
-  it("J — admin com next=/sacoleira cai em /admin", () => {
+  it("J — admin puro com next=/sacoleira cai em /admin", () => {
     expect(getSafeRedirectForRole("/sacoleira", ["admin"])).toBe("/admin");
   });
 
-  it("K — sacoleira com next=/admin cai em /sacoleira", () => {
+  it("K — sacoleira pura com next=/admin cai em /sacoleira", () => {
     expect(getSafeRedirectForRole("/admin", ["sacoleira"])).toBe("/sacoleira");
+  });
+
+  it("multi — admin+sacoleira pode ir a ambas áreas; fallback é escolher-area", () => {
+    expect(isPathAllowedForRole("/admin", ["admin", "sacoleira"])).toBe(true);
+    expect(isPathAllowedForRole("/sacoleira", ["admin", "sacoleira"])).toBe(true);
+    expect(getSafeRedirectForRole(null, ["admin", "sacoleira"])).toBe("/escolher-area");
+    expect(getSafeRedirectForRole("/sacoleira/pedidos", ["admin", "sacoleira"])).toBe("/sacoleira/pedidos");
   });
 
   it("L — usuário sem role não acessa área protegida", () => {

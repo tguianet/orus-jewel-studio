@@ -1091,6 +1091,21 @@ export type Database = {
         Args: { p_page?: number; p_page_size?: number }
         Returns: Json
       }
+      admin_grant_reseller_role: {
+        Args: {
+          p_user_id: string
+          p_reseller_name: string
+          p_store_name: string
+          p_store_slug: string
+          p_sponsor_reseller_id?: string | null
+          p_reason?: string | null
+        }
+        Returns: Json
+      }
+      admin_revoke_reseller_role: {
+        Args: { p_user_id: string; p_reason: string }
+        Returns: Json
+      }
       /** Somente is_admin — sacoleira/anon são negados no corpo da função. */
       admin_product_costs: {
         Args: never

@@ -9,6 +9,10 @@ export type AdministratorRow = {
   granted_at: string | null;
   granted_by: string | null;
   granted_by_name?: string | null;
+  is_sacoleira?: boolean;
+  reseller_id?: string | null;
+  store_slug?: string | null;
+  store_name?: string | null;
 };
 
 export type AdminSearchUser = {
@@ -20,7 +24,32 @@ export type AdminSearchUser = {
   created_at: string;
 };
 
-export type AdminRoleAuditAction = "admin_granted" | "admin_revoked";
+export type AdminRoleAuditAction =
+  | "admin_granted"
+  | "admin_revoked"
+  | "reseller_granted"
+  | "reseller_revoked";
+
+export type GrantResellerRoleInput = {
+  userId: string;
+  resellerName: string;
+  storeName: string;
+  storeSlug: string;
+  sponsorResellerId?: string | null;
+  reason?: string | null;
+};
+
+export type GrantResellerRoleResult = {
+  ok: boolean;
+  already_linked?: boolean;
+  user_id: string;
+  reseller_id?: string;
+  store_id?: string;
+  store_slug?: string;
+  kept_admin?: boolean;
+  has_sacoleira?: boolean;
+  message?: string;
+};
 
 export type AdminRoleAuditRow = {
   id: string;

@@ -8,6 +8,8 @@ import type {
   AdministratorRow,
   AdminRoleAuditRow,
   AdminSearchUser,
+  GrantResellerRoleInput,
+  GrantResellerRoleResult,
 } from "@/types/adminManagement";
 
 /** Mensagens amigáveis — nunca expor SQL interno. */
@@ -35,6 +37,18 @@ export function friendlyAdminManagementError(raw: string | null | undefined): st
   if (m.includes("operação já realizada") || m.includes("operacao ja realizada") || m.includes("já realizada")) {
     return "Operação já realizada.";
   }
+  if (m.includes("slug já em uso") || m.includes("slug ja em uso")) {
+    return "Este slug de loja já está em uso.";
+  }
+  if (m.includes("slug inválido") || m.includes("slug invalido")) {
+    return "Slug inválido. Use apenas letras minúsculas, números e hífens.";
+  }
+  if (m.includes("nome da loja")) {
+    return "Informe o nome da loja.";
+  }
+  if (m.includes("patrocinador")) {
+    return "Patrocinador inválido.";
+  }
   if (m.includes("network") || m.includes("fetch") || m.includes("failed to fetch")) {
     return "Falha temporária. Tente novamente.";
   }
@@ -61,6 +75,10 @@ function mapAdministrator(row: Record<string, unknown>): AdministratorRow {
     granted_at: row.granted_at == null ? null : String(row.granted_at),
     granted_by: row.granted_by == null ? null : String(row.granted_by),
     granted_by_name: row.granted_by_name == null ? null : String(row.granted_by_name),
+    is_sacoleira: Boolean(row.is_sacoleira),
+    reseller_id: row.reseller_id == null ? null : String(row.reseller_id),
+    store_slug: row.store_slug == null ? null : String(row.store_slug),
+    store_name: row.store_name == null ? null : String(row.store_name),
   };
 }
 
@@ -203,5 +221,42 @@ export function formatAdminDate(iso: string | null | undefined): string {
 export function adminActionLabel(action: string): string {
   if (action === "admin_granted") return "Concedeu admin";
   if (action === "admin_revoked") return "Removeu admin";
+  if (action === "reseller_granted") return "Criou área sacoleira";
+  if (action === "reseller_revoked") return "Removeu área sacoleira";
   return action;
+}
+
+export function administratorBadge(admin: AdministratorRow): string {
+  return admin.is_sacoleira ? "Admin + Sacoleira" : "Admin";
+}
+
+export async function grantResellerRole(
+  input: GrantResellerRoleInput,
+): Promise<GrantResellerRoleResult> {
+  const storeSlug = input.storeSlug.trim().toLowerCase();
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(storeSlug)) {
+    throw new Error("Slug inválido. Use apenas letras minúsculas, números e hífens.");
+  }
+  if (!input.storeName.trim()) {
+    throw new Error("Informe o nome da loja.");
+  }
+  const data = await rpcJson("admin_grant_reseller_role", {
+    p_user_id: input.userId,
+    p_reseller_name: input.resellerName.trim() || input.storeName.trim(),
+    p_store_name: input.storeName.trim(),
+    p_store_slug: storeSlug,
+    p_sponsor_reseller_id: input.sponsorResellerId || null,
+    p_reason: input.reason?.trim() || null,
+  });
+  return {
+    ok: Boolean(data.ok),
+    already_linked: Boolean(data.already_linked),
+    user_id: String(data.user_id ?? input.userId),
+    reseller_id: data.reseller_id == null ? undefined : String(data.reseller_id),
+    store_id: data.store_id == null ? undefined : String(data.store_id),
+    store_slug: data.store_slug == null ? undefined : String(data.store_slug),
+    kept_admin: Boolean(data.kept_admin),
+    has_sacoleira: Boolean(data.has_sacoleira),
+    message: data.message == null ? undefined : String(data.message),
+  };
 }

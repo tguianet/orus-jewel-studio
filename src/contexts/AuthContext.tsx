@@ -45,6 +45,11 @@ type SignInResult = { error?: string; roles?: AppRole[]; role?: AppRole | null }
 type AuthContextValue = {
   loading: boolean;
   profile: AuthProfile | null;
+  /** Roles vindas de user_roles (autoridade = banco). */
+  roles: AppRole[];
+  isAdmin: boolean;
+  isReseller: boolean;
+  hasRole: (role: AppRole) => boolean;
   signIn: (email: string, password: string) => Promise<SignInResult>;
   signUp: (data: {
     email: string;
@@ -55,7 +60,9 @@ type AuthContextValue = {
   }) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
+  /** @deprecated use refreshUserRoles */
   refreshUserRole: () => Promise<AppRole[]>;
+  refreshUserRoles: () => Promise<AppRole[]>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -222,7 +229,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => sub.subscription.unsubscribe();
   }, [handleSessionExpired, hydrate]);
 
-  const refreshUserRole = useCallback(async (): Promise<AppRole[]> => {
+  const refreshUserRoles = useCallback(async (): Promise<AppRole[]> => {
     const s = session ?? (await supabase.auth.getSession()).data.session;
     if (!s?.user) {
       setProfile(null);
@@ -231,59 +238,74 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (hydrateInFlight.current) await hydrateInFlight.current;
     const extras = await loadExtras(s.user);
     lastRoleRef.current = extras.role;
+    setUserContext({
+      userId: s.user.id,
+      role: extras.role,
+      resellerId: extras.resellerId ?? null,
+      storeId: extras.storeId ?? null,
+    });
     setProfile({ user: s.user, session: s, ...extras });
     return extras.roles;
   }, [session]);
 
-  const value = useMemo<AuthContextValue>(() => ({
-    loading,
-    profile,
-    signIn: async (email, password) => {
-      clearAuthStorage();
-      manualSignOutRef.current = false;
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) return { error: error.message };
-      if (data.session) {
-        hadSessionRef.current = true;
-        setSession(data.session);
-        await hydrate(data.session);
-        const extras = await loadExtras(data.session.user);
-        lastRoleRef.current = extras.role;
-        return { roles: extras.roles, role: extras.role };
-      }
-      return {};
-    },
-    signUp: async ({ email, password, displayName, phone, parentResellerId }) => {
-      const redirectUrl = `${window.location.origin}/sacoleira`;
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            display_name: displayName,
-            phone,
-            parent_reseller_id: parentResellerId || null,
-          },
-        },
-      });
-      return error ? { error: error.message } : {};
-    },
-    signOut: async () => {
-      manualSignOutRef.current = true;
-      hadSessionRef.current = false;
-      try {
-        await supabase.auth.signOut();
-      } finally {
+  const value = useMemo<AuthContextValue>(() => {
+    const roles = profile?.roles ?? [];
+    const hasRole = (role: AppRole) => roles.includes(role);
+    return {
+      loading,
+      profile,
+      roles,
+      isAdmin: hasRole("admin"),
+      isReseller: hasRole("sacoleira"),
+      hasRole,
+      signIn: async (email, password) => {
         clearAuthStorage();
-        clearUserContext();
-        setSession(null);
-        setProfile(null);
-      }
-    },
-    refresh: async () => { await hydrate(session); },
-    refreshUserRole,
-  }), [loading, profile, session, hydrate, refreshUserRole]);
+        manualSignOutRef.current = false;
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) return { error: error.message };
+        if (data.session) {
+          hadSessionRef.current = true;
+          setSession(data.session);
+          await hydrate(data.session);
+          const extras = await loadExtras(data.session.user);
+          lastRoleRef.current = extras.role;
+          return { roles: extras.roles, role: extras.role };
+        }
+        return {};
+      },
+      signUp: async ({ email, password, displayName, phone, parentResellerId }) => {
+        const redirectUrl = `${window.location.origin}/sacoleira`;
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: redirectUrl,
+            data: {
+              display_name: displayName,
+              phone,
+              parent_reseller_id: parentResellerId || null,
+            },
+          },
+        });
+        return error ? { error: error.message } : {};
+      },
+      signOut: async () => {
+        manualSignOutRef.current = true;
+        hadSessionRef.current = false;
+        try {
+          await supabase.auth.signOut();
+        } finally {
+          clearAuthStorage();
+          clearUserContext();
+          setSession(null);
+          setProfile(null);
+        }
+      },
+      refresh: async () => { await hydrate(session); },
+      refreshUserRole: refreshUserRoles,
+      refreshUserRoles,
+    };
+  }, [loading, profile, session, hydrate, refreshUserRoles]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

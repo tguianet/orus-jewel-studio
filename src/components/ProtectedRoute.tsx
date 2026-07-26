@@ -12,25 +12,38 @@ import {
   loginPathForRole,
 } from "@/lib/safeRedirect";
 
-export const ProtectedRoute = ({ role, children }: { role: AppRole; children: ReactNode }) => {
-  const { profile, loading, signOut, refreshUserRole } = useAuth();
-  const location = useLocation();
+type Props = {
+  /** @deprecated Prefira allowedRoles */
+  role?: AppRole;
+  allowedRoles?: AppRole[];
+  children: ReactNode;
+};
 
-  // X — recarrega role ao focar (admin pode ter alterado o perfil)
+export const ProtectedRoute = ({ role, allowedRoles, children }: Props) => {
+  const { profile, loading, signOut, refreshUserRoles } = useAuth();
+  const location = useLocation();
+  const required = allowedRoles?.length
+    ? allowedRoles
+    : role
+      ? [role]
+      : [];
+
+  // Recarrega roles ao focar (admin pode ter alterado o perfil)
   useEffect(() => {
     if (loading || !profile) return;
-    const onFocus = () => { void refreshUserRole(); };
+    const onFocus = () => { void refreshUserRoles(); };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
-  }, [loading, profile, refreshUserRole]);
+  }, [loading, profile, refreshUserRoles]);
 
-  // V — não renderizar conteúdo protegido antes da validação
   if (loading) {
     return <RouteFallback label="Validando acesso…" />;
   }
 
+  const primaryRequired = required[0] ?? "sacoleira";
+
   if (!profile) {
-    const login = loginPathForRole(role);
+    const login = loginPathForRole(primaryRequired);
     const next = isSafeInternalPath(location.pathname) ? location.pathname : "";
     const to = next ? buildLoginUrlWithNext(login, next) : login;
     return <Navigate to={to} replace />;
@@ -38,14 +51,15 @@ export const ProtectedRoute = ({ role, children }: { role: AppRole; children: Re
 
   const userRoles = profile.roles ?? (profile.role ? [profile.role] : []);
 
-  // Autenticado sem role
   if (userRoles.length === 0) {
     return <Navigate to="/acesso-pendente" replace />;
   }
 
-  const hasRequired = userRoles.includes(role);
+  const hasRequired = required.length === 0
+    ? true
+    : required.some((r) => userRoles.includes(r));
+
   if (!hasRequired) {
-    // Role errada → fallback da própria role (sem loop)
     const ownFallback = fallbackPathForRoles(userRoles);
     if (ownFallback !== location.pathname) {
       return <Navigate to={ownFallback} replace />;
@@ -53,21 +67,36 @@ export const ProtectedRoute = ({ role, children }: { role: AppRole; children: Re
   } else {
     const isSeller = userRoles.includes("sacoleira");
     const isAdmin = userRoles.includes("admin");
-    if (isSeller && !isAdmin && profile.resellerId && !profile.parentResellerId) {
+    // Referral só para sacoleira pura (sem admin)
+    if (
+      required.includes("sacoleira")
+      && isSeller
+      && !isAdmin
+      && profile.resellerId
+      && !profile.parentResellerId
+    ) {
       return <ReferralGate />;
     }
     return <>{children}</>;
   }
 
-  const isAdminArea = role === "admin";
+  const isAdminArea = required.includes("admin") && !required.includes("sacoleira");
   const userIsAdmin = userRoles.includes("admin");
   const userIsSeller = userRoles.includes("sacoleira");
-  const suggestedPath = userIsAdmin ? "/admin" : userIsSeller ? "/sacoleira" : "/acesso-pendente";
-  const suggestedLabel = userIsAdmin
-    ? "Ir para o painel Admin"
-    : userIsSeller
-      ? "Ir para o painel da Sacoleira"
-      : "Ver status do acesso";
+  const suggestedPath = userIsAdmin && userIsSeller
+    ? "/escolher-area"
+    : userIsAdmin
+      ? "/admin"
+      : userIsSeller
+        ? "/sacoleira"
+        : "/acesso-pendente";
+  const suggestedLabel = userIsAdmin && userIsSeller
+    ? "Escolher área"
+    : userIsAdmin
+      ? "Ir para o painel Admin"
+      : userIsSeller
+        ? "Ir para o painel da Sacoleira"
+        : "Ver status do acesso";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-6">

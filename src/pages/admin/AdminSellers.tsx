@@ -99,8 +99,20 @@ const AdminSellers = () => {
                 return (
                 <tr key={s.id} className="hover:bg-secondary/30">
                   <td className="px-5 py-4">
-                    <p className="font-medium">{s.display_name}</p>
+                    <p className="font-medium">
+                      {s.display_name}
+                      {s.is_admin && (
+                        <span className="ml-2 inline-block rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-primary">
+                          Admin
+                        </span>
+                      )}
+                    </p>
                     <p className="text-xs text-muted-foreground">{s.email}</p>
+                    {s.is_admin && (
+                      <p className="mt-1 text-[11px] text-muted-foreground">
+                        Possui acesso administrativo (mesma conta — sem duplicar login).
+                      </p>
+                    )}
                   </td>
                   <td className="px-5 py-4 hidden md:table-cell">
                     {store ? <><p className="font-medium">{store.store_name}</p><p className="text-xs text-muted-foreground">/loja/{store.store_slug}</p></> : <span className="text-xs text-muted-foreground">—</span>}

@@ -561,21 +561,34 @@ export const loadNetwork = async (rootResellerId: string): Promise<NetworkMember
 
 export type AdminSellerRow = {
   id: string;
+  user_id: string;
   display_name: string;
   email: string;
   phone: string | null;
   status: string;
   created_at: string;
+  is_admin?: boolean;
   seller_stores: { id: string; store_name: string; store_slug: string; status: string }[] | null;
 };
 
 export const loadAllSellers = async (): Promise<AdminSellerRow[]> => {
   const { data, error } = await supabase
     .from("resellers")
-    .select("id,display_name,email,phone,status,created_at,seller_stores(id,store_name,store_slug,status)")
+    .select("id,user_id,display_name,email,phone,status,created_at,seller_stores(id,store_name,store_slug,status)")
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []) as AdminSellerRow[];
+  const rows = (data ?? []) as AdminSellerRow[];
+  const userIds = rows.map((r) => r.user_id).filter(Boolean);
+  if (userIds.length === 0) return rows;
+
+  const { data: roleRows } = await supabase
+    .from("user_roles")
+    .select("user_id")
+    .eq("role", "admin")
+    .in("user_id", userIds);
+
+  const adminIds = new Set((roleRows ?? []).map((r) => r.user_id as string));
+  return rows.map((r) => ({ ...r, is_admin: adminIds.has(r.user_id) }));
 };
 
 export const updateResellerStatus = async (resellerId: string, status: "approved" | "pending" | "blocked") => {

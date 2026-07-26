@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { AreaProvider } from "@/contexts/AreaContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AppUpdatePrompt } from "./components/system/AppUpdatePrompt";
 import { LazyRouteErrorBoundary } from "./components/system/LazyRouteErrorBoundary";
@@ -18,6 +19,7 @@ const Landing = lazy(() => import("./pages/Landing"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const PendingAccessPage = lazy(() => import("./pages/PendingAccessPage"));
+const ChooseAreaPage = lazy(() => import("./pages/ChooseAreaPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ErrorPage = lazy(() => import("./pages/ErrorPage"));
 const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
@@ -76,10 +78,10 @@ const CommissionPolicy = lazy(() => import("./pages/legal/CommissionPolicy"));
 const WithdrawalPolicy = lazy(() => import("./pages/legal/WithdrawalPolicy"));
 
 const Admin = ({ children }: { children: JSX.Element }) => (
-  <ProtectedRoute role="admin">{children}</ProtectedRoute>
+  <ProtectedRoute allowedRoles={["admin"]}>{children}</ProtectedRoute>
 );
 const Seller = ({ children }: { children: JSX.Element }) => (
-  <ProtectedRoute role="sacoleira">{children}</ProtectedRoute>
+  <ProtectedRoute allowedRoles={["sacoleira"]}>{children}</ProtectedRoute>
 );
 
 const App = forwardRef<HTMLDivElement>((_, ref) => (
@@ -91,6 +93,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
     <AuthProvider>
       <CartProvider>
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <AreaProvider>
           <PwaManifestSwitcher />
           <OfflineBanner />
           <AppUpdatePrompt />
@@ -103,6 +106,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
                 <Route path="/login-sacoleira" element={<LoginPage role="sacoleira" />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/acesso-pendente" element={<PendingAccessPage />} />
+                <Route path="/escolher-area" element={<ChooseAreaPage />} />
                 <Route path="/erro" element={<ErrorPage />} />
                 <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
 
@@ -169,6 +173,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
             </Suspense>
             </RouteErrorBoundary>
           </LazyRouteErrorBoundary>
+          </AreaProvider>
         </BrowserRouter>
       </CartProvider>
     </AuthProvider>

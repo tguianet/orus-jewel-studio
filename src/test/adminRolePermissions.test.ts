@@ -178,8 +178,9 @@ describe("admin role permissions (frontend)", () => {
     expect(page).not.toContain('from("user_roles")');
   });
 
-  it("AuthContext expõe refreshUserRole para invalidar acesso", () => {
+  it("AuthContext expõe refreshUserRoles para invalidar acesso", () => {
     const ctx = readFileSync(join(process.cwd(), "src/contexts/AuthContext.tsx"), "utf8");
+    expect(ctx).toContain("refreshUserRoles");
     expect(ctx).toContain("refreshUserRole");
     expect(ctx).toContain('from("user_roles")');
   });

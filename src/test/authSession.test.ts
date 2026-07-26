@@ -72,6 +72,7 @@ describe("authSession", () => {
   it("X — AuthContext expõe refreshUserRole", () => {
     const ctx = readFileSync(path.join(root, "src/contexts/AuthContext.tsx"), "utf8");
     expect(ctx).toContain("refreshUserRole");
+    expect(ctx).toContain("refreshUserRoles");
     expect(ctx).toContain("user_roles");
   });
 });
