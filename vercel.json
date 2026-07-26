@@ -1,7 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/((?!icons/|manifests/|assets/|sw\\.js|workbox-|manifest\\.webmanifest).*)",
+      "source": "/((?!icons/|manifests/|assets/|sw\\.js|workbox-|pwa-sw-extra\\.js|loja/[^/]+/manifest\\.webmanifest).*)",
       "destination": "/index.html"
     }
   ],
@@ -19,7 +19,20 @@
       ]
     },
     {
+      "source": "/pwa-sw-extra.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
+    {
       "source": "/manifests/(.*)",
+      "headers": [
+        { "key": "Content-Type", "value": "application/manifest+json; charset=utf-8" },
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/loja/(.*)/manifest.webmanifest",
       "headers": [
         { "key": "Content-Type", "value": "application/manifest+json; charset=utf-8" },
         { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }

@@ -118,4 +118,6 @@ export const PWA_CACHE_STRATEGY_SUMMARY = {
   publicImages: "StaleWhileRevalidate",
   pwaIcons: "NetworkFirst",
   manifests: "NetworkOnly",
+  lojaManifestBySlug: "NetworkOnly + SW cache por slug",
+  navigationScope: "manifest.scope (nunca /)",
 } as const;

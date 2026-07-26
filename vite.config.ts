@@ -8,7 +8,68 @@ import { resolveManualChunk } from "./src/lib/manualChunks";
 // A Edge Function em supabase/functions/mcp é mantida manualmente (imports Deno/npm).
 
 /** Bump força cleanupOutdatedCaches após mudanças de estratégia. */
-const PWA_CACHE_VERSION = "amada-amante-v20260726-pwa";
+const PWA_CACHE_VERSION = "amada-amante-v20260726-pwa-scopes";
+
+/** Middleware: /loja/:slug/manifest.webmanifest em dev/preview. */
+function lojaManifestDevPlugin() {
+  const handler = (
+    req: { url?: string },
+    res: { setHeader: (k: string, v: string) => void; end: (b: string) => void },
+    next: () => void,
+  ) => {
+    const raw = req.url || "";
+    const path = raw.split("?")[0] || "";
+    const m = path.match(/^\/loja\/([^/]+)\/manifest\.webmanifest$/);
+    if (!m) {
+      next();
+      return;
+    }
+    const slug = decodeURIComponent(m[1]);
+    const name = slug
+      .split(/[-_]+/)
+      .filter(Boolean)
+      .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+      .join(" ") || "Amada Amante";
+    const short = name.length <= 12 ? name : `${name.slice(0, 11).trimEnd()}…`;
+    const body = JSON.stringify({
+      id: `/loja/${slug}`,
+      name,
+      short_name: short,
+      description: `Loja virtual ${name}`,
+      start_url: `/loja/${slug}`,
+      scope: `/loja/${slug}/`,
+      display: "standalone",
+      orientation: "portrait-primary",
+      background_color: "#ffffff",
+      theme_color: "#C1186E",
+      lang: "pt-BR",
+      dir: "ltr",
+      icons: [
+        { src: "/icons/loja-192.png?v=20260726a", sizes: "192x192", type: "image/png", purpose: "any" },
+        { src: "/icons/loja-512.png?v=20260726a", sizes: "512x512", type: "image/png", purpose: "any" },
+        {
+          src: "/icons/loja-maskable-512.png?v=20260726a",
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "maskable",
+        },
+      ],
+    });
+    res.setHeader("Content-Type", "application/manifest+json; charset=utf-8");
+    res.setHeader("Cache-Control", "no-cache");
+    res.end(body);
+  };
+
+  return {
+    name: "loja-manifest-dev",
+    configureServer(server: { middlewares: { use: (fn: typeof handler) => void } }) {
+      server.middlewares.use(handler);
+    },
+    configurePreviewServer(server: { middlewares: { use: (fn: typeof handler) => void } }) {
+      server.middlewares.use(handler);
+    },
+  };
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -25,25 +86,31 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
+    lojaManifestDevPlugin(),
     VitePWA({
       // Prompt controlado pelo AppUpdatePrompt (sem auto-reload no checkout).
       registerType: "prompt",
       injectRegister: false,
-      // Manifestos 100% em runtime (3 apps). Evita manifesto padrão do plugin.
+      // Manifestos 100% fora do plugin (Admin/Sacoleira/Loja separados).
       manifest: false,
       includeAssets: [
         "icons/*.png",
         "manifests/*.json",
+        "pwa-sw-extra.js",
         "placeholder.svg",
         "robots.txt",
       ],
       workbox: {
         cacheId: PWA_CACHE_VERSION,
+        // SW unico no root: ok para assets; captura de janela vem do manifest.scope.
+        importScripts: ["pwa-sw-extra.js"],
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [
           /^\/api\//,
           /^\/manifests\//,
           /^\/icons\//,
+          /^\/loja\/[^/]+\/manifest\.webmanifest$/,
+          /^\/pwa-sw-extra\.js$/,
           /\/rest\/v1\//,
           /\/auth\/v1\//,
           /\/functions\/v1\//,
@@ -51,18 +118,24 @@ export default defineConfig(({ mode }) => ({
         // Precache só de estáticos versionados + shell.
         globPatterns: ["**/*.{js,css,html,svg,woff,woff2}"],
         // Ícones/manifestos NÃO entram no precache estático agressivo.
-        globIgnores: ["**/icons/**", "**/manifests/**", "**/favicon.ico"],
+        globIgnores: [
+          "**/icons/**",
+          "**/manifests/**",
+          "**/favicon.ico",
+          "**/pwa-sw-extra.js",
+        ],
         runtimeCaching: [
           {
             // HTML / navegação: rede primeiro (timeout curto) para não prender chunks antigos.
+            // Cache pequeno — shell SPA compartilhado; dados de loja/admin nunca aqui.
             urlPattern: ({ request }) => request.mode === "navigate",
             handler: "NetworkFirst",
             options: {
               cacheName: `${PWA_CACHE_VERSION}-html`,
               networkTimeoutSeconds: 3,
               expiration: {
-                maxEntries: 16,
-                maxAgeSeconds: 60 * 60 * 24,
+                maxEntries: 8,
+                maxAgeSeconds: 60 * 30,
               },
               cacheableResponse: {
                 statuses: [0, 200],
@@ -70,8 +143,10 @@ export default defineConfig(({ mode }) => ({
             },
           },
           {
-            // Manifestos: sempre rede
-            urlPattern: ({ url }) => url.pathname.startsWith("/manifests/"),
+            // Manifestos estaticos + dinamicos: sempre rede (SW extra responde loja)
+            urlPattern: ({ url }) =>
+              url.pathname.startsWith("/manifests/")
+              || /\/loja\/[^/]+\/manifest\.webmanifest$/i.test(url.pathname),
             handler: "NetworkOnly",
           },
           {

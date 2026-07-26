@@ -13,55 +13,88 @@
     <meta id="apple-mobile-web-app-capable" name="apple-mobile-web-app-capable" content="yes" />
     <meta id="apple-mobile-web-app-status-bar-style" name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta id="apple-mobile-web-app-title" name="apple-mobile-web-app-title" content="Amada Amante" />
-    <link id="apple-touch-icon" rel="apple-touch-icon" href="/icons/loja-192.png?v=20260722b" />
-    <link id="app-favicon" rel="icon" type="image/png" sizes="192x192" href="/icons/loja-192.png?v=20260722b" />
-    <link rel="shortcut icon" type="image/png" href="/favicon.png?v=20260722b" />
+    <link id="apple-touch-icon" rel="apple-touch-icon" href="/icons/loja-192.png?v=20260726a" />
+    <link id="app-favicon" rel="icon" type="image/png" sizes="192x192" href="/icons/loja-192.png?v=20260726a" />
+    <link rel="shortcut icon" type="image/png" href="/favicon.png?v=20260726a" />
+    <!-- Sem manifesto global de dominio; bootstrap injeta o correto por area. -->
     <link id="pwa-manifest" rel="manifest" href="/manifests/manifest-loja.json" />
 
     <script>
       // Aplica manifesto/metas imediatamente (antes do React e do beforeinstallprompt).
+      // Escopos separados: Admin / Sacoleira / Loja — nunca scope "/".
       (function () {
-        var VERSION = "20260722b";
+        var VERSION = "20260726a";
         var path = location.pathname || "/";
-        var origin = location.origin;
         var kind = "default";
+        var id = "/default-non-install";
         var name = "Amada Amante";
         var shortName = "Amada Amante";
         var description = "Loja virtual Amada Amante";
         var startUrl = "/";
+        var scope = "/__pwa_none__/";
         var iconBase = "/icons/loja";
         var theme = "#C1186E";
+        var staticHref = null;
 
         if (path.indexOf("/login-admin") === 0 || path.indexOf("/admin") === 0) {
           kind = "admin";
+          id = "/admin-app";
           name = "Amada Amante Admin";
           shortName = "Admin";
           description = "Painel administrativo Amada Amante";
-          startUrl = "/login-admin";
+          startUrl = "/admin";
+          scope = "/admin/";
           iconBase = "/icons/admin";
+          staticHref = "/manifests/manifest-admin.json";
         } else if (path.indexOf("/login-sacoleira") === 0 || path.indexOf("/sacoleira") === 0) {
           kind = "sacoleira";
+          id = "/sacoleira-app";
           name = "Amada Amante Sacoleira";
           shortName = "Sacoleira";
           description = "Painel da sacoleira Amada Amante \u2014 loja, pedidos e rede de revenda.";
-          startUrl = "/login-sacoleira";
+          startUrl = "/sacoleira";
+          scope = "/sacoleira/";
           iconBase = "/icons/sacoleira";
+          staticHref = "/manifests/manifest-sacoleira.json";
         } else if (path.indexOf("/loja/") === 0) {
           kind = "loja";
-          name = "Amada Amante";
-          shortName = "Amada Amante";
-          description = "Loja virtual Amada Amante";
           var m = path.match(/^\/loja\/([^/]+)/);
-          startUrl = m ? "/loja/" + m[1] : "/loja";
-          iconBase = "/icons/loja";
+          var slug = m ? m[1] : null;
+          if (!slug) {
+            kind = "default";
+          } else {
+            id = "/loja/" + slug;
+            startUrl = "/loja/" + slug;
+            scope = "/loja/" + slug + "/";
+            iconBase = "/icons/loja";
+            name = "Amada Amante";
+            shortName = "Amada Amante";
+            try {
+              var cached = localStorage.getItem("pwa-loja-branding:" + slug);
+              if (cached) {
+                var b = JSON.parse(cached);
+                if (b && b.name) {
+                  name = b.name;
+                  shortName = b.shortName || b.name;
+                  if (b.themeColor) theme = b.themeColor;
+                  if (b.logoUrl) iconBase = null;
+                  window.__ORUS_PWA_LOJA_LOGO__ = b.logoUrl || null;
+                }
+              }
+            } catch (e) { /* noop */ }
+            if (name.length > 12 && shortName === name) {
+              shortName = name.slice(0, 11).replace(/\s+$/, "") + "\u2026";
+            }
+            description = "Loja virtual " + name;
+          }
         }
 
-        function setMeta(id, content) {
-          var el = document.getElementById(id);
+        function setMeta(idAttr, content) {
+          var el = document.getElementById(idAttr);
           if (el) el.setAttribute("content", content);
         }
-        function setHref(id, href) {
-          var el = document.getElementById(id);
+        function setHref(idAttr, href) {
+          var el = document.getElementById(idAttr);
           if (el) el.setAttribute("href", href);
         }
 
@@ -69,19 +102,34 @@
         setMeta("theme-color", theme);
         setMeta("apple-mobile-web-app-title", shortName);
 
-        var icon192 = iconBase + "-192.png?v=" + VERSION;
-        var icon512 = iconBase + "-512.png?v=" + VERSION;
-        var iconMask = iconBase + "-maskable-512.png?v=" + VERSION;
+        var logo = window.__ORUS_PWA_LOJA_LOGO__;
+        var icon192 = logo || (iconBase + "-192.png?v=" + VERSION);
+        var icon512 = logo || (iconBase + "-512.png?v=" + VERSION);
+        var iconMask = logo || (iconBase + "-maskable-512.png?v=" + VERSION);
         setHref("apple-touch-icon", icon192);
         setHref("app-favicon", icon192);
 
+        var link = document.getElementById("pwa-manifest");
+
+        if (kind === "default") {
+          if (link && link.parentElement) link.parentElement.removeChild(link);
+          return;
+        }
+
+        if (staticHref) {
+          if (link) link.setAttribute("href", staticHref);
+          window.__ORUS_PWA_FALLBACK__ = staticHref;
+          return;
+        }
+
+        // Loja: blob com id/scope por slug (nao captura outras lojas/admin/sacoleira).
         var manifest = {
-          id: origin + startUrl,
+          id: id,
           name: name,
           short_name: shortName,
           description: description,
-          start_url: origin + startUrl,
-          scope: origin + "/",
+          start_url: startUrl,
+          scope: scope,
           display: "standalone",
           orientation: "portrait-primary",
           background_color: "#ffffff",
@@ -89,9 +137,9 @@
           lang: "pt-BR",
           dir: "ltr",
           icons: [
-            { src: origin + icon192, sizes: "192x192", type: "image/png", purpose: "any" },
-            { src: origin + icon512, sizes: "512x512", type: "image/png", purpose: "any" },
-            { src: origin + iconMask, sizes: "512x512", type: "image/png", purpose: "maskable" }
+            { src: icon192, sizes: "192x192", type: "image/png", purpose: "any" },
+            { src: icon512, sizes: "512x512", type: "image/png", purpose: "any" },
+            { src: iconMask, sizes: "512x512", type: "image/png", purpose: "maskable" }
           ]
         };
 
@@ -99,16 +147,11 @@
           type: "application/manifest+json;charset=utf-8"
         });
         var url = URL.createObjectURL(blob);
-        var link = document.getElementById("pwa-manifest");
-        if (link) link.setAttribute("href", url);
-
-        if (kind === "admin") {
-          window.__ORUS_PWA_FALLBACK__ = "/manifests/manifest-admin.json";
-        } else if (kind === "sacoleira") {
-          window.__ORUS_PWA_FALLBACK__ = "/manifests/manifest-sacoleira.json";
-        } else {
-          window.__ORUS_PWA_FALLBACK__ = "/manifests/manifest-loja.json";
+        if (link) {
+          link.setAttribute("href", url);
+          link.setAttribute("data-pwa-href", "/loja/" + (path.match(/^\/loja\/([^/]+)/) || [])[1] + "/manifest.webmanifest");
         }
+        window.__ORUS_PWA_FALLBACK__ = null;
       })();
     </script>
 

@@ -15,6 +15,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { EditableText } from "@/components/preview/EditableText";
 import { StorePopup } from "@/components/store/StorePopup";
 import { LEGAL_LINKS } from "@/lib/legalLinks";
+import { applyLojaPwaBranding } from "@/pwa/applyManifest";
+import { truncateShortName } from "@/pwa/manifestConfig";
 
 type PreviewMessage =
   | { type: "lovable-preview-theme"; theme: StoreTheme }
@@ -153,6 +155,27 @@ const StoreLayout = () => {
     () => ({ store, theme, banner: theme.bannerUrl || DEFAULT_BANNER }),
     [store, theme],
   );
+
+  // PWA da loja: nome/ícone/tema por slug (instalação separada por vitrine).
+  useEffect(() => {
+    if (!slug || !store?.storeName) return;
+    applyLojaPwaBranding({
+      slug,
+      name: store.storeName,
+      shortName: truncateShortName(store.storeName),
+      description: theme.description || `Loja virtual ${store.storeName}`,
+      themeColor: theme.primaryColor || "#C1186E",
+      backgroundColor: theme.headerBgColor || "#ffffff",
+      logoUrl: theme.logoUrl || undefined,
+    });
+  }, [
+    slug,
+    store?.storeName,
+    theme.description,
+    theme.primaryColor,
+    theme.headerBgColor,
+    theme.logoUrl,
+  ]);
 
   // Block sacoleiras from viewing another reseller's store/data.
   // Admins and unauthenticated visitors are allowed.
