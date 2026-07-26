@@ -72,13 +72,19 @@ async function loadStore(slug: string): Promise<StoreRow | null> {
   }
 }
 
-function buildHtml(slug: string, storeName: string, image: string): string {
+function buildHtml(slug: string, storeName: string, image: string, isDefaultBanner: boolean): string {
   const url = storeUrl(slug);
   const title = `Amada Amante — ${storeName}`;
   const t = escapeHtml(title);
   const d = escapeHtml(OG_DESCRIPTION);
   const u = escapeHtml(url);
   const img = escapeHtml(image);
+  // Só declaramos tipo/dimensões quando conhecemos o arquivo (banner padrão 1200x630).
+  const imageDetails = isDefaultBanner
+    ? `<meta property="og:image:type" content="image/jpeg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />`
+    : "";
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -95,9 +101,9 @@ function buildHtml(slug: string, storeName: string, image: string): string {
 <meta property="og:url" content="${u}" />
 <meta property="og:image" content="${img}" />
 <meta property="og:image:secure_url" content="${img}" />
-<meta property="og:image:type" content="image/jpeg" />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="${t}" />
+${imageDetails}
+
 <meta property="og:locale" content="pt_BR" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${t}" />
