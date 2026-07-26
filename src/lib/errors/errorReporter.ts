@@ -1,7 +1,6 @@
 import { AppError } from "./AppError";
 import { sanitizeErrorContext } from "./sanitizeErrorContext";
 import { supabase } from "@/integrations/supabase/client";
-import { sbLoose } from "@/lib/supabaseLoose";
 import type { Json } from "@/integrations/supabase/types";
 
 export type ReportableError = {
@@ -105,7 +104,7 @@ function shouldDedupe(key: string): boolean {
 
 async function persistToCloud(payload: ReportableError) {
   try {
-    const { error } = await sbLoose.rpc("report_operational_error", {
+    const { error } = await supabase.rpc("report_operational_error", {
       p_correlation_id: payload.correlationId,
       p_error_code: payload.code,
       p_category: payload.category,
