@@ -15,7 +15,8 @@ export type OrderStatus =
   | "separated"
   | "shipped"
   | "delivered"
-  | "cancelled";
+  | "cancelled"
+  | "refunded";
 export type CommissionLevel = 1 | 2 | 3;
 
 export type Profile = {
@@ -116,9 +117,10 @@ export type Commission = {
 export type WalletTransaction = {
   id: string;
   resellerId: string;
-  type: "commission" | "withdrawal" | "adjustment" | string;
+  type: "commission" | "commission_reversal" | "withdrawal" | "adjustment" | string;
   amount: number;
-  status: "pending" | "available" | "paid" | string;
+  status: "pending" | "available" | "paid" | "cancelled" | string;
   description: string;
+  reason?: string | null;
   date: string;
 };

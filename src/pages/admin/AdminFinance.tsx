@@ -37,6 +37,20 @@ type CommissionRow = {
   resellerName: string;
 };
 
+type WalletLedgerRow = {
+  id: string;
+  type: string;
+  amount: number;
+  status: string;
+  description: string;
+  reason: string | null;
+  created_at: string;
+  commission_id: string | null;
+  reseller_id: string;
+  resellerName: string;
+  order_id: string | null;
+};
+
 type WalletSummaryRow = {
   reseller_id: string | null;
   pending: number | null;
@@ -73,21 +87,40 @@ type OrderQueryRow = {
   seller_stores: { reseller_id: string | null } | null;
 };
 
-const statusLabel = (s: string) => s === "available" ? "Disponível" : s === "pending" ? "Pendente" : s === "paid" ? "Pago" : s;
+const statusLabel = (s: string) =>
+  s === "available" ? "Disponível"
+    : s === "pending" ? "Pendente"
+      : s === "paid" ? "Pago"
+        : s === "cancelled" ? "Cancelado"
+          : s;
+
+const typeLabel = (t: string) =>
+  t === "commission_reversal" ? "Estorno"
+    : t === "commission" ? "Comissão"
+      : t === "withdrawal" ? "Saque"
+        : t === "adjustment" ? "Ajuste"
+          : t;
 
 const AdminFinance = () => {
   const [loading, setLoading] = useState(true);
   const [resellers, setResellers] = useState<ResellerRow[]>([]);
   const [commissions, setCommissions] = useState<CommissionRow[]>([]);
+  const [ledger, setLedger] = useState<WalletLedgerRow[]>([]);
   const [totals, setTotals] = useState({ paid: 0, pending: 0, ordersPaid: 0 });
 
   useEffect(() => {
     (async () => {
-      const [resRes, walletRes, commRes, ordersRes] = await Promise.all([
+      const [resRes, walletRes, commRes, ordersRes, ledgerRes] = await Promise.all([
         supabase.from("resellers").select("id,display_name,email,tier,status,parent_id,seller_stores(id,store_name)"),
         supabase.from("reseller_wallet_summary").select("*"),
         supabase.from("commissions").select("id,order_id,amount,rate,level,status,reseller_id,created_at").order("created_at", { ascending: false }),
         supabase.from("orders").select("id,total,status,seller_store_id,seller_stores(reseller_id)"),
+        supabase
+          .from("wallet_transactions")
+          .select("id,type,amount,status,description,created_at,commission_id,reseller_id")
+          .in("type", ["commission", "commission_reversal"])
+          .order("created_at", { ascending: false })
+          .limit(80),
       ]);
 
       const walletMap = new Map<string, WalletSummaryRow>();
@@ -181,11 +214,56 @@ const AdminFinance = () => {
         reseller_id: c.reseller_id,
         resellerName: resellerNameById.get(c.reseller_id) || "Sacoleira",
       })));
+
+      const orderByCommission = new Map<string, string>();
+      commData.forEach((c) => orderByCommission.set(c.id, c.order_id));
+
+      type LedgerQueryRow = {
+        id: string;
+        type: string;
+        amount: number;
+        status: string;
+        description: string;
+        created_at: string;
+        commission_id: string | null;
+        reseller_id: string;
+      };
+
+      // reason fica no banco pós-migration; até lá usamos description
+      setLedger(
+        ((ledgerRes.error ? [] : ledgerRes.data) ?? []).map((raw) => {
+          const t = raw as LedgerQueryRow;
+          return {
+            id: t.id,
+            type: t.type,
+            amount: Number(t.amount || 0),
+            status: t.status,
+            description: t.description,
+            reason: null as string | null,
+            created_at: t.created_at,
+            commission_id: t.commission_id,
+            reseller_id: t.reseller_id,
+            resellerName: resellerNameById.get(t.reseller_id) || "Sacoleira",
+            order_id: t.commission_id ? orderByCommission.get(t.commission_id) || null : null,
+          };
+        }),
+      );
       setLoading(false);
     })();
   }, []);
 
-  const commissionTotal = commissions.reduce((s, c) => s + c.amount, 0);
+  // Créditos cancelled saem do líquido; paid permanece nas commissions até filtrarmos status.
+  // Débitos reais = apenas commission_reversal (casos paid). Cancelamento pending/available não cria débito.
+  const activeCommissionCredits = commissions
+    .filter((c) => c.status !== "cancelled")
+    .reduce((s, c) => s + c.amount, 0);
+  const cancelledCommissionCredits = commissions
+    .filter((c) => c.status === "cancelled")
+    .reduce((s, c) => s + c.amount, 0);
+  const reversalDebits = ledger
+    .filter((t) => t.type === "commission_reversal" && t.status === "available")
+    .reduce((s, t) => s + t.amount, 0);
+  const netCommission = activeCommissionCredits + reversalDebits;
 
   return (
     <AdminLayout>
@@ -198,7 +276,12 @@ const AdminFinance = () => {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         <StatCard label="Total faturado" value={formatBRL(totals.paid)} icon={DollarSign} hint="pedidos pagos" />
         <StatCard label="A receber" value={formatBRL(totals.pending)} icon={Clock} hint="aguardando pagamento" />
-        <StatCard label="Comissões geradas" value={formatBRL(commissionTotal)} icon={TrendingUp} />
+        <StatCard
+          label="Comissões líquidas"
+          value={formatBRL(netCommission)}
+          icon={TrendingUp}
+          hint={`ativas ${formatBRL(activeCommissionCredits)} · canceladas ${formatBRL(cancelledCommissionCredits)} · débitos ${formatBRL(reversalDebits)}`}
+        />
         <StatCard label="Pedidos pagos" value={String(totals.ordersPaid)} icon={CreditCard} />
       </div>
 
@@ -266,17 +349,66 @@ const AdminFinance = () => {
         <div className="rounded-xl border border-border bg-card overflow-hidden">
           <div className="px-5 py-4 border-b border-border">
             <h3 className="font-display text-xl">Histórico de comissões</h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Débitos (`commission_reversal`) só existem para comissões já pagas. Créditos pending/available cancelados aparecem como cancelamento, sem valor negativo extra.
+            </p>
           </div>
-          <div className="divide-y divide-border">
-            {commissions.length === 0 && <div className="px-5 py-8 text-sm text-center text-muted-foreground">Nenhuma comissão gerada ainda.</div>}
-            {commissions.map((c) => (
+          <div className="divide-y divide-border max-h-[36rem] overflow-y-auto">
+            {ledger.length === 0 && commissions.length === 0 && (
+              <div className="px-5 py-8 text-sm text-center text-muted-foreground">Nenhuma movimentação ainda.</div>
+            )}
+            {ledger.filter((t) => t.type === "commission_reversal").map((t) => (
+              <div key={t.id} className="px-5 py-4 flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="font-medium truncate">{t.resellerName}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {typeLabel(t.type)}
+                    {t.order_id ? ` · Pedido ${t.order_id.slice(0, 8)}` : ""}
+                    {t.reason ? ` · ${t.reason}` : ""}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground truncate">{t.description}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="font-medium text-destructive">{formatBRL(t.amount)}</p>
+                  <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider border ${statusColors[t.status] || "border-border text-muted-foreground"}`}>
+                    {statusLabel(t.status)}
+                  </span>
+                </div>
+              </div>
+            ))}
+            {ledger.filter((t) => t.type === "commission").map((t) => (
+              <div key={t.id} className="px-5 py-4 flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="font-medium truncate">{t.resellerName}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {t.status === "cancelled" ? "Crédito cancelado" : typeLabel(t.type)}
+                    {t.order_id ? ` · Pedido ${t.order_id.slice(0, 8)}` : ""}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground truncate">{t.description}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className={`font-medium ${t.status === "cancelled" ? "text-muted-foreground line-through" : "text-primary"}`}>
+                    {formatBRL(t.amount)}
+                  </p>
+                  <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider border ${statusColors[t.status] || "border-border text-muted-foreground"}`}>
+                    {statusLabel(t.status)}
+                  </span>
+                </div>
+              </div>
+            ))}
+            {ledger.length === 0 && commissions.map((c) => (
               <div key={c.id} className="px-5 py-4 flex items-center justify-between gap-4">
                 <div className="min-w-0">
                   <p className="font-medium truncate">{c.resellerName}</p>
-                  <p className="text-xs text-muted-foreground truncate">Pedido {c.order_id.slice(0, 8)} · nível {c.level} · {Math.round(c.rate * 100)}%</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {c.status === "cancelled" ? "Comissão cancelada" : "Comissão"}
+                    {" · "}Pedido {c.order_id.slice(0, 8)} · nível {c.level}
+                  </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="font-medium text-primary">{formatBRL(c.amount)}</p>
+                  <p className={`font-medium ${c.status === "cancelled" ? "text-muted-foreground line-through" : "text-primary"}`}>
+                    {formatBRL(c.amount)}
+                  </p>
                   <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider border ${statusColors[c.status] || "border-border text-muted-foreground"}`}>{statusLabel(c.status)}</span>
                 </div>
               </div>

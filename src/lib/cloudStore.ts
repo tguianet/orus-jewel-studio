@@ -389,7 +389,16 @@ export const updateOrderStatus = async (orderId: string, status: OrderStatus | s
 // ---------- Wallet ----------
 
 export type WalletSummary = { pending: number; available: number; paid: number; total: number };
-export type WalletTx = { id: string; type: string; amount: number; status: string; description: string; created_at: string; commission_id: string | null };
+export type WalletTx = {
+  id: string;
+  type: string;
+  amount: number;
+  status: string;
+  description: string;
+  reason?: string | null;
+  created_at: string;
+  commission_id: string | null;
+};
 
 export const loadWalletForReseller = async (resellerId: string) => {
   const [{ data: summary, error: summaryError }, { data: txs, error: txsError }] = await Promise.all([
