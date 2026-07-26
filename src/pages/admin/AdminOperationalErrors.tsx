@@ -10,7 +10,6 @@ import { ListPagination } from "@/components/system/ListPagination";
 import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
 import { normalizeError, showAppError } from "@/lib/errors";
 import { supabase } from "@/integrations/supabase/client";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 type OpErrorRow = {
