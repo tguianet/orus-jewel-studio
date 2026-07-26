@@ -686,6 +686,38 @@ export type Database = {
         }
         Relationships: []
       }
+      reseller_payout_profiles: {
+        Row: {
+          payment_details: Json
+          payment_method: string
+          reseller_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          payment_details?: Json
+          payment_method: string
+          reseller_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          payment_details?: Json
+          payment_method?: string
+          reseller_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reseller_payout_profiles_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: true
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       resellers: {
         Row: {
           created_at: string
@@ -967,6 +999,7 @@ export type Database = {
           status: string
           type: string
           updated_at: string
+          withdrawal_id: string | null
         }
         Insert: {
           amount?: number
@@ -979,6 +1012,7 @@ export type Database = {
           status?: string
           type?: string
           updated_at?: string
+          withdrawal_id?: string | null
         }
         Update: {
           amount?: number
@@ -991,6 +1025,7 @@ export type Database = {
           status?: string
           type?: string
           updated_at?: string
+          withdrawal_id?: string | null
         }
         Relationships: [
           {
@@ -1007,13 +1042,175 @@ export type Database = {
             referencedRelation: "resellers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "wallet_transactions_withdrawal_id_fkey"
+            columns: ["withdrawal_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_requests"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      withdrawal_audit_log: {
+        Row: {
+          action: string
+          actor_role: string | null
+          actor_user_id: string | null
+          created_at: string
+          id: string
+          metadata: Json
+          new_status: string | null
+          previous_status: string | null
+          withdrawal_id: string
+        }
+        Insert: {
+          action: string
+          actor_role?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          new_status?: string | null
+          previous_status?: string | null
+          withdrawal_id: string
+        }
+        Update: {
+          action?: string
+          actor_role?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          new_status?: string | null
+          previous_status?: string | null
+          withdrawal_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawal_audit_log_withdrawal_id_fkey"
+            columns: ["withdrawal_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      withdrawal_requests: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          balance_released: boolean
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          created_at: string
+          id: string
+          paid_at: string | null
+          paid_by: string | null
+          payment_details: Json
+          payment_idempotency_key: string | null
+          payment_method: string
+          payment_reference: string | null
+          receipt_url: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
+          request_idempotency_key: string | null
+          requested_at: string
+          reseller_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          approved_at?: string | null
+          approved_by?: string | null
+          balance_released?: boolean
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          paid_by?: string | null
+          payment_details: Json
+          payment_idempotency_key?: string | null
+          payment_method: string
+          payment_reference?: string | null
+          receipt_url?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          request_idempotency_key?: string | null
+          requested_at?: string
+          reseller_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          balance_released?: boolean
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          paid_by?: string | null
+          payment_details?: Json
+          payment_idempotency_key?: string | null
+          payment_method?: string
+          payment_reference?: string | null
+          receipt_url?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          request_idempotency_key?: string | null
+          requested_at?: string
+          reseller_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawal_requests_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      withdrawal_settings: {
+        Row: {
+          id: number
+          minimum_withdrawal_amount: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: number
+          minimum_withdrawal_amount?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: number
+          minimum_withdrawal_amount?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {
       reseller_wallet_summary: {
         Row: {
           available: number | null
+          blocked: number | null
           paid: number | null
           pending: number | null
           reseller_id: string | null
@@ -1031,6 +1228,47 @@ export type Database = {
       }
     }
     Functions: {
+      _is_safe_receipt_url: { Args: { p_url: string }; Returns: boolean }
+      _log_withdrawal_audit: {
+        Args: {
+          p_action: string
+          p_metadata?: Json
+          p_new: string
+          p_previous: string
+          p_withdrawal_id: string
+        }
+        Returns: undefined
+      }
+      _release_withdrawal_hold: {
+        Args: {
+          p_action: string
+          p_withdrawal: Database["public"]["Tables"]["withdrawal_requests"]["Row"]
+        }
+        Returns: undefined
+      }
+      _validate_payment_details: {
+        Args: { p_details: Json; p_method: string }
+        Returns: undefined
+      }
+      _wallet_available_for_update: {
+        Args: { p_reseller_id: string }
+        Returns: number
+      }
+      _withdrawal_actor_role: { Args: never; Returns: string }
+      admin_list_withdrawals: {
+        Args: {
+          p_amount_max?: number
+          p_amount_min?: number
+          p_date_from?: string
+          p_date_to?: string
+          p_page?: number
+          p_page_size?: number
+          p_reseller_id?: string
+          p_search?: string
+          p_status?: string
+        }
+        Returns: Json
+      }
       admin_product_costs: {
         Args: never
         Returns: {
@@ -1039,6 +1277,7 @@ export type Database = {
           wholesale_price: number
         }[]
       }
+      approve_withdrawal: { Args: { p_withdrawal_id: string }; Returns: Json }
       can_access_order: {
         Args: { _order_id: string; _user_id?: string }
         Returns: boolean
@@ -1066,6 +1305,10 @@ export type Database = {
           total_reversed: number
           wallet_reversals_created: number
         }[]
+      }
+      cancel_withdrawal: {
+        Args: { p_reason?: string; p_withdrawal_id: string }
+        Returns: Json
       }
       create_mlm_commissions_for_order: {
         Args: { _order_id: string }
@@ -1110,6 +1353,7 @@ export type Database = {
           level_3_rate: number
         }[]
       }
+      get_my_withdrawal_summary: { Args: never; Returns: Json }
       get_order_reserve_minutes: { Args: never; Returns: number }
       get_order_return_preview: {
         Args: { _order_id: string }
@@ -1127,6 +1371,11 @@ export type Database = {
         }[]
       }
       get_store_reseller_id: { Args: { _store_id: string }; Returns: string }
+      get_withdrawal_audit: { Args: { p_withdrawal_id: string }; Returns: Json }
+      get_withdrawal_details: {
+        Args: { p_reveal_payment?: boolean; p_withdrawal_id: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1140,6 +1389,10 @@ export type Database = {
         Args: { _reseller_id: string; _user_id?: string }
         Returns: boolean
       }
+      list_my_withdrawals: {
+        Args: { p_page?: number; p_page_size?: number }
+        Returns: Json
+      }
       lookup_reseller_sponsor: {
         Args: { _id: string }
         Returns: {
@@ -1148,6 +1401,15 @@ export type Database = {
         }[]
       }
       mark_order_paid: { Args: { _order_id: string }; Returns: undefined }
+      mark_withdrawal_paid: {
+        Args: {
+          p_idempotency_key: string
+          p_payment_reference: string
+          p_receipt_url: string
+          p_withdrawal_id: string
+        }
+        Returns: Json
+      }
       owns_reseller: {
         Args: { _reseller_id: string; _user_id?: string }
         Returns: boolean
@@ -1183,6 +1445,19 @@ export type Database = {
           units_restocked: number
           units_returned: number
         }[]
+      }
+      reject_withdrawal: {
+        Args: { p_reason: string; p_withdrawal_id: string }
+        Returns: Json
+      }
+      request_withdrawal: {
+        Args: {
+          p_amount: number
+          p_idempotency_key?: string
+          p_payment_details: Json
+          p_payment_method: string
+        }
+        Returns: Json
       }
       reseller_can_access_store: {
         Args: { _store_id: string; _user_id?: string }
@@ -1224,6 +1499,11 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      update_withdrawal_settings: { Args: { p_minimum: number }; Returns: Json }
+      upsert_my_payout_profile: {
+        Args: { p_payment_details: Json; p_payment_method: string }
+        Returns: Json
       }
       write_audit_log: {
         Args: {
