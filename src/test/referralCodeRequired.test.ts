@@ -8,16 +8,20 @@ import {
 } from "@/lib/referralCode";
 
 const rpc = vi.fn();
+const signUp = vi.fn();
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     rpc: (...args: unknown[]) => rpc(...args),
+    auth: { signUp: (...args: unknown[]) => signUp(...args) },
   },
 }));
+
 
 describe("referralCode — cadastro obrigatório", () => {
   beforeEach(() => {
     rpc.mockReset();
+    signUp.mockReset();
     try {
       sessionStorage.clear();
     } catch {
@@ -85,22 +89,18 @@ describe("referralCode — cadastro obrigatório", () => {
     expect(rpc.mock.calls[0][0]).toBe("validate_referral_code");
   });
 
-  it("register chama RPC de cadastro após validação e impede duplo fluxo falho", async () => {
-    rpc
-      .mockResolvedValueOnce({
-        data: {
-          valid: true,
-          sponsor_reseller_id: "s1",
-          sponsor_name: "Pat",
-          store_name: "Loja",
-          reason: "ok",
-        },
-        error: null,
-      })
-      .mockResolvedValueOnce({
-        data: { ok: true, user_id: "u1", reseller_id: "r2", sponsor_reseller_id: "s1" },
-        error: null,
-      });
+  it("register usa signUp oficial do Auth com o código no metadata (sem insert em auth)", async () => {
+    rpc.mockResolvedValueOnce({
+      data: {
+        valid: true,
+        sponsor_reseller_id: "s1",
+        sponsor_name: "Pat",
+        store_name: "Loja",
+        reason: "ok",
+      },
+      error: null,
+    });
+    signUp.mockResolvedValueOnce({ data: { user: { id: "u1" } }, error: null });
 
     const res = await registerResellerWithReferral({
       fullName: "Ana",
@@ -109,11 +109,16 @@ describe("referralCode — cadastro obrigatório", () => {
       referralCode: "patcode",
     });
     expect(res.error).toBeUndefined();
-    expect(rpc.mock.calls.map((c) => c[0])).toEqual([
-      "validate_referral_code",
-      "register_reseller_with_referral",
-    ]);
+    expect(rpc.mock.calls.map((c) => c[0])).toEqual(["validate_referral_code"]);
+    expect(signUp).toHaveBeenCalledTimes(1);
+    const arg = signUp.mock.calls[0][0] as {
+      email: string;
+      options: { data: { referral_code: string } };
+    };
+    expect(arg.email).toBe("ana@test.com");
+    expect(arg.options.data.referral_code).toBe("PATCODE");
   });
+
 
   it("UI: botão criar conta só com status valid (contrato)", () => {
     const canCreate = (status: string, busy: boolean) => status === "valid" && !busy;

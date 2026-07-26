@@ -576,7 +576,7 @@ export type AdminSellerRow = {
 };
 
 export const loadAllSellers = async (): Promise<AdminSellerRow[]> => {
-  const { data, error } = await sbLoose
+  const { data, error } = await supabase
     .from("resellers")
     .select("id,user_id,display_name,email,phone,status,created_at,referral_code,parent_id,seller_stores(id,store_name,store_slug,status)")
     .order("created_at", { ascending: false });
@@ -604,7 +604,7 @@ export const loadAllSellers = async (): Promise<AdminSellerRow[]> => {
 };
 
 export async function adminRegenerateReferralCode(resellerId: string, reason?: string) {
-  const { data, error } = await sbLoose.rpc("admin_regenerate_referral_code", {
+  const { data, error } = await supabase.rpc("admin_regenerate_referral_code", {
     p_reseller_id: resellerId,
     p_reason: reason || null,
   });
@@ -617,7 +617,7 @@ export async function adminSetResellerSponsor(
   sponsorResellerId: string,
   reason: string,
 ) {
-  const { data, error } = await sbLoose.rpc("admin_set_reseller_sponsor", {
+  const { data, error } = await supabase.rpc("admin_set_reseller_sponsor", {
     p_reseller_id: resellerId,
     p_sponsor_reseller_id: sponsorResellerId,
     p_reason: reason,
