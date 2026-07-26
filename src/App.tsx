@@ -6,6 +6,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AreaProvider } from "@/contexts/AreaContext";
+import { PwaInstallProvider } from "@/contexts/PwaInstallContext";
+import { PwaUpdateProvider } from "@/contexts/PwaUpdateContext";
+
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AppUpdatePrompt } from "./components/system/AppUpdatePrompt";
 import { LazyRouteErrorBoundary } from "./components/system/LazyRouteErrorBoundary";
