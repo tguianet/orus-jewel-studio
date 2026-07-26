@@ -1735,6 +1735,17 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_grant_reseller_role: {
+        Args: {
+          p_reason?: string
+          p_reseller_name: string
+          p_sponsor_reseller_id?: string
+          p_store_name: string
+          p_store_slug: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       admin_grant_role: {
         Args: { p_reason?: string; p_user_id: string }
         Returns: Json
@@ -1795,6 +1806,10 @@ export type Database = {
       }
       admin_resolve_operational_error: {
         Args: { p_error_id: string; p_resolution_notes: string }
+        Returns: Json
+      }
+      admin_revoke_reseller_role: {
+        Args: { p_reason: string; p_user_id: string }
         Returns: Json
       }
       admin_revoke_role: {
