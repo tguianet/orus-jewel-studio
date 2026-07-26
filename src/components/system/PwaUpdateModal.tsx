@@ -1,1 +1,1 @@
-export { AppUpdatePrompt as PwaUpdateModal } from "@/components/system/AppUpdatePrompt";
+export { PwaUpdateModal } from "@/components/pwa/PwaUpdateModal";

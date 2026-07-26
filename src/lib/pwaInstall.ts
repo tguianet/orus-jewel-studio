@@ -1,4 +1,10 @@
-import { resolvePwaKind, type PwaAppKind } from "@/pwa/manifestConfig";
+import {
+  extractLojaSlug,
+  getPwaManifestConfig,
+  resolvePwaKind,
+  type PwaAppKind,
+  type PwaManifestConfig,
+} from "@/pwa/manifestConfig";
 
 export type InstallPlatform = "android-chromium" | "ios-safari" | "desktop" | "unsupported";
 
@@ -93,3 +99,109 @@ export function manualInstallSteps(
     ],
   };
 }
+
+// --- Compat helpers (instalação + manifesto + testes legados) ---
+
+export type PwaInstallArea = InstallableArea;
+export type BeforeInstallPromptEventLike = BeforeInstallPromptEvent;
+
+export function getAppVersion(): string {
+  const fromEnv = (import.meta.env.VITE_APP_VERSION as string | undefined)?.trim();
+  return fromEnv || "20260726a";
+}
+
+export function isStandaloneMode(
+  win: Window & { navigator: Navigator & { standalone?: boolean } } = window as Window & {
+    navigator: Navigator & { standalone?: boolean };
+  },
+): boolean {
+  return isStandalone(win);
+}
+
+export function isIosDevice(ua = typeof navigator !== "undefined" ? navigator.userAgent : ""): boolean {
+  const maxTouchPoints =
+    typeof navigator !== "undefined" ? (navigator.maxTouchPoints ?? 0) : 0;
+  const platform = detectInstallPlatform(ua, maxTouchPoints);
+  return platform === "ios-safari";
+}
+
+export function isAndroidDevice(ua = typeof navigator !== "undefined" ? navigator.userAgent : ""): boolean {
+  return /android/i.test(ua);
+}
+
+export function isInstallPromptAvailable(deferred: BeforeInstallPromptEventLike | null): boolean {
+  return Boolean(deferred && typeof deferred.prompt === "function");
+}
+
+export function getCurrentPwaArea(pathname = typeof window !== "undefined" ? window.location.pathname : "/"): PwaAppKind {
+  return resolvePwaKind(pathname);
+}
+
+export function getCurrentPwaManifest(
+  pathname = typeof window !== "undefined" ? window.location.pathname : "/",
+): PwaManifestConfig {
+  return getPwaManifestConfig(pathname);
+}
+
+/** Manifesto instalável presente no documento (área admin/sacoleira/loja). */
+export function isPwaManifestLoaded(doc: Document = document): boolean {
+  const link = doc.getElementById("pwa-manifest") as HTMLLinkElement | null;
+  if (!link?.href) return false;
+  return getCurrentPwaArea() !== "default";
+}
+
+export function getInstallButtonLabel(area: PwaAppKind): string {
+  if (area === "admin" || area === "sacoleira" || area === "loja") {
+    return PWA_INSTALL_LABELS[area];
+  }
+  return "Instalar app";
+}
+
+export function getInstallFallbackMessage(opts: {
+  standalone: boolean;
+  ios: boolean;
+  android: boolean;
+  promptAvailable: boolean;
+}): string | null {
+  if (opts.standalone) return null;
+  if (opts.promptAvailable) return null;
+  if (opts.ios) {
+    return "Abra no Safari, toque em Compartilhar e depois em Adicionar à Tela de Início.";
+  }
+  if (opts.android) {
+    return "Abra o menu do navegador e escolha Instalar app ou Adicionar à tela inicial.";
+  }
+  return "Abra o menu do navegador e escolha Instalar app ou Adicionar à tela inicial.";
+}
+
+export function shouldShowInstallCta(opts: {
+  area: PwaAppKind;
+  standalone: boolean;
+  promptAvailable: boolean;
+  manifestLoaded: boolean;
+  installed: boolean;
+}): boolean {
+  if (opts.installed || opts.standalone) return false;
+  if (opts.area === "default") return false;
+  if (!opts.manifestLoaded) return false;
+  return opts.promptAvailable;
+}
+
+export function shouldShowInstallInstructions(opts: {
+  area: PwaAppKind;
+  standalone: boolean;
+  promptAvailable: boolean;
+  manifestLoaded: boolean;
+  installed: boolean;
+}): boolean {
+  if (opts.installed || opts.standalone) return false;
+  if (opts.area === "default") return false;
+  if (!opts.manifestLoaded) return false;
+  return !opts.promptAvailable;
+}
+
+export function extractInstallAreaSlug(pathname: string): string | null {
+  return extractLojaSlug(pathname);
+}
+
+export const PWA_MANIFEST_APPLIED_EVENT = "amada-pwa-manifest-applied";

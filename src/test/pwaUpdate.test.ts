@@ -4,7 +4,6 @@ import {
   beginControlledReload,
   bindPwaUpdater,
   clearReloadGuard,
-  dismissPwaUpdate,
   getOfflineBlockMessage,
   getPwaUpdateState,
   isApiUrl,
@@ -16,37 +15,47 @@ import {
   resetPwaUpdateControllerForTests,
   shouldConfirmBeforeUpdate,
   shouldExcludeFromDataRuntimeCache,
+  tryAutoApplyUpdate,
 } from "@/lib/pwaUpdate";
+import {
+  beginCriticalOperation,
+  resetCriticalOperationsForTests,
+} from "@/lib/pwaCriticalOps";
 
 afterEach(() => {
   resetPwaUpdateControllerForTests();
+  resetCriticalOperationsForTests();
   vi.restoreAllMocks();
 });
 
-describe("PWA update + cache helpers", () => {
+describe("PWA autoUpdate + cache helpers", () => {
   it("A — nova versão detectada", () => {
-    expect(getPwaUpdateState().needRefresh).toBe(false);
+    expect(getPwaUpdateState().pending).toBe(false);
     notifyNeedRefresh();
+    expect(getPwaUpdateState().pending).toBe(true);
     expect(getPwaUpdateState().needRefresh).toBe(true);
-    expect(getPwaUpdateState().dismissed).toBe(false);
   });
 
-  it("B — atualizar agora chama updateSW", async () => {
+  it("B — auto-update chama updateSW", async () => {
     const updateSW = vi.fn(async () => undefined);
     bindPwaUpdater(updateSW);
     notifyNeedRefresh();
-    const result = await applyPwaUpdate();
+    const result = await tryAutoApplyUpdate();
     expect(result).toEqual({ ok: true });
     expect(updateSW).toHaveBeenCalledTimes(1);
     expect(updateSW).toHaveBeenCalledWith(true);
   });
 
-  it("C — botão Depois fecha aviso", () => {
+  it("C — operação crítica adia sem descartar update", async () => {
+    const updateSW = vi.fn(async () => undefined);
+    bindPwaUpdater(updateSW);
+    const end = beginCriticalOperation("saque");
     notifyNeedRefresh();
-    dismissPwaUpdate();
-    const s = getPwaUpdateState();
-    expect(s.needRefresh).toBe(false);
-    expect(s.dismissed).toBe(true);
+    await tryAutoApplyUpdate();
+    expect(updateSW).not.toHaveBeenCalled();
+    expect(getPwaUpdateState().waitingCritical).toBe(true);
+    expect(getPwaUpdateState().pending).toBe(true);
+    end();
   });
 
   it("D — não ocorre reload infinito", async () => {
@@ -58,14 +67,14 @@ describe("PWA update + cache helpers", () => {
 
     clearReloadGuard();
     notifyNeedRefresh();
-    await applyPwaUpdate();
-    const second = await applyPwaUpdate();
+    await applyPwaUpdate({ allowCritical: true });
+    const second = await applyPwaUpdate({ allowCritical: true });
     expect(second).toEqual({ ok: false, reason: "reload_guard" });
     expect(updateSW).toHaveBeenCalledTimes(1);
     expect(sessionStorage.getItem(PWA_RELOAD_GUARD_KEY)).toBe("1");
   });
 
-  it("E — checkout preenchido mostra confirmação", () => {
+  it("E — checkout preenchido bloqueia path sensível", () => {
     expect(
       shouldConfirmBeforeUpdate({
         pathname: "/loja/demo/checkout",
@@ -76,12 +85,6 @@ describe("PWA update + cache helpers", () => {
       shouldConfirmBeforeUpdate({
         pathname: "/loja/demo/checkout",
         hasFilledForm: false,
-      }),
-    ).toBe(false);
-    expect(
-      shouldConfirmBeforeUpdate({
-        pathname: "/loja/demo",
-        hasFilledForm: true,
       }),
     ).toBe(false);
   });

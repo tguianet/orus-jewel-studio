@@ -10,7 +10,6 @@ import { PwaInstallProvider } from "@/contexts/PwaInstallContext";
 import { PwaUpdateProvider } from "@/contexts/PwaUpdateContext";
 
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { AppUpdatePrompt } from "./components/system/AppUpdatePrompt";
 import { LazyRouteErrorBoundary } from "./components/system/LazyRouteErrorBoundary";
 import { OfflineBanner } from "./components/system/OfflineBanner";
 import { RouteFallback } from "./components/system/RouteFallback";
@@ -18,7 +17,7 @@ import { AppErrorBoundary } from "./components/errors/AppErrorBoundary";
 import { RouteErrorBoundary } from "./components/errors/RouteErrorBoundary";
 import { PwaManifestSwitcher } from "./pwa/PwaManifestSwitcher";
 import { PwaInstallFab } from "./components/system/PwaInstallFab";
-
+import { AppUpdatePrompt } from "./components/system/AppUpdatePrompt";
 
 const Landing = lazy(() => import("./pages/Landing"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
@@ -104,9 +103,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
           <PwaManifestSwitcher />
           <PwaInstallFab />
           <OfflineBanner />
-
           <AppUpdatePrompt />
-
           <LazyRouteErrorBoundary>
             <RouteErrorBoundary name="app-routes">
             <Suspense fallback={<RouteFallback />}>

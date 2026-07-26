@@ -1,3 +1,4 @@
+import { PWA_MANIFEST_APPLIED_EVENT } from "@/lib/pwaInstall";
 import {
   buildWebManifest,
   getLojaManifestConfig,
@@ -124,10 +125,20 @@ async function publishLojaManifestToCache(slug: string, manifestJson: string): P
   return path;
 }
 
-function setManifestHref(href: string) {
+function setManifestHref(href: string, kind?: string) {
   const manifestLink = ensureLink(MANIFEST_LINK_ID, "manifest");
   manifestLink.href = href;
   manifestLink.setAttribute("data-pwa-href", href);
+  if (kind) manifestLink.setAttribute("data-pwa-kind", kind);
+  try {
+    window.dispatchEvent(
+      new CustomEvent(PWA_MANIFEST_APPLIED_EVENT, {
+        detail: { href, kind: kind || null },
+      }),
+    );
+  } catch {
+    /* ignore */
+  }
 }
 
 /**
@@ -197,21 +208,24 @@ export function applyPwaManifestForPath(pathname: string, branding?: LojaManifes
 
   if (config.kind === "admin" || config.kind === "sacoleira") {
     // Arquivo estatico versionado — identidade estavel; atualizacao do SW nao troca o manifesto.
-    setManifestHref(config.manifestHref || `/manifests/manifest-${config.kind}.json`);
+    setManifestHref(
+      config.manifestHref || `/manifests/manifest-${config.kind}.json`,
+      config.kind,
+    );
     return;
   }
 
   // Loja: blob garante JSON valido antes do SW; path logico fica no id/scope + cache.
   const blob = new Blob([json], { type: "application/manifest+json;charset=utf-8" });
   currentBlobUrl = URL.createObjectURL(blob);
-  setManifestHref(currentBlobUrl);
+  setManifestHref(currentBlobUrl, "loja");
 
   const slug = config.id.replace(/^\/loja\//, "");
   void publishLojaManifestToCache(slug, json).then((path) => {
     if (lastAppliedKey !== key) return;
     // Quando o SW controla a pagina, preferir URL estavel por slug.
     if (navigator.serviceWorker?.controller) {
-      setManifestHref(path);
+      setManifestHref(path, "loja");
     }
   });
 }

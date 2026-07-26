@@ -88,8 +88,8 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     lojaManifestDevPlugin(),
     VitePWA({
-      // Prompt controlado pelo AppUpdatePrompt (sem auto-reload no checkout).
-      registerType: "prompt",
+      // Auto-update: SW novo ativa sozinho; reload controlado no app (com gate de operação crítica).
+      registerType: "autoUpdate",
       injectRegister: false,
       // Manifestos 100% fora do plugin (Admin/Sacoleira/Loja separados).
       manifest: false,

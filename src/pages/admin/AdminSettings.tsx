@@ -27,6 +27,8 @@ import {
   updateCommissionSettings,
   validateCommissionPercents,
 } from "@/lib/commissionSettings";
+import { PwaInstallButton } from "@/components/pwa/PwaInstallButton";
+import { PwaInstallInstructions } from "@/components/pwa/PwaInstallInstructions";
 
 const parsePercentInput = (raw: string): number => {
   const normalized = raw.trim().replace(",", ".");
@@ -264,6 +266,19 @@ ${orders.map((o) => `
         </TabsList>
 
         <TabsContent value="geral" className="mt-6 space-y-5">
+          <div className="rounded-xl border border-border bg-card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 max-w-4xl">
+            <div>
+              <h3 className="font-display text-xl">Aplicativo Admin</h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Instale o painel Admin na tela inicial. Atualizações aparecem em um modal — sem desinstalar.
+              </p>
+            </div>
+            <div className="flex flex-col items-stretch sm:items-end gap-2">
+              <PwaInstallButton />
+              <PwaInstallInstructions className="text-xs text-muted-foreground max-w-xs sm:text-right" />
+            </div>
+          </div>
+
           <div className="rounded-xl border border-border bg-card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 max-w-4xl">
             <div>
               <h3 className="font-display text-xl">Administradores</h3>

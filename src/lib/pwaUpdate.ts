@@ -2,6 +2,13 @@ import {
   isSensitiveOnlinePath,
   OFFLINE_SENSITIVE_MESSAGE,
 } from "@/lib/pwaCacheRules";
+import { getAppVersion } from "@/lib/pwaInstall";
+import {
+  isCriticalOperationActive,
+  PWA_CRITICAL_BLOCK_MESSAGE,
+  shouldBlockPwaUpdate,
+  subscribeCriticalOperations,
+} from "@/lib/pwaCriticalOps";
 
 export {
   isApiUrl,
@@ -12,36 +19,62 @@ export {
   shouldExcludeFromDataRuntimeCache,
 } from "@/lib/pwaCacheRules";
 
+export { PWA_CRITICAL_BLOCK_MESSAGE };
+
 export const PWA_RELOAD_GUARD_KEY = "amada_amante_pwa_reload_guard";
-export const PWA_UPDATE_MESSAGE = "Uma nova versão do Amada Amante está disponível.";
+export const PWA_UPDATE_MESSAGE = "Atualizando o aplicativo…";
+export const PWA_UPDATE_TITLE = "Atualizando o aplicativo…";
+/** @deprecated mantido para testes de path sensível */
 export const PWA_CHECKOUT_UPDATE_CONFIRM =
   "Há um formulário preenchido. Atualizar agora vai recarregar a página e você pode perder o que digitou. Deseja continuar?";
 
 export type PwaUpdateState = {
+  /** Há versão nova detectada / aguardando reload */
+  pending: boolean;
+  /** Mostra feedback "Atualizando…" (sem botões) */
+  updating: boolean;
+  /** Reload aguardando fim de operação crítica */
+  waitingCritical: boolean;
+  version: string;
+  /** Compat: true quando há update em andamento ou aguardando (UI legada) */
   needRefresh: boolean;
   dismissed: boolean;
-  updating: boolean;
 };
 
 export type ApplyUpdateResult =
   | { ok: true }
-  | { ok: false; reason: "no_updater" | "reload_guard" | "updating" | "cancelled" };
+  | {
+      ok: false;
+      reason: "no_updater" | "reload_guard" | "updating" | "cancelled" | "critical";
+      message?: string;
+    };
 
 type Listener = (state: PwaUpdateState) => void;
 type UpdateSW = (reloadPage?: boolean) => Promise<void>;
 
 let state: PwaUpdateState = {
+  pending: false,
+  updating: false,
+  waitingCritical: false,
+  version: getAppVersion(),
   needRefresh: false,
   dismissed: false,
-  updating: false,
 };
 
 let updateSW: UpdateSW | null = null;
+let deferredControllerReload = false;
+let controllerListenerBound = false;
+let criticalSubBound = false;
 const listeners = new Set<Listener>();
 
 function emit() {
   const snapshot = { ...state };
   listeners.forEach((l) => l(snapshot));
+}
+
+function setState(patch: Partial<PwaUpdateState>) {
+  state = { ...state, ...patch };
+  emit();
 }
 
 export function getPwaUpdateState(): PwaUpdateState {
@@ -61,35 +94,22 @@ export function bindPwaUpdater(fn: UpdateSW | null) {
 }
 
 export function resetPwaUpdateControllerForTests() {
-  state = { needRefresh: false, dismissed: false, updating: false };
+  state = {
+    pending: false,
+    updating: false,
+    waitingCritical: false,
+    version: getAppVersion(),
+    needRefresh: false,
+    dismissed: false,
+  };
   updateSW = null;
+  deferredControllerReload = false;
   listeners.clear();
   try {
     sessionStorage.removeItem(PWA_RELOAD_GUARD_KEY);
   } catch {
     // ignore
   }
-}
-
-/** A — nova versão detectada */
-export function notifyNeedRefresh() {
-  state = {
-    needRefresh: true,
-    dismissed: false,
-    updating: false,
-  };
-  emit();
-}
-
-/** C — botão Depois */
-export function dismissPwaUpdate() {
-  state = {
-    ...state,
-    needRefresh: false,
-    dismissed: true,
-    updating: false,
-  };
-  emit();
 }
 
 export function clearReloadGuard(storage: Storage = sessionStorage) {
@@ -101,8 +121,7 @@ export function clearReloadGuard(storage: Storage = sessionStorage) {
 }
 
 /**
- * D — evita reload infinito: só permite um ciclo de reload controlado.
- * Retorna false se um reload já foi iniciado nesta sessão de atualização.
+ * Evita reload infinito: só permite um ciclo de reload controlado por sessão de update.
  */
 export function beginControlledReload(storage: Storage = sessionStorage): boolean {
   try {
@@ -145,7 +164,6 @@ export function pageHasFilledForm(root: ParentNode = document): boolean {
   return false;
 }
 
-/** Rotas de operação crítica: atualizar no meio pode perder a operação. */
 export const PWA_CRITICAL_PATH_PATTERNS = [
   "/checkout",
   "/carrinho",
@@ -161,14 +179,13 @@ export function isCriticalOperationPath(pathname: string): boolean {
   return PWA_CRITICAL_PATH_PATTERNS.some((frag) => p.includes(frag));
 }
 
-/** E — operação crítica em andamento exige confirmação */
+/** Operação crítica em andamento exige confirmação (formulário preenchido). */
 export function shouldConfirmBeforeUpdate(opts: {
   pathname: string;
   hasFilledForm: boolean;
 }): boolean {
   return isCriticalOperationPath(opts.pathname) && opts.hasFilledForm;
 }
-
 
 export function requiresOnlineForPath(pathname: string): boolean {
   return isSensitiveOnlinePath(pathname);
@@ -178,40 +195,197 @@ export function getOfflineBlockMessage(): string {
   return OFFLINE_SENSITIVE_MESSAGE;
 }
 
+function isBlockedNow(pathname?: string, hasFilledForm?: boolean): boolean {
+  return shouldBlockPwaUpdate({
+    pathname: pathname || (typeof window !== "undefined" ? window.location.pathname : "/"),
+    hasFilledForm: hasFilledForm ?? (typeof document !== "undefined" ? pageHasFilledForm() : false),
+    criticalActive: isCriticalOperationActive(),
+  });
+}
+
+/** Recarrega no máximo uma vez; não limpa storage. */
+export function safeReloadOnce(): boolean {
+  if (!beginControlledReload()) return false;
+  setState({
+    updating: true,
+    pending: true,
+    waitingCritical: false,
+    needRefresh: true,
+    dismissed: false,
+  });
+  try {
+    window.location.reload();
+  } catch {
+    clearReloadGuard();
+    setState({ updating: false });
+    return false;
+  }
+  return true;
+}
+
 /**
- * B — atualizar agora chama updateSW(true) uma vez, com guard anti-loop.
- * Se `confirm` for false, cancela (fluxo de confirmação no UI).
+ * Nova versão detectada (marca pending).
+ * Quem aplica é tryAutoApplyUpdate / registerPwa / PwaUpdateProvider.
+ */
+export function notifyNeedRefresh() {
+  setState({
+    pending: true,
+    needRefresh: true,
+    dismissed: false,
+    version: getAppVersion(),
+  });
+}
+
+/** Compat no-op: autoUpdate não tem "Agora não". */
+export function dismissPwaUpdate() {
+  // Mantém pending para flush posterior — não descarta a atualização.
+  setState({
+    needRefresh: false,
+    dismissed: true,
+    pending: true,
+  });
+}
+
+/** Compat: reavalia auto-apply (ex.: foco/visibility). */
+export function reopenPwaUpdateIfDue() {
+  if (!state.pending || state.updating) return;
+  void tryAutoApplyUpdate();
+}
+
+/**
+ * Ativa SW novo e recarrega uma vez, sem limpar login/carrinho.
+ * Bloqueia durante operação crítica (fica waitingCritical).
  */
 export async function applyPwaUpdate(opts?: {
   confirmed?: boolean;
   requireConfirm?: boolean;
+  pathname?: string;
+  hasFilledForm?: boolean;
+  allowCritical?: boolean;
 }): Promise<ApplyUpdateResult> {
-  if (state.updating) return { ok: false, reason: "updating" };
+  if (state.updating && !opts?.allowCritical) {
+    return { ok: false, reason: "updating" };
+  }
   if (!updateSW) return { ok: false, reason: "no_updater" };
 
   if (opts?.requireConfirm && opts.confirmed !== true) {
     return { ok: false, reason: "cancelled" };
   }
 
+  if (
+    !opts?.allowCritical
+    && isBlockedNow(opts?.pathname, opts?.hasFilledForm)
+  ) {
+    setState({
+      pending: true,
+      waitingCritical: true,
+      needRefresh: true,
+      dismissed: false,
+    });
+    return {
+      ok: false,
+      reason: "critical",
+      message: PWA_CRITICAL_BLOCK_MESSAGE,
+    };
+  }
+
   if (!beginControlledReload()) {
     return { ok: false, reason: "reload_guard" };
   }
 
-  state = { ...state, updating: true, needRefresh: false };
-  emit();
+  setState({
+    updating: true,
+    pending: true,
+    waitingCritical: false,
+    needRefresh: true,
+    dismissed: false,
+  });
 
   try {
+    // updateSW(true) ativa o SW e normalmente recarrega a página.
     await updateSW(true);
-    // Em produção a página recarrega; se não, libera "updating" e mantém o guard anti-loop.
-    state = { ...state, updating: false };
-    emit();
+    setState({ updating: false, pending: false, needRefresh: false });
     return { ok: true };
   } catch {
     clearReloadGuard();
-    state = { ...state, updating: false, needRefresh: true };
-    emit();
-    return { ok: false, reason: "no_updater" };
+    setState({
+      updating: false,
+      pending: true,
+      needRefresh: true,
+      waitingCritical: false,
+    });
+    return {
+      ok: false,
+      reason: "no_updater",
+      message: "Não foi possível atualizar agora. Tentaremos novamente em breve.",
+    };
   }
+}
+
+/** Tenta auto-update agora; se crítico, marca waiting e espera. */
+export async function tryAutoApplyUpdate(): Promise<ApplyUpdateResult> {
+  if (!state.pending && !state.needRefresh) {
+    return { ok: false, reason: "cancelled" };
+  }
+  if (isBlockedNow()) {
+    setState({
+      pending: true,
+      waitingCritical: true,
+      updating: false,
+      needRefresh: true,
+      dismissed: false,
+    });
+    ensureCriticalFlushSubscription();
+    return {
+      ok: false,
+      reason: "critical",
+      message: PWA_CRITICAL_BLOCK_MESSAGE,
+    };
+  }
+  return applyPwaUpdate({ allowCritical: false });
+}
+
+function ensureCriticalFlushSubscription() {
+  if (criticalSubBound || typeof window === "undefined") return;
+  criticalSubBound = true;
+  subscribeCriticalOperations(() => {
+    if (isCriticalOperationActive()) return;
+    if (deferredControllerReload) {
+      deferredControllerReload = false;
+      safeReloadOnce();
+      return;
+    }
+    if (state.pending || state.waitingCritical) {
+      void tryAutoApplyUpdate();
+    }
+  });
+}
+
+/**
+ * controllerchange: recarrega 1x, ou adia se operação crítica.
+ * Não faz unregister; não limpa storage.
+ */
+export function bindControllerChangeReload() {
+  if (controllerListenerBound || typeof navigator === "undefined") return;
+  if (!("serviceWorker" in navigator)) return;
+  controllerListenerBound = true;
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (isBlockedNow()) {
+      deferredControllerReload = true;
+      setState({
+        pending: true,
+        waitingCritical: true,
+        updating: false,
+        needRefresh: true,
+      });
+      ensureCriticalFlushSubscription();
+      return;
+    }
+    safeReloadOnce();
+  });
+
+  ensureCriticalFlushSubscription();
 }
 
 export function isOnline(nav: Pick<Navigator, "onLine"> = navigator): boolean {

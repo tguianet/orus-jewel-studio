@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { PwaInstallButton } from "@/components/pwa/PwaInstallButton";
+import { PwaInstallInstructions } from "@/components/pwa/PwaInstallInstructions";
 
 const SellerSettings = () => {
   const { profile, loading: authLoading, refresh } = useAuth();
@@ -109,6 +111,18 @@ const SellerSettings = () => {
   return (
     <SellerLayout>
       <PageHeader eyebrow="Conta" title="Configurações" description="Seus dados e preferências." />
+      <div className="mb-6 rounded-xl border border-border bg-card p-5 max-w-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h3 className="font-display text-lg">Aplicativo Sacoleira</h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            Instale a área da sacoleira na tela inicial. Atualizações chegam por modal, sem desinstalar.
+          </p>
+        </div>
+        <div className="flex flex-col items-stretch sm:items-end gap-2">
+          <PwaInstallButton />
+          <PwaInstallInstructions className="text-xs text-muted-foreground max-w-xs sm:text-right" />
+        </div>
+      </div>
       {error && (
         <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive max-w-2xl">
           {error}

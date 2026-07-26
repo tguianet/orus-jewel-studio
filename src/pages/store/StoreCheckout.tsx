@@ -34,6 +34,7 @@ import {
   showAppError,
 } from "@/lib/errors";
 import { assertOnlineForCritical } from "@/lib/networkStatus";
+import { beginCriticalOperation } from "@/lib/pwaCriticalOps";
 import { toast } from "sonner";
 
 type Step = "form" | "processing" | "success";
@@ -241,6 +242,7 @@ const StoreCheckout = () => {
     setSubmitting(true);
     setStep("processing");
     const correlationId = createCorrelationId();
+    const endCritical = beginCriticalOperation("create_public_order");
     try {
       assertOnlineForCritical("create_public_order");
 
@@ -326,6 +328,7 @@ const StoreCheckout = () => {
       }
       setStep("form");
     } finally {
+      endCritical();
       setSubmitting(false);
     }
   };

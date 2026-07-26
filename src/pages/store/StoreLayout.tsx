@@ -24,6 +24,8 @@ import {
   STORE_OG_DESCRIPTION,
   storeOgTitle,
 } from "@/lib/storeShare";
+import { PwaInstallButton } from "@/components/pwa/PwaInstallButton";
+import { PwaInstallInstructions } from "@/components/pwa/PwaInstallInstructions";
 
 function upsertMeta(attr: "property" | "name", key: string, content: string) {
   const selector = `meta[${attr}="${key}"]`;
@@ -384,6 +386,9 @@ const StoreLayout = () => {
               <Search className="h-4 w-4" />
             </Button>
             <Button variant="ghost" size="icon" className="h-9 w-9 hidden sm:inline-flex"><Heart className="h-4 w-4" /></Button>
+            <div className="hidden md:block">
+              <PwaInstallButton size="sm" variant="ghost" />
+            </div>
             <Link to="/login-sacoleira" aria-label="Entrar">
               <Button variant="ghost" size="icon" className="h-9 w-9">
                 <User className="h-4 w-4" />
@@ -473,6 +478,10 @@ const StoreLayout = () => {
               <Link to="/login-sacoleira" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 hover:text-foreground">
                 <User className="h-4 w-4" /> Área da sacoleira
               </Link>
+              <div className="pt-2 space-y-2" onClick={() => setMobileMenuOpen(false)}>
+                <PwaInstallButton className="w-full" />
+                <PwaInstallInstructions />
+              </div>
             </div>
           </SheetContent>
         </Sheet>

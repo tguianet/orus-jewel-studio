@@ -12,8 +12,8 @@ import { usePwaInstall } from "@/contexts/PwaInstallContext";
 import { PwaInstallInstructions } from "@/components/system/PwaInstallInstructions";
 
 type Props = {
-  variant?: "gold" | "outline" | "ghost" | "default" | "secondary";
-  size?: "sm" | "default" | "lg";
+  variant?: "gold" | "outline" | "ghost" | "default" | "secondary" | "goldOutline";
+  size?: "sm" | "default" | "lg" | "icon";
   className?: string;
 };
 
