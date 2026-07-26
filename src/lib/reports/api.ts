@@ -63,7 +63,9 @@ async function rpcJson(
     | "seller_export_my_report",
   args: Record<string, unknown>,
 ): Promise<unknown> {
-  const { data, error } = await sbLoose.rpc(name, args as never);
+  // Nome vem de uma união fechada de RPCs tipados; o cast estreita o overload.
+  const { data, error } = await supabase.rpc(name as "admin_get_sales_summary", args as never);
+
   if (error) {
     const msg = String(error.message ?? "");
     if (/could not find|does not exist|schema cache/i.test(msg)) {
