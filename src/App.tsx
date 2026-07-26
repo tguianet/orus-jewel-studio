@@ -100,7 +100,9 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
           <PwaInstallProvider>
           <PwaUpdateProvider>
           <PwaManifestSwitcher />
+          <PwaInstallFab />
           <OfflineBanner />
+
           <AppUpdatePrompt />
 
           <LazyRouteErrorBoundary>
