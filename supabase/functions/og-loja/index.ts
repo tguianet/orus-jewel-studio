@@ -146,14 +146,16 @@ Deno.serve(async (req) => {
   const storeName = String(store?.store_name || "").trim() || "Loja";
   const version = store?.updated_at ? Date.parse(store.updated_at) || "1" : "1";
   const theme = store?.theme ?? null;
-  const candidate = isUsableOgImageUrl(theme?.logoUrl)
-    ? theme?.logoUrl
-    : isUsableOgImageUrl(theme?.bannerUrl)
-      ? theme?.bannerUrl
+  // Banner tem proporção melhor para preview que a logo (quadrada).
+  const candidate = isUsableOgImageUrl(theme?.bannerUrl)
+    ? theme?.bannerUrl
+    : isUsableOgImageUrl(theme?.logoUrl)
+      ? theme?.logoUrl
       : null;
   const image = candidate ? String(candidate) : `${DEFAULT_OG_IMAGE}?v=${version}`;
 
-  return new Response(buildHtml(slug, storeName, image), {
+  return new Response(buildHtml(slug, storeName, image, !candidate), {
+
     status: 200,
     headers: {
       ...corsHeaders,
