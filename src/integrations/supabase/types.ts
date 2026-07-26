@@ -1067,7 +1067,7 @@ export type Database = {
           eligible: boolean
           order_item_id: string
           order_status: Database["public"]["Enums"]["order_status"]
-          product_id: string | null
+          product_id: string
           product_name: string
           quantity_purchased: number
           quantity_remaining: number
