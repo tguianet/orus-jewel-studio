@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Loader2, PackageOpen, X } from "lucide-react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
-import { AdminOrderRow, loadAllOrders, updateOrderStatus } from "@/lib/cloudStore";
+import { AdminOrderRow, loadOrdersPage, updateOrderStatus } from "@/lib/cloudStore";
+import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
+import { ListPagination } from "@/components/system/ListPagination";
 import {
   cancelPaidOrder,
   formatReversalToast,
@@ -106,7 +108,10 @@ const defaultDraft = (remaining: number): LineDraft => ({
 
 const AdminOrders = () => {
   const [rows, setRows] = useState<AdminOrderRow[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [onlyExpired, setOnlyExpired] = useState(false);
@@ -135,20 +140,56 @@ const AdminOrders = () => {
   const [stockCancelSubmitting, setStockCancelSubmitting] = useState(false);
   const [stockCancelResult, setStockCancelResult] = useState<CancelOrderWithStockSummary | null>(null);
 
-  const refresh = () => loadAllOrders().then((d) => { setRows(d); setLoading(false); });
-  useEffect(() => { refresh(); }, []);
+  const refresh = useCallback(async (nextPage = page) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await loadOrdersPage({
+        page: nextPage,
+        pageSize: DEFAULT_PAGE_SIZE,
+        from: from || undefined,
+        to: to || undefined,
+        onlyExpired: onlyExpired || undefined,
+      });
+      setRows(result.rows);
+      setTotal(result.total);
+      setPage(result.page);
+    } catch (e: unknown) {
+      setRows([]);
+      setTotal(0);
+      setError(e instanceof Error ? e.message : "Não foi possível carregar pedidos.");
+    } finally {
+      setLoading(false);
+    }
+  }, [page, from, to, onlyExpired]);
 
-  const filtered = useMemo(() => {
-    const fromTs = from ? new Date(from + "T00:00:00").getTime() : null;
-    const toTs = to ? new Date(to + "T23:59:59.999").getTime() : null;
-    return rows.filter((o) => {
-      const t = new Date(o.created_at).getTime();
-      if (fromTs && t < fromTs) return false;
-      if (toTs && t > toTs) return false;
-      if (onlyExpired && !isExpiredOrder(o)) return false;
-      return true;
-    });
-  }, [rows, from, to, onlyExpired]);
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    setError(null);
+    loadOrdersPage({
+      page,
+      pageSize: DEFAULT_PAGE_SIZE,
+      from: from || undefined,
+      to: to || undefined,
+      onlyExpired: onlyExpired || undefined,
+    })
+      .then((result) => {
+        if (!alive) return;
+        setRows(result.rows);
+        setTotal(result.total);
+      })
+      .catch((e: unknown) => {
+        if (!alive) return;
+        setRows([]);
+        setTotal(0);
+        setError(e instanceof Error ? e.message : "Não foi possível carregar pedidos.");
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => { alive = false; };
+  }, [page, from, to, onlyExpired]);
 
   const openReversalDialog = async (order: AdminOrderRow, next: ReversalAction) => {
     setTarget(order);
@@ -433,27 +474,49 @@ const AdminOrders = () => {
       <div className="mb-4 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card p-4">
         <div className="flex flex-col gap-1">
           <Label htmlFor="from" className="text-xs text-muted-foreground">De</Label>
-          <Input id="from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="h-9 w-44" />
+          <Input
+            id="from"
+            type="date"
+            value={from}
+            onChange={(e) => { setFrom(e.target.value); setPage(1); }}
+            className="h-9 w-44"
+          />
         </div>
         <div className="flex flex-col gap-1">
           <Label htmlFor="to" className="text-xs text-muted-foreground">Até</Label>
-          <Input id="to" type="date" value={to} onChange={(e) => setTo(e.target.value)} className="h-9 w-44" />
+          <Input
+            id="to"
+            type="date"
+            value={to}
+            onChange={(e) => { setTo(e.target.value); setPage(1); }}
+            className="h-9 w-44"
+          />
         </div>
         {(from || to || onlyExpired) && (
-          <Button variant="ghost" size="sm" onClick={() => { setFrom(""); setTo(""); setOnlyExpired(false); }}>
+          <Button variant="ghost" size="sm" onClick={() => { setFrom(""); setTo(""); setOnlyExpired(false); setPage(1); }}>
             <X className="h-4 w-4 mr-1" /> Limpar
           </Button>
         )}
         <label className="flex h-9 items-center gap-2 text-xs text-muted-foreground">
-          <Checkbox checked={onlyExpired} onCheckedChange={(v) => setOnlyExpired(Boolean(v))} />
+          <Checkbox
+            checked={onlyExpired}
+            onCheckedChange={(v) => { setOnlyExpired(Boolean(v)); setPage(1); }}
+          />
           Expirados
         </label>
         <Button asChild variant="ghost" size="sm" className="h-9">
           <Link to="/admin/devolucoes">Histórico de devoluções</Link>
         </Button>
-        <div className="ml-auto text-xs text-muted-foreground">{filtered.length} pedido(s)</div>
+        <div className="ml-auto text-xs text-muted-foreground">{total} pedido(s)</div>
       </div>
-      {loading ? <div className="flex items-center justify-center h-40 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin mr-2"/> Carregando...</div> : (
+      {error ? (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center space-y-3">
+          <p className="text-sm text-destructive">{error}</p>
+          <Button type="button" variant="outline" size="sm" onClick={() => void refresh(page)} disabled={loading}>
+            Tentar novamente
+          </Button>
+        </div>
+      ) : loading ? <div className="flex items-center justify-center h-40 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin mr-2"/> Carregando...</div> : (
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -466,7 +529,7 @@ const AdminOrders = () => {
               <th className="px-5 py-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Ações</th>
             </tr></thead>
             <tbody>
-              {filtered.map((o) => (
+              {rows.map((o) => (
                 <tr key={o.id} className="border-b border-border/70 last:border-0">
                   <td className="px-5 py-4">
                     <p className="font-medium">{o.customer_name}</p>
@@ -560,10 +623,17 @@ const AdminOrders = () => {
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && <tr><td colSpan={6} className="px-5 py-10 text-center text-sm text-muted-foreground">Nenhum pedido no período.</td></tr>}
+              {rows.length === 0 && <tr><td colSpan={6} className="px-5 py-10 text-center text-sm text-muted-foreground">Nenhum pedido no período.</td></tr>}
             </tbody>
           </table>
         </div>
+        <ListPagination
+          page={page}
+          total={total}
+          pageSize={DEFAULT_PAGE_SIZE}
+          disabled={loading}
+          onPageChange={setPage}
+        />
       </div>
       )}
 

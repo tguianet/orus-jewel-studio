@@ -375,15 +375,61 @@ export type AdminOrderRow = {
   expiration_reason: string | null;
 };
 
+/** @deprecated Prefira loadOrdersPage — mantido para compatibilidade pontual. */
 export const loadAllOrders = async (): Promise<AdminOrderRow[]> => {
-  const { data, error } = await supabase
+  const page = await loadOrdersPage({ page: 1, pageSize: 100 });
+  return page.rows;
+};
+
+export type OrdersPageFilters = {
+  page: number;
+  pageSize?: number;
+  from?: string;
+  to?: string;
+  onlyExpired?: boolean;
+};
+
+export type OrdersPageResult = {
+  rows: AdminOrderRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+const ORDERS_LIST_SELECT =
+  "id,customer_name,customer_phone,total,status,created_at,seller_store_id,expires_at,expired_at,expiration_reason,seller_stores(store_name)";
+
+/** Listagem paginada enxuta (sem itens/endereço/notas). */
+export const loadOrdersPage = async (filters: OrdersPageFilters): Promise<OrdersPageResult> => {
+  const pageSize = Math.min(100, Math.max(1, filters.pageSize ?? 25));
+  const page = Math.max(1, Math.floor(filters.page || 1));
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  let query = supabase
     .from("orders")
-    .select(
-      "id,customer_name,customer_phone,total,status,created_at,seller_store_id,expires_at,expired_at,expiration_reason,seller_stores(store_name)",
-    )
-    .order("created_at", { ascending: false });
+    .select(ORDERS_LIST_SELECT, { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (filters.from) {
+    query = query.gte("created_at", `${filters.from}T00:00:00`);
+  }
+  if (filters.to) {
+    query = query.lte("created_at", `${filters.to}T23:59:59.999`);
+  }
+  if (filters.onlyExpired) {
+    query = query.not("expired_at", "is", null);
+  }
+
+  const { data, error, count } = await query;
   if (error) throw error;
-  return (data ?? []) as AdminOrderRow[];
+  return {
+    rows: (data ?? []) as AdminOrderRow[],
+    total: count ?? 0,
+    page,
+    pageSize,
+  };
 };
 
 export const updateOrderStatus = async (orderId: string, status: OrderStatus | string) => {

@@ -230,10 +230,56 @@ export type ProductReturnListRow = {
   has_exchange: boolean;
 };
 
-export const loadProductReturns = async (): Promise<ProductReturnListRow[]> => {
-  const { data, error } = await supabase
+export type ProductReturnsPageResult = {
+  rows: ProductReturnListRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+const mapProductReturnListRow = (raw: unknown): ProductReturnListRow => {
+  const row = raw as {
+    id: string;
+    order_id: string;
+    reason: string;
+    created_at: string;
+    financial_pending_amount: number;
+    orders: { customer_name: string } | { customer_name: string }[] | null;
+    product_return_items:
+      | { quantity: number; stock_action: string; resolution: string }[]
+      | null;
+  };
+  const orderRel = Array.isArray(row.orders) ? row.orders[0] : row.orders;
+  const items = row.product_return_items ?? [];
+  return {
+    id: row.id,
+    order_id: row.order_id,
+    customer_name: orderRel?.customer_name ?? "—",
+    reason: row.reason,
+    created_at: row.created_at,
+    units_returned: items.reduce((s, i) => s + Number(i.quantity || 0), 0),
+    units_restocked: items
+      .filter((i) => i.stock_action === "retornar_ao_estoque")
+      .reduce((s, i) => s + Number(i.quantity || 0), 0),
+    financial_pending_amount: Number(row.financial_pending_amount || 0),
+    has_exchange: items.some((i) => i.resolution === "troca"),
+  };
+};
+
+/** Listagem paginada; detalhes completos só via loadProductReturnDetail. */
+export const loadProductReturnsPage = async (opts: {
+  page: number;
+  pageSize?: number;
+}): Promise<ProductReturnsPageResult> => {
+  const pageSize = Math.min(100, Math.max(1, opts.pageSize ?? 25));
+  const page = Math.max(1, Math.floor(opts.page || 1));
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  const { data, error, count } = await supabase
     .from("product_returns")
-    .select(`
+    .select(
+      `
       id,
       order_id,
       reason,
@@ -241,39 +287,24 @@ export const loadProductReturns = async (): Promise<ProductReturnListRow[]> => {
       financial_pending_amount,
       orders!inner(customer_name),
       product_return_items(quantity, stock_action, resolution)
-    `)
+    `,
+      { count: "exact" },
+    )
     .order("created_at", { ascending: false })
-    .limit(200);
+    .range(from, to);
   if (error) throw error;
 
-  return (data ?? []).map((raw) => {
-    const row = raw as {
-      id: string;
-      order_id: string;
-      reason: string;
-      created_at: string;
-      financial_pending_amount: number;
-      orders: { customer_name: string } | { customer_name: string }[] | null;
-      product_return_items:
-        | { quantity: number; stock_action: string; resolution: string }[]
-        | null;
-    };
-    const orderRel = Array.isArray(row.orders) ? row.orders[0] : row.orders;
-    const items = row.product_return_items ?? [];
-    return {
-      id: row.id,
-      order_id: row.order_id,
-      customer_name: orderRel?.customer_name ?? "—",
-      reason: row.reason,
-      created_at: row.created_at,
-      units_returned: items.reduce((s, i) => s + Number(i.quantity || 0), 0),
-      units_restocked: items
-        .filter((i) => i.stock_action === "retornar_ao_estoque")
-        .reduce((s, i) => s + Number(i.quantity || 0), 0),
-      financial_pending_amount: Number(row.financial_pending_amount || 0),
-      has_exchange: items.some((i) => i.resolution === "troca"),
-    };
-  });
+  return {
+    rows: (data ?? []).map(mapProductReturnListRow),
+    total: count ?? 0,
+    page,
+    pageSize,
+  };
+};
+
+export const loadProductReturns = async (): Promise<ProductReturnListRow[]> => {
+  const page = await loadProductReturnsPage({ page: 1, pageSize: 25 });
+  return page.rows;
 };
 
 export type ProductReturnDetail = {

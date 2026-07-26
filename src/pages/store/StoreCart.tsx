@@ -26,7 +26,15 @@ const StoreCart = () => {
         <h1 className="font-display text-3xl mb-4">Seu carrinho</h1>
         {items.map(i => (
           <div key={i.product.id} className="flex gap-4 rounded-xl border border-border bg-card p-4">
-            <img src={i.product.image} alt={i.product.name} className="h-24 w-24 rounded-lg object-cover border border-border" />
+            <img
+              src={i.product.image}
+              alt={i.product.name}
+              width={96}
+              height={96}
+              loading="lazy"
+              decoding="async"
+              className="h-24 w-24 rounded-lg object-cover border border-border"
+            />
             <div className="flex-1 min-w-0">
               <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{i.product.category}</p>
               <h3 className="font-display text-lg leading-tight">{i.product.name}</h3>

@@ -102,7 +102,16 @@ const StoreProduct = () => {
           <div className="relative aspect-square rounded-2xl overflow-hidden border border-border bg-card">
             <div className="flex h-full w-full transition-transform duration-500 ease-out" style={{ transform: `translateX(-${slide * 100}%)` }}>
               {gallery.map((src, i) => (
-                <img key={i} src={src} alt={`${product.name} ${i + 1}`} className="h-full w-full flex-shrink-0 object-cover" />
+                <img
+                  key={i}
+                  src={src}
+                  alt={`${product.name} ${i + 1}`}
+                  width={800}
+                  height={800}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  decoding="async"
+                  className="h-full w-full flex-shrink-0 object-cover"
+                />
               ))}
             </div>
             {gallery.length > 1 && (
@@ -125,7 +134,7 @@ const StoreProduct = () => {
             <div className="flex gap-2 overflow-x-auto">
               {gallery.map((src, i) => (
                 <button key={i} type="button" onClick={() => setSlide(i)} className={`h-16 w-16 flex-shrink-0 rounded-md overflow-hidden border-2 transition-colors ${i === slide ? "border-primary" : "border-border"}`}>
-                  <img src={src} alt="" className="h-full w-full object-cover" />
+                  <img src={src} alt="" width={80} height={80} loading="lazy" decoding="async" className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>

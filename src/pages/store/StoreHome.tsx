@@ -98,6 +98,10 @@ const StoreHome = () => {
               key={b + i}
               src={b}
               alt={`Banner ${i + 1} ${store.storeName}`}
+              width={1600}
+              height={900}
+              decoding="async"
+              fetchPriority={i === 0 ? "high" : "low"}
               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1400ms] ${i === bannerIdx ? "opacity-100" : "opacity-0"}`}
             />
           ))}
@@ -397,7 +401,15 @@ const StoreHome = () => {
             {quickProduct && (
               <div className="flex flex-col">
                 <div className="aspect-square bg-secondary/50">
-                  <img src={quickProduct.image} alt={quickProduct.name} className="w-full h-full object-cover" />
+                  <img
+                    src={quickProduct.image}
+                    alt={quickProduct.name}
+                    width={480}
+                    height={480}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div className="p-5 space-y-3">
                   <DialogHeader className="space-y-1 text-left">

@@ -4,9 +4,10 @@ import { ArrowLeftRight, Loader2, PackageOpen } from "lucide-react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { formatBRL } from "@/lib/format";
+import { DEFAULT_PAGE_SIZE, shouldLoadDetail } from "@/lib/pagination";
 import {
   loadProductReturnDetail,
-  loadProductReturns,
+  loadProductReturnsPage,
   RETURN_CONDITION_LABELS,
   RETURN_RESOLUTION_LABELS,
   RETURN_STOCK_ACTION_LABELS,
@@ -24,27 +25,48 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ListPagination } from "@/components/system/ListPagination";
 import { toast } from "sonner";
 
 const AdminReturns = () => {
   const [rows, setRows] = useState<ProductReturnListRow[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [detail, setDetail] = useState<ProductReturnDetail | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [detailId, setDetailId] = useState<string | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
   useEffect(() => {
-    loadProductReturns()
-      .then(setRows)
+    let alive = true;
+    setLoading(true);
+    setError(null);
+    loadProductReturnsPage({ page, pageSize: DEFAULT_PAGE_SIZE })
+      .then((result) => {
+        if (!alive) return;
+        setRows(result.rows);
+        setTotal(result.total);
+      })
       .catch((e: unknown) => {
+        if (!alive) return;
+        setRows([]);
+        setTotal(0);
+        setError(e instanceof Error ? e.message : "Não foi possível carregar devoluções.");
         toast.error("Não foi possível carregar devoluções", {
           description: e instanceof Error ? e.message : "Erro desconhecido.",
         });
       })
-      .finally(() => setLoading(false));
-  }, []);
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => { alive = false; };
+  }, [page]);
 
   const openDetail = async (id: string) => {
+    if (!shouldLoadDetail({ open: true, id })) return;
+    setDetailId(id);
     setDetailOpen(true);
     setDetailLoading(true);
     setDetail(null);
@@ -55,6 +77,7 @@ const AdminReturns = () => {
         description: e instanceof Error ? e.message : "Erro desconhecido.",
       });
       setDetailOpen(false);
+      setDetailId(null);
     } finally {
       setDetailLoading(false);
     }
@@ -83,7 +106,14 @@ const AdminReturns = () => {
         </Button>
       </div>
 
-      {loading ? (
+      {error && !loading ? (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center space-y-3">
+          <p className="text-sm text-destructive">{error}</p>
+          <Button type="button" variant="outline" size="sm" onClick={() => setPage((p) => p)}>
+            Tentar novamente
+          </Button>
+        </div>
+      ) : loading ? (
         <div className="flex h-40 items-center justify-center text-muted-foreground">
           <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Carregando...
         </div>
@@ -113,6 +143,7 @@ const AdminReturns = () => {
                         type="button"
                         className="font-mono text-primary underline-offset-2 hover:underline"
                         onClick={() => void openDetail(r.id)}
+                        disabled={detailLoading && detailId === r.id}
                       >
                         {r.order_id.slice(0, 8)}
                       </button>
@@ -120,14 +151,16 @@ const AdminReturns = () => {
                     <td className="hidden px-5 py-3 sm:table-cell">{r.customer_name}</td>
                     <td className="px-5 py-3">{r.units_returned}</td>
                     <td className="px-5 py-3">{r.units_restocked}</td>
-                    <td className="hidden px-5 py-3 md:table-cell">{formatBRL(r.financial_pending_amount)}</td>
+                    <td className="hidden px-5 py-3 md:table-cell text-muted-foreground">
+                      {formatBRL(r.financial_pending_amount)}
+                    </td>
                     <td className="px-5 py-3">
                       {r.has_exchange ? (
                         <span className="inline-flex items-center gap-1 text-xs text-gold">
                           <ArrowLeftRight className="h-3.5 w-3.5" /> Troca
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-xs text-primary">
+                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                           <PackageOpen className="h-3.5 w-3.5" /> Devolução
                         </span>
                       )}
@@ -137,17 +170,33 @@ const AdminReturns = () => {
                 {rows.length === 0 && (
                   <tr>
                     <td colSpan={7} className="px-5 py-10 text-center text-sm text-muted-foreground">
-                      Nenhuma devolução física registrada ainda.
+                      Nenhuma devolução registrada.
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
+          <ListPagination
+            page={page}
+            total={total}
+            pageSize={DEFAULT_PAGE_SIZE}
+            disabled={loading}
+            onPageChange={setPage}
+          />
         </div>
       )}
 
-      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+      <Dialog
+        open={detailOpen}
+        onOpenChange={(open) => {
+          setDetailOpen(open);
+          if (!open) {
+            setDetail(null);
+            setDetailId(null);
+          }
+        }}
+      >
         <DialogContent className="max-h-[85vh] overflow-y-auto border-border bg-card sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="font-display text-2xl text-gold">Detalhe da devolução</DialogTitle>

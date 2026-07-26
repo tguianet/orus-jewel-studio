@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
+import { resolveManualChunk } from "./src/lib/manualChunks";
 // mcpPlugin removido: regenerava supabase/functions/mcp com caminho absoluto Windows.
 // A Edge Function em supabase/functions/mcp é mantida manualmente (imports Deno/npm).
 
@@ -183,6 +184,14 @@ export default defineConfig(({ mode }) => ({
       },
     }),
   ].filter(Boolean),
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: resolveManualChunk,
+      },
+    },
+    chunkSizeWarningLimit: 600,
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
