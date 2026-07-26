@@ -6,6 +6,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const JOB_SECRET = Deno.env.get("EXPIRE_JOB_SECRET") ?? "";
+const CRON_SECRET = Deno.env.get("EXPIRE_JOB_CRON_SECRET") ?? "";
 
 const BATCH_LIMIT = 100;
 
