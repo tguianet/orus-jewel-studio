@@ -100,7 +100,7 @@ const AdminAdministrators = () => {
 
   const openRevokeConfirm = (admin: AdministratorRow) => {
     const guard = canRevokeAdministrator(admin.user_id, admins);
-    if (!guard.ok) {
+    if (guard.ok === false) {
       toast.error(guard.reason);
       return;
     }
@@ -229,6 +229,8 @@ const AdminAdministrators = () => {
             <tbody>
               {admins.map((admin) => {
                 const guard = canRevokeAdministrator(admin.user_id, admins);
+                const canRevoke = guard.ok === true;
+                const revokeBlockedReason = guard.ok === false ? guard.reason : "Remover admin";
                 const isSelf = admin.user_id === currentUserId;
                 return (
                   <tr key={admin.user_id} className="border-b border-border/70 last:border-0">
@@ -251,8 +253,8 @@ const AdminAdministrators = () => {
                         type="button"
                         variant="outline"
                         size="sm"
-                        disabled={submitting || !guard.ok}
-                        title={!guard.ok ? guard.reason : "Remover admin"}
+                        disabled={submitting || !canRevoke}
+                        title={revokeBlockedReason}
                         onClick={() => openRevokeConfirm(admin)}
                       >
                         <UserMinus className="h-4 w-4" />

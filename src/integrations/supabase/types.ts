@@ -934,6 +934,42 @@ export type Database = {
           },
         ]
       }
+      admin_role_audit_log: {
+        Row: {
+          id: string
+          target_user_id: string
+          action: string
+          previous_role: string | null
+          new_role: string | null
+          performed_by: string
+          reason: string | null
+          metadata: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          target_user_id: string
+          action: string
+          previous_role?: string | null
+          new_role?: string | null
+          performed_by: string
+          reason?: string | null
+          metadata?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          target_user_id?: string
+          action?: string
+          previous_role?: string | null
+          new_role?: string | null
+          performed_by?: string
+          reason?: string | null
+          metadata?: Json
+          created_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1035,6 +1071,26 @@ export type Database = {
       }
     }
     Functions: {
+      admin_list_administrators: {
+        Args: never
+        Returns: Json
+      }
+      admin_search_users: {
+        Args: { p_query: string; p_limit?: number }
+        Returns: Json
+      }
+      admin_grant_role: {
+        Args: { p_user_id: string; p_reason?: string | null }
+        Returns: Json
+      }
+      admin_revoke_role: {
+        Args: { p_user_id: string; p_reason: string }
+        Returns: Json
+      }
+      admin_get_role_audit: {
+        Args: { p_page?: number; p_page_size?: number }
+        Returns: Json
+      }
       /** Somente is_admin — sacoleira/anon são negados no corpo da função. */
       admin_product_costs: {
         Args: never

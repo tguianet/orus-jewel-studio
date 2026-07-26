@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Loader2, Plus, Trash2, Printer } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Loader2, Plus, Trash2, Printer, Shield } from "lucide-react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Input } from "@/components/ui/input";
@@ -263,6 +264,21 @@ ${orders.map((o) => `
         </TabsList>
 
         <TabsContent value="geral" className="mt-6 space-y-5">
+          <div className="rounded-xl border border-border bg-card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 max-w-4xl">
+            <div>
+              <h3 className="font-display text-xl">Administradores</h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Liste, promova ou remova admins com auditoria. A fonte oficial é <code>user_roles</code>.
+              </p>
+            </div>
+            <Button asChild variant="goldOutline">
+              <Link to="/admin/configuracoes/administradores">
+                <Shield className="h-4 w-4" />
+                Administradores
+              </Link>
+            </Button>
+          </div>
+
           <div className="rounded-xl border border-border bg-card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 max-w-4xl">
             <div>
               <h3 className="font-display text-xl">Pedidos do dia</h3>

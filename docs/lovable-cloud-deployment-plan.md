@@ -21,8 +21,9 @@ Aplicar **nesta ordem** (já cronológica no repo):
 | 4 | `20260801120000_legal_consents.sql` | LGPD + checkout | 1 overload `create_public_order` com `p_consents`; checkout real |
 | 5 | `20260802120000_operational_error_logs.sql` | Observabilidade | `report_operational_error` |
 | 6 | `20260803120000_operational_reports.sql` | Relatórios | `admin_get_sales_summary` |
+| 7 | `20260804120000_admin_management.sql` | Admins | `admin_list_administrators`; INSERT direto em `user_roles` bloqueado |
 
-Dependências anteriores já devem existir: stock, cancel restore, physical returns, commissions, wallet, `admin_product_costs` base, checkout token.
+Dependências anteriores já devem existir: stock, cancel restore, physical returns, commissions, wallet, `admin_product_costs` base, checkout token, `user_roles`/`is_admin()`.
 
 ## 3. Quais podem ir juntas
 
@@ -30,6 +31,7 @@ Dependências anteriores já devem existir: stock, cancel restore, physical retu
 - **Bloco B (financeiro sacoleira):** 3 — validar wallet/saques antes de seguir.
 - **Bloco C (checkout legal):** 4 — **validação obrigatória imediata** (checkout quebra sem consents).
 - **Bloco D (ops):** 5+6 — podem ir juntos após B/C.
+- **Bloco E (admins):** 7 — após `is_admin()`/`user_roles` estáveis; publicar FE da tela só depois do SQL.
 
 Não pular a 4 se o frontend já envia `p_consents`.
 

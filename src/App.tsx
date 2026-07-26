@@ -44,6 +44,7 @@ const AdminInventoryReport = lazy(() => import("./pages/admin/reports/InventoryR
 const AdminProductsReport = lazy(() => import("./pages/admin/reports/ProductsReport"));
 const AdminExpiredOrdersReport = lazy(() => import("./pages/admin/reports/ExpiredOrdersReport"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
+const AdminAdministrators = lazy(() => import("./pages/admin/AdminAdministrators"));
 const AdminNetwork = lazy(() => import("./pages/admin/AdminNetwork"));
 const AdminBanners = lazy(() => import("./pages/admin/AdminBanners"));
 
@@ -134,6 +135,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
                 <Route path="/admin/relatorios/produtos" element={<Admin><AdminProductsReport /></Admin>} />
                 <Route path="/admin/relatorios/expirados" element={<Admin><AdminExpiredOrdersReport /></Admin>} />
                 <Route path="/admin/configuracoes" element={<Admin><AdminSettings /></Admin>} />
+                <Route path="/admin/configuracoes/administradores" element={<Admin><AdminAdministrators /></Admin>} />
                 <Route path="/admin/rede" element={<Admin><AdminNetwork /></Admin>} />
                 <Route path="/admin/banners" element={<Admin><AdminBanners /></Admin>} />
                 <Route path="/admin/banners/:formatSlug" element={<Admin><AdminBanners /></Admin>} />
