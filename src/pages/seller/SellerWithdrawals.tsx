@@ -13,7 +13,6 @@ import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
 import {
   cancelWithdrawal,
   fetchMyWithdrawalSummary,
-  friendlyWithdrawalError,
   listMyWithdrawals,
 } from "@/lib/withdrawals";
 import { canSellerCancel } from "@/lib/withdrawalStatus";
@@ -22,6 +21,7 @@ import {
   recordAuthenticatedConsent,
 } from "@/lib/legalConsents";
 import type { WithdrawalListItem, WithdrawalSummary } from "@/types/withdrawals";
+import { normalizeError, showAppError } from "@/lib/errors";
 import { toast } from "sonner";
 
 const SellerWithdrawals = () => {
@@ -45,9 +45,7 @@ const SellerWithdrawals = () => {
       setItems(list.items);
       setTotal(list.total);
     } catch (e) {
-      toast.error("Não foi possível carregar saques", {
-        description: friendlyWithdrawalError(e instanceof Error ? e.message : String(e)),
-      });
+      showAppError(normalizeError(e, { operation: "list_my_withdrawals" }));
     } finally {
       setLoading(false);
     }
@@ -65,9 +63,11 @@ const SellerWithdrawals = () => {
       toast.success("Cancelamento realizado.");
       await reload();
     } catch (e) {
-      toast.error("Não foi possível cancelar", {
-        description: friendlyWithdrawalError(e instanceof Error ? e.message : String(e)),
-      });
+      showAppError(normalizeError(e, {
+        operation: "cancel_withdrawal",
+        entityType: "withdrawal",
+        entityId: id,
+      }));
     } finally {
       setCancellingId(null);
     }
@@ -126,9 +126,9 @@ const SellerWithdrawals = () => {
                     await recordAuthenticatedConsent("withdrawal_policy", "withdrawal_request");
                     toast.success("Política de Saques aceita");
                   } catch (e) {
-                    toast.error("Aceite a política em Consentimentos", {
-                      description: e instanceof Error ? e.message : "Erro",
-                    });
+                    showAppError(normalizeError(e, {
+                      operation: "record_authenticated_consent",
+                    }));
                     nav("/sacoleira/consentimentos");
                     return;
                   }

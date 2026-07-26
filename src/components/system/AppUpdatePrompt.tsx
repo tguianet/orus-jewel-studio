@@ -13,6 +13,7 @@ import {
   subscribePwaUpdate,
   type PwaUpdateState,
 } from "@/lib/pwaUpdate";
+import { AppError, showAppError } from "@/lib/errors";
 
 /**
  * Banner de nova versão do PWA.
@@ -30,14 +31,36 @@ export function AppUpdatePrompt() {
     const hasFilledForm = pageHasFilledForm();
     const needsConfirm = shouldConfirmBeforeUpdate({ pathname, hasFilledForm });
 
-    if (needsConfirm) {
-      const ok = window.confirm(PWA_CHECKOUT_UPDATE_CONFIRM);
-      if (!ok) return;
-      await applyPwaUpdate({ requireConfirm: true, confirmed: true });
-      return;
-    }
+    try {
+      let result;
+      if (needsConfirm) {
+        const ok = window.confirm(PWA_CHECKOUT_UPDATE_CONFIRM);
+        if (!ok) return;
+        result = await applyPwaUpdate({ requireConfirm: true, confirmed: true });
+      } else {
+        result = await applyPwaUpdate();
+      }
 
-    await applyPwaUpdate();
+      if (!result.ok && result.reason !== "cancelled" && result.reason !== "updating") {
+        showAppError(
+          new AppError({
+            code: "PWA_UPDATE_FAILED",
+            operation: "pwa_update",
+            metadata: { status: result.reason },
+          }),
+        );
+      }
+    } catch (e) {
+      showAppError(
+        e instanceof AppError
+          ? e
+          : new AppError({
+              code: "PWA_UPDATE_FAILED",
+              operation: "pwa_update",
+              originalError: e,
+            }),
+      );
+    }
   };
 
   return (

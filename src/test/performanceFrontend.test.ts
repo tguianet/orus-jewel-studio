@@ -31,9 +31,11 @@ describe("frontend performance helpers", () => {
 
   it("C — erro de import tem recuperação amigável", () => {
     const src = readFileSync(path.join(root, "src/components/system/LazyRouteErrorBoundary.tsx"), "utf8");
-    expect(src).toContain("Tentar de novo");
+    expect(src).toContain("ErrorFallback");
+    expect(src).toContain("onRetry");
     expect(src).toContain("getDerivedStateFromError");
     expect(readFileSync(path.join(root, "src/App.tsx"), "utf8")).toContain("LazyRouteErrorBoundary");
+    expect(readFileSync(path.join(root, "src/components/errors/ErrorFallback.tsx"), "utf8")).toContain("Tentar novamente");
   });
 
   it("D — paginação calcula páginas", () => {

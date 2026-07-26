@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useState } from "react";
-import { LayoutDashboard, Package, PackageOpen, Tags, Users, ShoppingBag, Wallet, Settings, Network, Image as ImageIcon, Banknote, ScrollText, FileText } from "lucide-react";
+import { LayoutDashboard, Package, PackageOpen, Tags, Users, ShoppingBag, Wallet, Settings, Network, Image as ImageIcon, Banknote, ScrollText, FileText, AlertTriangle } from "lucide-react";
 import { AppShell, NavItem } from "@/components/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
 import { ImageFormat, loadImageFormats } from "@/lib/marketingBanners";
@@ -23,6 +23,7 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
     { label: "Saques", to: "/admin/saques", icon: Banknote },
     { label: "Docs legais", to: "/admin/documentos-legais", icon: FileText },
     { label: "Consentimentos", to: "/admin/consentimentos", icon: ScrollText },
+    { label: "Erros", to: "/admin/erros-operacionais", icon: AlertTriangle },
     {
       label: "Marketing",
       to: "/admin/banners",

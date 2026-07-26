@@ -13,7 +13,8 @@ import {
   getSafeRedirectForRole,
   type AppRole,
 } from "@/lib/safeRedirect";
-import { friendlyAuthError } from "@/lib/authSession";
+import { AppError, normalizeError, showAppError } from "@/lib/errors";
+import { assertOnlineForCritical } from "@/lib/networkStatus";
 
 interface Props { role: "admin" | "sacoleira" }
 
@@ -41,13 +42,20 @@ const LoginPage = ({ role }: Props) => {
     const f = new FormData(e.currentTarget);
     const email = String(f.get("email"));
     setBusy(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    setBusy(false);
-    if (error) {
-      toast.error("Não foi possível enviar", { description: friendlyAuthError(error.message) });
+    try {
+      assertOnlineForCritical("reset_password");
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) {
+        showAppError(normalizeError(error, { operation: "reset_password" }), { showCorrelation: false });
+        return;
+      }
+    } catch (e) {
+      showAppError(normalizeError(e, { operation: "reset_password" }), { showCorrelation: false });
       return;
+    } finally {
+      setBusy(false);
     }
     toast.success("Email enviado!", { description: "Verifique sua caixa de entrada para redefinir sua senha." });
     setMode("signin");
@@ -59,9 +67,13 @@ const LoginPage = ({ role }: Props) => {
     const f = new FormData(e.currentTarget);
     setBusy(true);
     try {
+      assertOnlineForCritical("sign_in");
       const result = await signIn(String(f.get("email")), String(f.get("password")));
       if (result.error) {
-        toast.error("Não foi possível entrar", { description: friendlyAuthError(result.error) });
+        showAppError(
+          normalizeError(new Error(result.error), { operation: "sign_in" }),
+          { showCorrelation: false },
+        );
         return;
       }
       const roles = (result.roles?.length
@@ -78,12 +90,26 @@ const LoginPage = ({ role }: Props) => {
 
       // Login de admin exige role admin; sacoleira exige sacoleira (admin pode cair no fallback admin)
       if (isAdmin && !roles.includes("admin")) {
-        toast.error("Acesso negado", { description: "Esta conta não é administrativa." });
+        showAppError(
+          new AppError({
+            code: "AUTH_ACCESS_DENIED",
+            operation: "sign_in_role_check",
+            userMessage: "Esta conta não é administrativa.",
+          }),
+          { showCorrelation: false },
+        );
         nav(fallbackPathForRoles(roles), { replace: true });
         return;
       }
       if (!isAdmin && !roles.includes("sacoleira") && !roles.includes("admin")) {
-        toast.error("Acesso negado", { description: "Esta conta não tem perfil de sacoleira." });
+        showAppError(
+          new AppError({
+            code: "AUTH_ACCESS_DENIED",
+            operation: "sign_in_role_check",
+            userMessage: "Esta conta não tem perfil de sacoleira.",
+          }),
+          { showCorrelation: false },
+        );
         nav(fallbackPathForRoles(roles), { replace: true });
         return;
       }
@@ -91,6 +117,8 @@ const LoginPage = ({ role }: Props) => {
       const dest = getSafeRedirectForRole(rawNext, roles);
       toast.success("Bem-vinda de volta!");
       nav(dest, { replace: true });
+    } catch (e) {
+      showAppError(normalizeError(e, { operation: "sign_in" }), { showCorrelation: false });
     } finally {
       setBusy(false);
     }
@@ -110,7 +138,10 @@ const LoginPage = ({ role }: Props) => {
         parentResellerId: String(f.get("sponsor") || "") || undefined,
       });
       if (error) {
-        toast.error("Cadastro falhou", { description: friendlyAuthError(error) });
+        showAppError(
+          normalizeError(new Error(error), { operation: "sign_up" }),
+          { showCorrelation: false },
+        );
         return;
       }
       toast.success("Cadastro concluído!", { description: "Você já pode entrar." });

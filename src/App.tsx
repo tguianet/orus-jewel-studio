@@ -10,6 +10,8 @@ import { AppUpdatePrompt } from "./components/system/AppUpdatePrompt";
 import { LazyRouteErrorBoundary } from "./components/system/LazyRouteErrorBoundary";
 import { OfflineBanner } from "./components/system/OfflineBanner";
 import { RouteFallback } from "./components/system/RouteFallback";
+import { AppErrorBoundary } from "./components/errors/AppErrorBoundary";
+import { RouteErrorBoundary } from "./components/errors/RouteErrorBoundary";
 import { PwaManifestSwitcher } from "./pwa/PwaManifestSwitcher";
 
 const Landing = lazy(() => import("./pages/Landing"));
@@ -17,6 +19,7 @@ const LoginPage = lazy(() => import("./pages/LoginPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const PendingAccessPage = lazy(() => import("./pages/PendingAccessPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const ErrorPage = lazy(() => import("./pages/ErrorPage"));
 const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
@@ -29,6 +32,7 @@ const AdminFinance = lazy(() => import("./pages/admin/AdminFinance"));
 const AdminWithdrawals = lazy(() => import("./pages/admin/AdminWithdrawals"));
 const AdminLegalDocuments = lazy(() => import("./pages/admin/AdminLegalDocuments"));
 const AdminLegalConsents = lazy(() => import("./pages/admin/AdminLegalConsents"));
+const AdminOperationalErrors = lazy(() => import("./pages/admin/AdminOperationalErrors"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 const AdminNetwork = lazy(() => import("./pages/admin/AdminNetwork"));
 const AdminBanners = lazy(() => import("./pages/admin/AdminBanners"));
@@ -71,6 +75,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
     <TooltipProvider>
     <Toaster />
     <Sonner position="top-center" />
+    <AppErrorBoundary>
     <AuthProvider>
       <CartProvider>
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
@@ -78,6 +83,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
           <OfflineBanner />
           <AppUpdatePrompt />
           <LazyRouteErrorBoundary>
+            <RouteErrorBoundary name="app-routes">
             <Suspense fallback={<RouteFallback />}>
               <Routes>
                 <Route path="/" element={<Landing />} />
@@ -85,6 +91,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
                 <Route path="/login-sacoleira" element={<LoginPage role="sacoleira" />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/acesso-pendente" element={<PendingAccessPage />} />
+                <Route path="/erro" element={<ErrorPage />} />
                 <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
 
                 <Route path="/politica-de-privacidade" element={<PrivacyPolicy />} />
@@ -104,6 +111,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
                 <Route path="/admin/saques" element={<Admin><AdminWithdrawals /></Admin>} />
                 <Route path="/admin/documentos-legais" element={<Admin><AdminLegalDocuments /></Admin>} />
                 <Route path="/admin/consentimentos" element={<Admin><AdminLegalConsents /></Admin>} />
+                <Route path="/admin/erros-operacionais" element={<Admin><AdminOperationalErrors /></Admin>} />
                 <Route path="/admin/configuracoes" element={<Admin><AdminSettings /></Admin>} />
                 <Route path="/admin/rede" element={<Admin><AdminNetwork /></Admin>} />
                 <Route path="/admin/banners" element={<Admin><AdminBanners /></Admin>} />
@@ -135,10 +143,12 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
+            </RouteErrorBoundary>
           </LazyRouteErrorBoundary>
         </BrowserRouter>
       </CartProvider>
     </AuthProvider>
+    </AppErrorBoundary>
     </TooltipProvider>
   </div>
 ));

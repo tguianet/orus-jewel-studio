@@ -10,9 +10,9 @@ import { WithdrawalStatusBadge } from "@/components/withdrawals/WithdrawalStatus
 import { AdminWithdrawalDetails } from "@/components/withdrawals/AdminWithdrawalDetails";
 import { formatBRL } from "@/lib/format";
 import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
-import { adminListWithdrawals, friendlyWithdrawalError } from "@/lib/withdrawals";
+import { adminListWithdrawals } from "@/lib/withdrawals";
 import type { AdminWithdrawalListItem, AdminWithdrawalStats } from "@/types/withdrawals";
-import { toast } from "sonner";
+import { normalizeError, showAppError } from "@/lib/errors";
 
 const emptyFilters = (): WithdrawalFilterState => ({
   status: "",
@@ -57,9 +57,7 @@ const AdminWithdrawals = () => {
         setStats(res.stats);
       })
       .catch((e: unknown) => {
-        toast.error("Falha ao listar saques", {
-          description: friendlyWithdrawalError(e instanceof Error ? e.message : String(e)),
-        });
+        showAppError(normalizeError(e, { operation: "admin_list_withdrawals" }));
       })
       .finally(() => setLoading(false));
   }, [applied, page]);

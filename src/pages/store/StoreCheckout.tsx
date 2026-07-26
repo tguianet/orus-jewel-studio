@@ -28,6 +28,12 @@ import {
   reconcileAcceptedWithDocs,
 } from "@/lib/legalConsents";
 import type { LegalDocument } from "@/types/legal";
+import {
+  createCorrelationId,
+  normalizeError,
+  showAppError,
+} from "@/lib/errors";
+import { assertOnlineForCritical } from "@/lib/networkStatus";
 import { toast } from "sonner";
 
 type Step = "form" | "processing" | "success";
@@ -234,7 +240,10 @@ const StoreCheckout = () => {
 
     setSubmitting(true);
     setStep("processing");
+    const correlationId = createCorrelationId();
     try {
+      assertOnlineForCritical("create_public_order");
+
       const { data, error } = await supabase.rpc("create_public_order", {
         p_seller_store_id: store.id,
         p_customer_name: form.name.trim(),
@@ -270,27 +279,42 @@ const StoreCheckout = () => {
       setStep("success");
       toast.success("Pedido enviado com sucesso");
     } catch (err: unknown) {
-      console.error("[checkout] erro ao criar pedido:", err);
       const message =
         err && typeof err === "object" && "message" in err
           ? String((err as { message: string }).message)
           : "Não foi possível enviar o pedido";
 
+      const appErr = normalizeError(err, {
+        operation: "create_public_order",
+        correlationId,
+        entityType: "store",
+        entityId: store.id,
+        rpcName: "create_public_order",
+        route: typeof window !== "undefined" ? window.location.pathname : undefined,
+        metadata: { store_id: store.id },
+      });
+
       // Token terminal/expirado: limpa e gera novo na próxima tentativa
       if (isTerminalCheckoutTokenError(message)) {
         clearCheckoutToken(store.id);
+        showAppError(appErr, { silentToast: true });
         toast.error("Reserva expirada ou pedido encerrado", {
           description: "Seu carrinho foi mantido. Envie o pedido novamente para criar uma nova reserva.",
         });
       } else if (
-        message.toLowerCase().includes("termos foram atualizados")
+        appErr.code === "CHECKOUT_TERMS_UPDATED"
+        || appErr.code === "CONSENT_FAILED"
+        || message.toLowerCase().includes("termos foram atualizados")
         || message.toLowerCase().includes("consentimento")
       ) {
-        toast.error(friendlyLegalError(message));
+        showAppError(appErr, { silentToast: true });
+        toast.error(friendlyLegalError(message) || appErr.userMessage, {
+          description: `Código de suporte: ${appErr.correlationId}`,
+        });
         setAcceptedTypes(new Set());
         void fetchActiveLegalDocuments("checkout").then(setLegalDocs);
       } else {
-        toast.error("Erro ao enviar pedido", { description: message });
+        showAppError(appErr);
       }
       setStep("form");
     } finally {

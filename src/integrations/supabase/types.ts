@@ -1044,6 +1044,43 @@ export type Database = {
           wholesale_price: number
         }[]
       }
+      report_operational_error: {
+        Args: {
+          p_correlation_id: string
+          p_error_code: string
+          p_category: string
+          p_severity: string
+          p_operation?: string | null
+          p_route?: string | null
+          p_entity_type?: string | null
+          p_entity_id?: string | null
+          p_context?: Json
+        }
+        Returns: Json
+      }
+      admin_list_operational_errors: {
+        Args: {
+          p_severity?: string | null
+          p_category?: string | null
+          p_error_code?: string | null
+          p_route?: string | null
+          p_operation?: string | null
+          p_resolved?: boolean | null
+          p_date_from?: string | null
+          p_date_to?: string | null
+          p_page?: number
+          p_page_size?: number
+        }
+        Returns: Json
+      }
+      admin_get_operational_error: {
+        Args: { p_error_id: string }
+        Returns: Json
+      }
+      admin_resolve_operational_error: {
+        Args: { p_error_id: string; p_resolution_notes: string }
+        Returns: Json
+      }
       can_access_order: {
         Args: { _order_id: string; _user_id?: string }
         Returns: boolean

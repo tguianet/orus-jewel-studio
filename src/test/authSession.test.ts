@@ -45,7 +45,7 @@ describe("authSession", () => {
 
     const ctx = readFileSync(path.join(root, "src/contexts/AuthContext.tsx"), "utf8");
     expect(ctx).toContain("manualSignOutRef");
-    expect(ctx).toContain("SESSION_EXPIRED_MESSAGE");
+    expect(ctx).toContain("AUTH_SESSION_EXPIRED");
     expect(ctx).toMatch(/if \(manualSignOutRef\.current\)[\s\S]*return/);
   });
 

@@ -9,16 +9,20 @@ import {
   useState,
 } from "react";
 import { Session, User } from "@supabase/supabase-js";
-import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { clearAuthStorage, isRefreshTokenError } from "@/lib/authStorage";
 import {
   beginSessionExpiryRedirect,
   endSessionExpiryRedirect,
   resolveSessionExpiryLoginPath,
-  SESSION_EXPIRED_MESSAGE,
   shouldTreatAsSessionExpiry,
 } from "@/lib/authSession";
+import {
+  AppError,
+  clearUserContext,
+  setUserContext,
+  showAppError,
+} from "@/lib/errors";
 import type { AppRole } from "@/lib/safeRedirect";
 
 export type { AppRole };
@@ -109,7 +113,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       currentPath: path,
     });
 
-    toast.error(SESSION_EXPIRED_MESSAGE);
+    showAppError(
+      new AppError({
+        code: "AUTH_SESSION_EXPIRED",
+        operation: "session_expired",
+      }),
+      { showCorrelation: false },
+    );
+    clearUserContext();
     window.setTimeout(() => {
       window.location.assign(loginUrl);
       endSessionExpiryRedirect();
@@ -141,6 +152,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const run = (async () => {
       const extras = await loadExtras(s.user);
       lastRoleRef.current = extras.role;
+      setUserContext({
+        userId: s.user.id,
+        role: extras.role,
+        resellerId: extras.resellerId ?? null,
+        storeId: extras.storeId ?? null,
+      });
       setProfile({ user: s.user, session: s, ...extras });
     })();
     hydrateInFlight.current = run;
@@ -259,6 +276,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await supabase.auth.signOut();
       } finally {
         clearAuthStorage();
+        clearUserContext();
         setSession(null);
         setProfile(null);
       }

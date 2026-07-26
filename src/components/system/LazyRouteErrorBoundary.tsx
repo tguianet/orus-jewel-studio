@@ -1,48 +1,49 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
-import { Button } from "@/components/ui/button";
-import { OrusLogo } from "@/components/OrusLogo";
+import { normalizeError, reportError, createCorrelationId } from "@/lib/errors";
+import { ErrorFallback } from "@/components/errors/ErrorFallback";
 
 type Props = { children: ReactNode };
-type State = { error: Error | null };
+type State = { correlationId: string | null; message: string | null };
 
 /**
- * C — erro de import lazy mostra recuperação amigável.
+ * Erro de import lazy — recuperação amigável com correlationId.
  */
 export class LazyRouteErrorBoundary extends Component<Props, State> {
-  state: State = { error: null };
+  state: State = { correlationId: null, message: null };
 
   static getDerivedStateFromError(error: Error): State {
-    return { error };
+    const normalized = normalizeError(error, {
+      operation: "lazy_route_import",
+      correlationId: createCorrelationId(),
+    });
+    return { correlationId: normalized.correlationId, message: normalized.userMessage };
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error("[lazy-route]", error, info.componentStack);
+    const normalized = normalizeError(error, {
+      operation: "lazy_route_import",
+      correlationId: this.state.correlationId ?? createCorrelationId(),
+      metadata: { componentStack: String(info.componentStack ?? "").slice(0, 200) },
+    });
+    void reportError(normalized);
   }
 
   private retry = () => {
-    this.setState({ error: null });
+    this.setState({ correlationId: null, message: null });
     window.location.reload();
   };
 
   render() {
-    if (!this.state.error) return this.props.children;
+    if (!this.state.correlationId) return this.props.children;
 
     return (
-      <div className="min-h-[60vh] flex items-center justify-center p-6">
-        <div className="max-w-md w-full text-center space-y-5 rounded-2xl border border-border bg-card p-8">
-          <OrusLogo size="sm" className="justify-center" />
-          <div className="space-y-2">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-primary">Falha ao carregar</p>
-            <h1 className="font-display text-2xl font-light">Não foi possível abrir esta página</h1>
-            <p className="text-sm text-muted-foreground">
-              A conexão pode ter falhado ao baixar a tela. Tente novamente.
-            </p>
-          </div>
-          <Button type="button" variant="gold" onClick={this.retry}>
-            Tentar de novo
-          </Button>
-        </div>
-      </div>
+      <ErrorFallback
+        title="Não foi possível abrir esta página"
+        message={this.state.message || "A conexão pode ter falhado ao baixar a tela."}
+        correlationId={this.state.correlationId}
+        onRetry={this.retry}
+        onHome={() => { window.location.href = "/"; }}
+      />
     );
   }
 }

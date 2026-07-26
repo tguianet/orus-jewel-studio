@@ -72,6 +72,7 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { normalizeError, showAppError } from "@/lib/errors";
 
 /** cancelled removido: usar RPC cancel_order_with_stock_restore ou cancel_paid_order */
 const SELECT_STATUSES = ["new", "paid", "shipped", "delivered"] as const;
@@ -282,7 +283,11 @@ const AdminOrders = () => {
       }
       refresh();
     } catch (e: unknown) {
-      toast.error("Falhou", { description: e instanceof Error ? e.message : "Erro desconhecido." });
+      showAppError(normalizeError(e, {
+        operation: status === "paid" ? "mark_order_paid" : "update_order_status",
+        entityType: "order",
+        entityId: id,
+      }));
     }
   };
 
@@ -307,9 +312,11 @@ const AdminOrders = () => {
       toast.success("Pedido cancelado", { description: formatStockCancelToast(summary) });
       refresh();
     } catch (e: unknown) {
-      toast.error("Não foi possível cancelar", {
-        description: e instanceof Error ? e.message : "Erro desconhecido.",
-      });
+      showAppError(normalizeError(e, {
+        operation: "cancel_order_with_stock_restore",
+        entityType: "order",
+        entityId: stockCancelTarget.id,
+      }));
     } finally {
       setStockCancelSubmitting(false);
     }
@@ -336,9 +343,11 @@ const AdminOrders = () => {
       setTarget(null);
       refresh();
     } catch (e: unknown) {
-      toast.error("Não foi possível concluir", {
-        description: e instanceof Error ? e.message : "Erro desconhecido.",
-      });
+      showAppError(normalizeError(e, {
+        operation: action === "cancel" ? "cancel_paid_order" : "refund_paid_order",
+        entityType: "order",
+        entityId: target.id,
+      }));
     } finally {
       setSubmitting(false);
     }
@@ -456,9 +465,11 @@ const AdminOrders = () => {
       setReturnTarget(null);
       refresh();
     } catch (e: unknown) {
-      toast.error("Não foi possível registrar a devolução", {
-        description: e instanceof Error ? e.message : "Erro desconhecido.",
-      });
+      showAppError(normalizeError(e, {
+        operation: "register_physical_return",
+        entityType: "order",
+        entityId: returnTarget.id,
+      }));
     } finally {
       setReturnSubmitting(false);
     }
