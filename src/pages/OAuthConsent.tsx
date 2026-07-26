@@ -3,6 +3,9 @@ import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { OrusLogo } from "@/components/OrusLogo";
+import { buildLoginUrlWithNext, isSafeInternalPath } from "@/lib/safeRedirect";
+import { isAllowedOAuthRedirect, resolveOAuthRedirect } from "@/lib/oauthRedirect";
+import { friendlyAuthError } from "@/lib/authSession";
 
 // Local typed wrapper for the beta supabase.auth.oauth namespace.
 type OAuthClient = { name?: string; client_id?: string; redirect_uris?: string[] };
@@ -20,6 +23,12 @@ type OAuthApi = {
 };
 const oauthApi = (supabase.auth as unknown as { oauth: OAuthApi }).oauth;
 
+function safeNavigateToOAuthTarget(raw: string | null | undefined): string | null {
+  const resolved = resolveOAuthRedirect(raw, "/");
+  if (resolved.ok) return resolved.url;
+  return null;
+}
+
 export default function OAuthConsent() {
   const [params] = useSearchParams();
   const authorizationId = params.get("authorization_id") ?? "";
@@ -30,22 +39,42 @@ export default function OAuthConsent() {
   useEffect(() => {
     let active = true;
     (async () => {
-      if (!authorizationId) { setError("Requisição inválida: authorization_id ausente."); return; }
+      if (!authorizationId) {
+        setError("Requisição inválida: authorization_id ausente.");
+        return;
+      }
       const { data: sess } = await supabase.auth.getSession();
       if (!sess.session) {
-        const next = window.location.pathname + window.location.search;
-        window.location.href = "/login-sacoleira?next=" + encodeURIComponent(next);
+        const consentPath = "/.lovable/oauth/consent";
+        window.location.href = isSafeInternalPath(consentPath)
+          ? buildLoginUrlWithNext("/login-sacoleira", consentPath)
+          : "/login-sacoleira";
         return;
       }
       try {
-        const { data, error } = await oauthApi.getAuthorizationDetails(authorizationId);
+        const { data, error: loadErr } = await oauthApi.getAuthorizationDetails(authorizationId);
         if (!active) return;
-        if (error) { setError(error.message); return; }
+        if (loadErr) {
+          setError(friendlyAuthError(loadErr.message));
+          return;
+        }
         const immediate = data?.redirect_url ?? data?.redirect_to;
-        if (immediate && !data?.client) { window.location.href = immediate; return; }
+        if (immediate && !data?.client) {
+          if (!isAllowedOAuthRedirect(immediate)) {
+            setError("Redirecionamento OAuth inválido ou não autorizado.");
+            return;
+          }
+          const target = safeNavigateToOAuthTarget(immediate);
+          if (!target) {
+            setError("Redirecionamento OAuth inválido ou não autorizado.");
+            return;
+          }
+          window.location.href = target;
+          return;
+        }
         setDetails(data);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Falha ao carregar autorização.");
+        setError(friendlyAuthError(e instanceof Error ? e.message : "Falha ao carregar autorização."));
       }
     })();
     return () => { active = false; };
@@ -54,16 +83,35 @@ export default function OAuthConsent() {
   const decide = async (approve: boolean) => {
     setBusy(true);
     try {
-      const { data, error } = approve
+      const { data, error: decideErr } = approve
         ? await oauthApi.approveAuthorization(authorizationId)
         : await oauthApi.denyAuthorization(authorizationId);
-      if (error) { setBusy(false); setError(error.message); return; }
-      const target = data?.redirect_url ?? data?.redirect_to;
-      if (!target) { setBusy(false); setError("Servidor de autorização não retornou redirecionamento."); return; }
+      if (decideErr) {
+        setBusy(false);
+        setError(friendlyAuthError(decideErr.message));
+        return;
+      }
+      const targetRaw = data?.redirect_url ?? data?.redirect_to;
+      if (!targetRaw) {
+        setBusy(false);
+        setError("Servidor de autorização não retornou redirecionamento.");
+        return;
+      }
+      if (!isAllowedOAuthRedirect(targetRaw)) {
+        setBusy(false);
+        setError("Redirecionamento OAuth inválido ou não autorizado.");
+        return;
+      }
+      const target = safeNavigateToOAuthTarget(targetRaw);
+      if (!target) {
+        setBusy(false);
+        setError("Redirecionamento OAuth inválido ou não autorizado.");
+        return;
+      }
       window.location.href = target;
     } catch (e) {
       setBusy(false);
-      setError(e instanceof Error ? e.message : "Falha ao concluir autorização.");
+      setError(friendlyAuthError(e instanceof Error ? e.message : "Falha ao concluir autorização."));
     }
   };
 
@@ -82,6 +130,9 @@ export default function OAuthConsent() {
           <div className="space-y-3">
             <h1 className="font-display text-2xl">Não foi possível carregar</h1>
             <p className="text-sm text-muted-foreground">{error}</p>
+            <Button variant="outline" size="lg" className="w-full" onClick={() => { window.location.href = "/"; }}>
+              Voltar ao início
+            </Button>
           </div>
         )}
 

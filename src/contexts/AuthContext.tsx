@@ -1,9 +1,27 @@
-import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Session, User } from "@supabase/supabase-js";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { clearAuthStorage, isRefreshTokenError } from "@/lib/authStorage";
+import {
+  beginSessionExpiryRedirect,
+  endSessionExpiryRedirect,
+  resolveSessionExpiryLoginPath,
+  SESSION_EXPIRED_MESSAGE,
+  shouldTreatAsSessionExpiry,
+} from "@/lib/authSession";
+import type { AppRole } from "@/lib/safeRedirect";
 
-export type AppRole = "admin" | "sacoleira";
+export type { AppRole };
 
 export type AuthProfile = {
   user: User;
@@ -18,13 +36,22 @@ export type AuthProfile = {
   email: string;
 };
 
+type SignInResult = { error?: string; roles?: AppRole[]; role?: AppRole | null };
+
 type AuthContextValue = {
   loading: boolean;
   profile: AuthProfile | null;
-  signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signUp: (data: { email: string; password: string; displayName: string; phone?: string; parentResellerId?: string }) => Promise<{ error?: string }>;
+  signIn: (email: string, password: string) => Promise<SignInResult>;
+  signUp: (data: {
+    email: string;
+    password: string;
+    displayName: string;
+    phone?: string;
+    parentResellerId?: string;
+  }) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
+  refreshUserRole: () => Promise<AppRole[]>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -53,65 +80,159 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<AuthProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const manualSignOutRef = useRef(false);
+  const hadSessionRef = useRef(false);
+  const lastRoleRef = useRef<AppRole | null>(null);
+  const hydrateInFlight = useRef<Promise<void> | null>(null);
+
+  const handleSessionExpired = useCallback((reason: string) => {
+    if (manualSignOutRef.current) return;
+    if (!hadSessionRef.current) return;
+    if (!shouldTreatAsSessionExpiry({
+      manualSignOut: false,
+      reason: reason as "refresh_invalid" | "signed_out_unexpected" | "auth_401" | "auth_403",
+    })) {
+      return;
+    }
+    if (!beginSessionExpiryRedirect()) return;
+
+    hadSessionRef.current = false;
+    clearAuthStorage();
+    setSession(null);
+    setProfile(null);
+
+    const path = typeof window !== "undefined"
+      ? window.location.pathname
+      : "/";
+    const loginUrl = resolveSessionExpiryLoginPath({
+      lastRole: lastRoleRef.current,
+      currentPath: path,
+    });
+
+    toast.error(SESSION_EXPIRED_MESSAGE);
+    window.setTimeout(() => {
+      window.location.assign(loginUrl);
+      endSessionExpiryRedirect();
+    }, 50);
+  }, []);
 
   useEffect(() => {
     const onUnhandledRejection = (event: PromiseRejectionEvent) => {
       if (!isRefreshTokenError(event.reason)) return;
       event.preventDefault();
-      clearAuthStorage();
-      setSession(null);
-      setProfile(null);
+      if (manualSignOutRef.current) {
+        clearAuthStorage();
+        setSession(null);
+        setProfile(null);
+        return;
+      }
+      handleSessionExpired("refresh_invalid");
     };
 
     window.addEventListener("unhandledrejection", onUnhandledRejection);
     return () => window.removeEventListener("unhandledrejection", onUnhandledRejection);
-  }, []);
+  }, [handleSessionExpired]);
 
-  const hydrate = async (s: Session | null) => {
-    if (!s?.user) { setProfile(null); return; }
-    const extras = await loadExtras(s.user);
-    setProfile({ user: s.user, session: s, ...extras });
-  };
+  const hydrate = useCallback(async (s: Session | null) => {
+    if (!s?.user) {
+      setProfile(null);
+      return;
+    }
+    const run = (async () => {
+      const extras = await loadExtras(s.user);
+      lastRoleRef.current = extras.role;
+      setProfile({ user: s.user, session: s, ...extras });
+    })();
+    hydrateInFlight.current = run;
+    await run;
+    hydrateInFlight.current = null;
+  }, []);
 
   useEffect(() => {
     let lastUserId: string | null = null;
     const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      if (s?.user) {
+        hadSessionRef.current = true;
+      }
       setSession(s);
-      // Only re-hydrate profile when the user actually changes (sign in/out),
-      // not on every TOKEN_REFRESHED — that caused a refresh storm and lock contention.
+
+      if (event === "SIGNED_OUT") {
+        lastUserId = null;
+        if (manualSignOutRef.current) {
+          manualSignOutRef.current = false;
+          hadSessionRef.current = false;
+          setProfile(null);
+          return;
+        }
+        if (hadSessionRef.current) {
+          handleSessionExpired("signed_out_unexpected");
+        } else {
+          setProfile(null);
+        }
+        return;
+      }
+
+      if (event === "TOKEN_REFRESHED" && !s) {
+        handleSessionExpired("refresh_invalid");
+        return;
+      }
+
       const newUserId = s?.user?.id ?? null;
-      if (event === "SIGNED_OUT" || newUserId !== lastUserId) {
+      if (newUserId !== lastUserId) {
         lastUserId = newUserId;
         setTimeout(() => { void hydrate(s); }, 0);
       }
     });
+
     supabase.auth.getSession()
       .then(async ({ data }) => {
         setSession(data.session);
+        if (data.session?.user) hadSessionRef.current = true;
         lastUserId = data.session?.user?.id ?? null;
         await hydrate(data.session);
       })
       .catch((error) => {
+        if (isRefreshTokenError(error) && !manualSignOutRef.current && hadSessionRef.current) {
+          handleSessionExpired("refresh_invalid");
+          return;
+        }
         if (isRefreshTokenError(error)) clearAuthStorage();
         setSession(null);
         setProfile(null);
       })
       .finally(() => setLoading(false));
+
     return () => sub.subscription.unsubscribe();
-  }, []);
+  }, [handleSessionExpired, hydrate]);
+
+  const refreshUserRole = useCallback(async (): Promise<AppRole[]> => {
+    const s = session ?? (await supabase.auth.getSession()).data.session;
+    if (!s?.user) {
+      setProfile(null);
+      return [];
+    }
+    if (hydrateInFlight.current) await hydrateInFlight.current;
+    const extras = await loadExtras(s.user);
+    lastRoleRef.current = extras.role;
+    setProfile({ user: s.user, session: s, ...extras });
+    return extras.roles;
+  }, [session]);
 
   const value = useMemo<AuthContextValue>(() => ({
     loading,
     profile,
     signIn: async (email, password) => {
       clearAuthStorage();
+      manualSignOutRef.current = false;
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) return { error: error.message };
-      // Hydrate profile synchronously so the navigation that follows sees a complete profile
-      // (avoids the "need to login twice" bug where ProtectedRoute redirected back before hydration).
       if (data.session) {
+        hadSessionRef.current = true;
         setSession(data.session);
         await hydrate(data.session);
+        const extras = await loadExtras(data.session.user);
+        lastRoleRef.current = extras.role;
+        return { roles: extras.roles, role: extras.role };
       }
       return {};
     },
@@ -122,15 +243,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         password,
         options: {
           emailRedirectTo: redirectUrl,
-          // role no metadata é ignorado pelo banco para admin; cadastro público vira sempre sacoleira.
-          data: { display_name: displayName, phone, parent_reseller_id: parentResellerId || null },
+          data: {
+            display_name: displayName,
+            phone,
+            parent_reseller_id: parentResellerId || null,
+          },
         },
       });
       return error ? { error: error.message } : {};
     },
-    signOut: async () => { await supabase.auth.signOut(); },
+    signOut: async () => {
+      manualSignOutRef.current = true;
+      hadSessionRef.current = false;
+      try {
+        await supabase.auth.signOut();
+      } finally {
+        clearAuthStorage();
+        setSession(null);
+        setProfile(null);
+      }
+    },
     refresh: async () => { await hydrate(session); },
-  }), [loading, profile, session]);
+    refreshUserRole,
+  }), [loading, profile, session, hydrate, refreshUserRole]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

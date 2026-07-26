@@ -9,6 +9,7 @@ const getAuthStorageKeys = (storage: Storage) => {
   return keys;
 };
 
+/** Remove apenas tokens de auth; preserva carrinho e demais dados públicos. */
 export const clearAuthStorage = () => {
   if (typeof window === "undefined") return;
 
@@ -16,6 +17,9 @@ export const clearAuthStorage = () => {
     getAuthStorageKeys(storage).forEach((key) => storage.removeItem(key));
   });
 };
+
+export const isAuthStorageKey = (key: string) =>
+  key.startsWith("sb-") && key.includes(AUTH_TOKEN_KEY_PART);
 
 export const isRefreshTokenError = (error: unknown) => {
   const value = error as { message?: string; code?: string; status?: number } | null;

@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,19 +8,33 @@ import { OrusLogo } from "@/components/OrusLogo";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  fallbackPathForRoles,
+  getSafeRedirectForRole,
+  type AppRole,
+} from "@/lib/safeRedirect";
+import { friendlyAuthError } from "@/lib/authSession";
 
 interface Props { role: "admin" | "sacoleira" }
 
 const LoginPage = ({ role }: Props) => {
   const nav = useNavigate();
   const [sp] = useSearchParams();
-  const rawNext = sp.get("next") || "";
-  const nextPath = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "";
-  const { signIn, signUp } = useAuth();
+  const rawNext = sp.get("next");
+  const { signIn, signUp, profile, loading } = useAuth();
   const isAdmin = role === "admin";
-  const target = nextPath || (isAdmin ? "/admin" : "/sacoleira");
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [busy, setBusy] = useState(false);
+
+  // Se já autenticado, evita loop login ↔ área protegida
+  useEffect(() => {
+    if (loading || !profile) return;
+    const roles = (profile.roles?.length ? profile.roles : profile.role ? [profile.role] : []) as AppRole[];
+    const dest = getSafeRedirectForRole(rawNext, roles);
+    if (dest !== window.location.pathname) {
+      nav(dest, { replace: true });
+    }
+  }, [loading, profile, rawNext, nav]);
 
   const handleForgot = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -31,37 +45,79 @@ const LoginPage = ({ role }: Props) => {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     setBusy(false);
-    if (error) { toast.error("Não foi possível enviar", { description: error.message }); return; }
+    if (error) {
+      toast.error("Não foi possível enviar", { description: friendlyAuthError(error.message) });
+      return;
+    }
     toast.success("Email enviado!", { description: "Verifique sua caixa de entrada para redefinir sua senha." });
     setMode("signin");
   };
 
   const handleSignIn = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (busy) return;
     const f = new FormData(e.currentTarget);
     setBusy(true);
-    const { error } = await signIn(String(f.get("email")), String(f.get("password")));
-    setBusy(false);
-    if (error) { toast.error("Não foi possível entrar", { description: error }); return; }
-    toast.success("Bem-vinda de volta!");
-    setTimeout(() => nav(target), 200);
+    try {
+      const result = await signIn(String(f.get("email")), String(f.get("password")));
+      if (result.error) {
+        toast.error("Não foi possível entrar", { description: friendlyAuthError(result.error) });
+        return;
+      }
+      const roles = (result.roles?.length
+        ? result.roles
+        : result.role
+          ? [result.role]
+          : []) as AppRole[];
+
+      if (!roles.length) {
+        toast.message("Acesso em análise", { description: "Sua conta ainda não possui perfil liberado." });
+        nav("/acesso-pendente", { replace: true });
+        return;
+      }
+
+      // Login de admin exige role admin; sacoleira exige sacoleira (admin pode cair no fallback admin)
+      if (isAdmin && !roles.includes("admin")) {
+        toast.error("Acesso negado", { description: "Esta conta não é administrativa." });
+        nav(fallbackPathForRoles(roles), { replace: true });
+        return;
+      }
+      if (!isAdmin && !roles.includes("sacoleira") && !roles.includes("admin")) {
+        toast.error("Acesso negado", { description: "Esta conta não tem perfil de sacoleira." });
+        nav(fallbackPathForRoles(roles), { replace: true });
+        return;
+      }
+
+      const dest = getSafeRedirectForRole(rawNext, roles);
+      toast.success("Bem-vinda de volta!");
+      nav(dest, { replace: true });
+    } finally {
+      setBusy(false);
+    }
   };
 
   const handleSignUp = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (busy) return;
     const f = new FormData(e.currentTarget);
     setBusy(true);
-    const { error } = await signUp({
-      email: String(f.get("email")),
-      password: String(f.get("password")),
-      displayName: String(f.get("name")),
-      phone: String(f.get("phone") || ""),
-      parentResellerId: String(f.get("sponsor") || "") || undefined,
-    });
-    setBusy(false);
-    if (error) { toast.error("Cadastro falhou", { description: error }); return; }
-    toast.success("Cadastro concluído!", { description: "Você já pode entrar." });
-    setMode("signin");
+    try {
+      const { error } = await signUp({
+        email: String(f.get("email")),
+        password: String(f.get("password")),
+        displayName: String(f.get("name")),
+        phone: String(f.get("phone") || ""),
+        parentResellerId: String(f.get("sponsor") || "") || undefined,
+      });
+      if (error) {
+        toast.error("Cadastro falhou", { description: friendlyAuthError(error) });
+        return;
+      }
+      toast.success("Cadastro concluído!", { description: "Você já pode entrar." });
+      setMode("signin");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -102,7 +158,7 @@ const LoginPage = ({ role }: Props) => {
 
           {mode === "signin" && (
             <form onSubmit={handleSignIn} className="space-y-4">
-              <div><Label htmlFor="email">Email</Label><Input id="email" name="email" type="email" required className="mt-1.5" /></div>
+              <div><Label htmlFor="email">Email</Label><Input id="email" name="email" type="email" required autoComplete="email" className="mt-1.5" /></div>
               <div>
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Senha</Label>
@@ -110,9 +166,9 @@ const LoginPage = ({ role }: Props) => {
                     Esqueci minha senha
                   </button>
                 </div>
-                <Input id="password" name="password" type="password" required minLength={6} className="mt-1.5" />
+                <Input id="password" name="password" type="password" required minLength={6} autoComplete="current-password" className="mt-1.5" />
               </div>
-              <Button type="submit" variant="gold" size="lg" className="w-full" disabled={busy}>
+              <Button type="submit" variant="gold" size="lg" className="w-full" disabled={busy || loading}>
                 {busy ? "Entrando..." : <>Entrar <ArrowRight className="h-4 w-4" /></>}
               </Button>
             </form>

@@ -15,6 +15,7 @@ import { PwaManifestSwitcher } from "./pwa/PwaManifestSwitcher";
 const Landing = lazy(() => import("./pages/Landing"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const PendingAccessPage = lazy(() => import("./pages/PendingAccessPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 
@@ -78,6 +79,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
                 <Route path="/login-admin" element={<LoginPage role="admin" />} />
                 <Route path="/login-sacoleira" element={<LoginPage role="sacoleira" />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="/acesso-pendente" element={<PendingAccessPage />} />
                 <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
 
                 <Route path="/politica-de-privacidade" element={<PrivacyPolicy />} />
