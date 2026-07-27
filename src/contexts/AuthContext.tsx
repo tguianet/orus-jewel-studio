@@ -61,7 +61,7 @@ type AuthContextValue = {
     /** @deprecated use referralCode */
     parentResellerId?: string;
     referralCode?: string;
-  }) => Promise<{ error?: string }>;
+  }) => Promise<{ error?: string; cause?: unknown }>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
   /** @deprecated use refreshUserRoles */

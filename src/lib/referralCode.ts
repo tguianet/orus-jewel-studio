@@ -1,4 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
+import { classifySignupError } from "@/lib/signupErrors";
+import { userMessageForCode } from "@/lib/errors/errorMessages";
 
 export type ReferralValidationReason =
   | "ok"
