@@ -8,6 +8,7 @@ import {
   isExpiredRecoveryMessage,
   parseRecoveryParams,
   passwordsMatch,
+  RECOVERY_ERROR_EXPIRED,
   RECOVERY_ERROR_INVALID,
   RECOVERY_SUCCESS_MESSAGE,
 } from "@/lib/authSession";
@@ -33,7 +34,8 @@ describe("passwordRecovery", () => {
   it("Q — token expirado mostra erro", () => {
     const src = page();
     expect(src).toContain("expired");
-    expect(src).toContain("Este link de recuperação expirou");
+    expect(src).toContain("RECOVERY_ERROR_EXPIRED");
+    expect(RECOVERY_ERROR_EXPIRED).toContain("Este link de recuperação expirou");
     expect(src).toContain('"expired"');
   });
 
