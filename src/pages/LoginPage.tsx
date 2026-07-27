@@ -22,6 +22,8 @@ import {
   type ReferralUiStatus,
   validateReferralCode,
 } from "@/lib/referralCode";
+import { PasswordField } from "@/components/auth/PasswordField";
+import { PASSWORD_ERROR_MESSAGE, isPasswordValid } from "@/lib/passwordPolicy";
 
 interface Props { role: "admin" | "sacoleira" }
 
@@ -36,6 +38,7 @@ const LoginPage = ({ role }: Props) => {
   const [referralInput, setReferralInput] = useState("");
   const [referralStatus, setReferralStatus] = useState<ReferralUiStatus>("idle");
   const [sponsorName, setSponsorName] = useState<string | null>(null);
+  const [signupPassword, setSignupPassword] = useState("");
   const validateSeq = useRef(0);
 
   // Se já autenticado, evita loop login ↔ área protegida
@@ -154,7 +157,7 @@ const LoginPage = ({ role }: Props) => {
     }
   };
 
-  const canCreateAccount = referralStatus === "valid" && !busy;
+  const canCreateAccount = referralStatus === "valid" && !busy && isPasswordValid(signupPassword);
 
   const handleSignUp = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -167,12 +170,16 @@ const LoginPage = ({ role }: Props) => {
       });
       return;
     }
+    if (!isPasswordValid(signupPassword)) {
+      toast.error("Senha inválida", { description: PASSWORD_ERROR_MESSAGE });
+      return;
+    }
     setBusy(true);
     try {
       assertOnlineForCritical("sign_up");
       const { error, cause } = await signUp({
         email: String(f.get("email")),
-        password: String(f.get("password")),
+        password: signupPassword,
         displayName: String(f.get("name")),
         phone: String(f.get("phone") || ""),
         referralCode: code,
@@ -186,6 +193,7 @@ const LoginPage = ({ role }: Props) => {
       }
       toast.success("Cadastro concluído!", { description: "Você já pode entrar." });
       setMode("signin");
+      setSignupPassword("");
       setReferralInput("");
       setReferralStatus("idle");
       setSponsorName(null);
@@ -255,7 +263,14 @@ const LoginPage = ({ role }: Props) => {
               <div><Label htmlFor="name">Nome completo</Label><Input id="name" name="name" required className="mt-1.5" /></div>
               <div><Label htmlFor="email">Email</Label><Input id="email" name="email" type="email" required className="mt-1.5" /></div>
               <div><Label htmlFor="phone">WhatsApp</Label><Input id="phone" name="phone" placeholder="(11) 99999-9999" className="mt-1.5" /></div>
-              <div><Label htmlFor="password">Senha (mín. 6)</Label><Input id="password" name="password" type="password" required minLength={6} className="mt-1.5" /></div>
+              <PasswordField
+                id="password"
+                name="password"
+                label="Senha"
+                value={signupPassword}
+                onChange={setSignupPassword}
+                disabled={busy}
+              />
               <div>
                 <Label htmlFor="sponsor">Código de indicação</Label>
                 <Input

@@ -21,6 +21,8 @@ import {
   parseRecoveryParams,
   passwordsMatch,
 } from "@/lib/authSession";
+import { PasswordField } from "@/components/auth/PasswordField";
+import { PASSWORD_ERROR_MESSAGE, isPasswordValid } from "@/lib/passwordPolicy";
 
 type RecoveryUiState =
   | "verifying"
@@ -45,7 +47,9 @@ const ResetPasswordPage = () => {
   const [busy, setBusy] = useState(false);
   const [ui, setUi] = useState<RecoveryUiState>("verifying");
   const [message, setMessage] = useState("Validando seu link de recuperação...");
-  const [showPassword, setShowPassword] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [showConfirm, setShowConfirm] = useState(false);
   const recoveryConfirmed = useRef(false);
   const succeeded = useRef(false);
 
@@ -160,20 +164,15 @@ const ResetPasswordPage = () => {
       return;
     }
 
-    const f = new FormData(e.currentTarget);
-    const password = String(f.get("password"));
-    const confirm = String(f.get("confirm"));
-
-    if (!isPasswordStrongEnough(password, RECOVERY_MIN_PASSWORD)) {
-      toast.error("A senha não atende aos requisitos mínimos.", {
-        description: `Use no mínimo ${RECOVERY_MIN_PASSWORD} caracteres.`,
-      });
+    if (!isPasswordStrongEnough(password, RECOVERY_MIN_PASSWORD) || !isPasswordValid(password)) {
+      toast.error("Senha inválida", { description: PASSWORD_ERROR_MESSAGE });
       return;
     }
     if (!passwordsMatch(password, confirm)) {
       toast.error("As senhas não coincidem.");
       return;
     }
+
 
     setBusy(true);
     try {
@@ -186,6 +185,8 @@ const ResetPasswordPage = () => {
         return;
       }
       succeeded.current = true;
+      setPassword("");
+      setConfirm("");
       recoveryConfirmed.current = false;
       setUi("succeeded");
       setMessage(RECOVERY_SUCCESS_MESSAGE);
@@ -229,13 +230,23 @@ const ResetPasswordPage = () => {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
+            <PasswordField
+              id="password"
+              name="password"
+              label="Nova senha"
+              value={password}
+              onChange={setPassword}
+              disabled={!showForm || busy}
+            />
             <div>
-              <Label htmlFor="password">Nova senha</Label>
+              <Label htmlFor="confirm">Confirmar nova senha</Label>
               <div className="relative mt-1.5">
                 <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
+                  id="confirm"
+                  name="confirm"
+                  type={showConfirm ? "text" : "password"}
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
                   required
                   minLength={RECOVERY_MIN_PASSWORD}
                   autoComplete="new-password"
@@ -244,29 +255,13 @@ const ResetPasswordPage = () => {
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  onClick={() => setShowConfirm((v) => !v)}
+                  aria-label={showConfirm ? "Ocultar senha" : "Mostrar senha"}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground mt-1.5">
-                Mínimo de {RECOVERY_MIN_PASSWORD} caracteres.
-              </p>
-            </div>
-            <div>
-              <Label htmlFor="confirm">Confirmar nova senha</Label>
-              <Input
-                id="confirm"
-                name="confirm"
-                type={showPassword ? "text" : "password"}
-                required
-                minLength={RECOVERY_MIN_PASSWORD}
-                autoComplete="new-password"
-                className="mt-1.5"
-                disabled={!showForm || busy}
-              />
             </div>
             <Button
               type="submit"

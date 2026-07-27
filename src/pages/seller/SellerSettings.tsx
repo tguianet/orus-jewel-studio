@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ChangePasswordCard } from "@/components/auth/ChangePasswordCard";
 import { PwaInstallButton } from "@/components/pwa/PwaInstallButton";
 import { PwaInstallInstructions } from "@/components/pwa/PwaInstallInstructions";
 
@@ -164,6 +165,7 @@ const SellerSettings = () => {
           </>
         )}
       </form>
+      <ChangePasswordCard />
     </SellerLayout>
   );
 };
