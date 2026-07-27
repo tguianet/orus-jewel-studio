@@ -160,20 +160,15 @@ const ResetPasswordPage = () => {
       return;
     }
 
-    const f = new FormData(e.currentTarget);
-    const password = String(f.get("password"));
-    const confirm = String(f.get("confirm"));
-
-    if (!isPasswordStrongEnough(password, RECOVERY_MIN_PASSWORD)) {
-      toast.error("A senha não atende aos requisitos mínimos.", {
-        description: `Use no mínimo ${RECOVERY_MIN_PASSWORD} caracteres.`,
-      });
+    if (!isPasswordStrongEnough(password, RECOVERY_MIN_PASSWORD) || !isPasswordValid(password)) {
+      toast.error("Senha inválida", { description: PASSWORD_ERROR_MESSAGE });
       return;
     }
     if (!passwordsMatch(password, confirm)) {
       toast.error("As senhas não coincidem.");
       return;
     }
+
 
     setBusy(true);
     try {
