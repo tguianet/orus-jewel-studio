@@ -45,7 +45,7 @@ export function resolveSessionExpiryLoginPath(opts: {
   if (!isSafeInternalPath(path)) return login;
   // Não redirecionar de volta ao próprio login
   if (path.startsWith("/login")) return login;
-  if (path.startsWith("/reset-password")) return login;
+  if (path.startsWith("/reset-password") || path.startsWith("/redefinir-senha")) return login;
   return buildLoginUrlWithNext(login, path);
 }
 
@@ -97,4 +97,48 @@ export function friendlyAuthError(raw: string | null | undefined): string {
     return "Acesso negado. Verifique suas permissões.";
   }
   return "Não foi possível concluir. Tente novamente.";
+}
+
+/* ---------------- Recuperação de senha (recovery) ---------------- */
+
+export const RECOVERY_MIN_PASSWORD = 8;
+export const RECOVERY_SUCCESS_MESSAGE = "Senha alterada com sucesso. Entre novamente.";
+export const RECOVERY_ERROR_EXPIRED = "Este link de recuperação expirou. Solicite um novo.";
+export const RECOVERY_ERROR_INVALID = "Este link de recuperação não é mais válido.";
+export const RECOVERY_ERROR_UNEXPECTED =
+  "Não foi possível alterar sua senha. Solicite um novo link.";
+
+export function isExpiredRecoveryMessage(raw: string | null | undefined): boolean {
+  const m = String(raw ?? "").toLowerCase();
+  return m.includes("expired") || m.includes("expirou");
+}
+
+export type RecoveryParams = {
+  code: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+  isRecoveryType: boolean;
+  errorDescription: string | null;
+  expired: boolean;
+};
+
+/** Lê o retorno do Auth nos dois formatos: PKCE (?code) e legado (#access_token). */
+export function parseRecoveryParams(search: string, hash: string): RecoveryParams {
+  const q = new URLSearchParams(search.replace(/^\?/, ""));
+  const h = new URLSearchParams(hash.replace(/^#/, ""));
+  const errorDescriptionRaw =
+    q.get("error_description") || q.get("error")
+    || h.get("error_description") || h.get("error");
+  const errorDescription = errorDescriptionRaw ? decodeURIComponent(errorDescriptionRaw) : null;
+  const type = q.get("type") || h.get("type");
+  return {
+    code: q.get("code"),
+    accessToken: h.get("access_token") || q.get("access_token"),
+    refreshToken: h.get("refresh_token") || q.get("refresh_token"),
+    isRecoveryType: type === "recovery",
+    errorDescription,
+    expired: isExpiredRecoveryMessage(errorDescription)
+      || q.get("error_code") === "otp_expired"
+      || h.get("error_code") === "otp_expired",
+  };
 }

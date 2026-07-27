@@ -102,6 +102,7 @@ export function isSensitiveOnlinePath(pathname: string): boolean {
     || p.startsWith("/login-admin")
     || p.startsWith("/login-sacoleira")
     || p.startsWith("/reset-password")
+    || p.startsWith("/redefinir-senha")
   );
 }
 
