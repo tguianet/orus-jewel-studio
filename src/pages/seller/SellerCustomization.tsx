@@ -21,6 +21,7 @@ import {
 } from "@/lib/storeTheme";
 import { SectionStyleControls } from "@/components/seller/SectionStyleControls";
 import { AdminBannerPickerDialog } from "@/components/seller/AdminBannerPickerDialog";
+import { PREDEFINED_STORE_BANNERS_BUTTON_LABEL } from "@/lib/marketingBanners";
 import { useAuth } from "@/contexts/AuthContext";
 
 type Palette = { name: string; primary: string; secondary: string; custom?: boolean };
@@ -468,26 +469,30 @@ const SellerCustomization = () => {
               className="hidden"
               onChange={(e) => { handleUpload("banner", e.target.files?.[0]); if (bannerRef.current) bannerRef.current.value = ""; }}
             />
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => bannerRef.current?.click()}
-              disabled={uploading === "banner"}
-              data-testid="customization-add-banner"
-            >
-              {uploading === "banner" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-              Adicionar banner
-            </Button>
-            <Button
-              type="button"
-              variant="goldOutline"
-              className="w-full"
-              onClick={() => setAdminBannerPickerOpen(true)}
-              data-testid="customization-use-admin-banner"
-            >
-              <ImageIcon className="h-4 w-4" />
-              Usar banner do administrador
-            </Button>
+            <div className="space-y-2" data-testid="customization-banner-actions">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => bannerRef.current?.click()}
+                disabled={uploading === "banner"}
+                data-testid="customization-add-banner"
+              >
+                {uploading === "banner" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                Adicionar banner
+              </Button>
+              <Button
+                type="button"
+                variant="goldOutline"
+                className="w-full h-auto min-h-10 whitespace-normal py-2.5 text-center leading-snug"
+                onClick={() => setAdminBannerPickerOpen(true)}
+                data-testid="customization-predefined-banners"
+                aria-label={PREDEFINED_STORE_BANNERS_BUTTON_LABEL}
+              >
+                <ImageIcon className="h-4 w-4 shrink-0" />
+                <span>{PREDEFINED_STORE_BANNERS_BUTTON_LABEL}</span>
+              </Button>
+            </div>
             <AdminBannerPickerDialog
               open={adminBannerPickerOpen}
               onOpenChange={setAdminBannerPickerOpen}

@@ -2,10 +2,13 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import type { ReactNode } from "react";
 import {
   ADMIN_BANNER_ADDED_TOAST,
   ADMIN_BANNER_DUPLICATE_TOAST,
   ADMIN_BANNERS_EMPTY_MESSAGE,
+  PREDEFINED_STORE_BANNERS_BUTTON_LABEL,
   appendAdminBannerToTheme,
   countStoresUsingBannerUrl,
   filterAvailableStoreBanners,
@@ -19,6 +22,10 @@ import type { StoreTheme } from "@/lib/storeTheme";
 import { defaultTheme } from "@/lib/storeTheme";
 
 const loadAvailableStoreBanners = vi.fn();
+const storeThemeMocks = vi.hoisted(() => ({
+  loadCurrentSellerStore: vi.fn(),
+  saveStoreCustomization: vi.fn(),
+}));
 
 vi.mock("@/lib/marketingBanners", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/marketingBanners")>();
@@ -27,6 +34,25 @@ vi.mock("@/lib/marketingBanners", async (importOriginal) => {
     loadAvailableStoreBanners: (...args: unknown[]) => loadAvailableStoreBanners(...args),
   };
 });
+
+vi.mock("@/lib/storeTheme", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/storeTheme")>();
+  return {
+    ...actual,
+    loadCurrentSellerStore: (...args: unknown[]) => storeThemeMocks.loadCurrentSellerStore(...args),
+    saveStoreCustomization: (...args: unknown[]) => storeThemeMocks.saveStoreCustomization(...args),
+  };
+});
+
+vi.mock("@/layouts/SellerLayout", () => ({
+  SellerLayout: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+}));
+
+vi.mock("@/contexts/AuthContext", () => ({
+  useAuth: () => ({
+    profile: { storeId: "store-1" },
+  }),
+}));
 
 vi.mock("sonner", () => ({
   toast: {
@@ -37,6 +63,7 @@ vi.mock("sonner", () => ({
 }));
 
 import { AdminBannerPickerDialog } from "@/components/seller/AdminBannerPickerDialog";
+import SellerCustomization from "@/pages/seller/SellerCustomization";
 import { toast } from "sonner";
 
 const formatLoja: ImageFormat = {
@@ -329,21 +356,29 @@ describe("AdminBannerPickerDialog", () => {
   });
 });
 
-describe("SellerCustomization — botão admin banner", () => {
-  it("botão aparece abaixo de Adicionar banner no arquivo", () => {
-    const src = readFileSync(
-      join(process.cwd(), "src/pages/seller/SellerCustomization.tsx"),
-      "utf8",
-    );
-    const addIdx = src.indexOf("Adicionar banner");
-    const useIdx = src.indexOf("Usar banner do administrador");
+describe("SellerCustomization — botão banners pré-definidos", () => {
+  const customizationSrc = () =>
+    readFileSync(join(process.cwd(), "src/pages/seller/SellerCustomization.tsx"), "utf8");
+
+  it("botão aparece em SellerCustomization com texto exato abaixo de Adicionar banner", () => {
+    const src = customizationSrc();
+    const addIdx = src.indexOf('data-testid="customization-add-banner"');
+    const predefinedIdx = src.indexOf('data-testid="customization-predefined-banners"');
     expect(addIdx).toBeGreaterThan(-1);
-    expect(useIdx).toBeGreaterThan(addIdx);
-    expect(src).toContain('data-testid="customization-add-banner"');
-    expect(src).toContain('data-testid="customization-use-admin-banner"');
+    expect(predefinedIdx).toBeGreaterThan(addIdx);
+    expect(src).toContain("PREDEFINED_STORE_BANNERS_BUTTON_LABEL");
     expect(src).toContain("AdminBannerPickerDialog");
-    expect(src).toContain("ImageIcon");
     expect(src).toContain("goldOutline");
+    expect(src).toContain("whitespace-normal");
+    expect(src).not.toContain("Usar banner do administrador");
+    expect(src).not.toContain('navigate("/sacoleira/marketing"');
+    expect(src).not.toContain('to="/sacoleira/marketing"');
+  });
+
+  it("rótulo oficial do botão é o texto exato pedido", () => {
+    expect(PREDEFINED_STORE_BANNERS_BUTTON_LABEL).toBe(
+      "Banners pré-definidos para sua loja",
+    );
   });
 
   it("sacoleira não edita banner admin (somente vínculo de URL)", () => {
@@ -367,11 +402,92 @@ describe("SellerCustomization — botão admin banner", () => {
     expect(admin).toContain("confirm(");
   });
 
-  it("grid do picker é responsivo (sm:grid-cols-2)", () => {
+  it("grid do picker é responsivo (sm:grid-cols-2) e botão mobile permite wrap", () => {
     const picker = readFileSync(
       join(process.cwd(), "src/components/seller/AdminBannerPickerDialog.tsx"),
       "utf8",
     );
     expect(picker).toContain("grid grid-cols-1 sm:grid-cols-2");
+    expect(customizationSrc()).toContain("whitespace-normal");
+    expect(customizationSrc()).toContain("w-full");
+  });
+});
+
+describe("SellerCustomization — render do botão e modal", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    storeThemeMocks.loadCurrentSellerStore.mockResolvedValue({
+      id: "store-1",
+      storeName: "Loja Teste",
+      storeSlug: "loja-teste",
+      contactPhone: "",
+      theme: { ...defaultTheme, bannerUrls: [] },
+    });
+    storeThemeMocks.saveStoreCustomization.mockResolvedValue(undefined);
+    loadAvailableStoreBanners.mockResolvedValue({
+      banners: [
+        {
+          id: "b1",
+          title: "Coleção",
+          imageUrl: "https://cdn/predef.jpg",
+          active: true,
+          sortOrder: 0,
+          formatId: "fmt-loja",
+        },
+      ],
+      format: {
+        id: "fmt-loja",
+        name: "Banner loja",
+        slug: "banner-loja",
+        width: 1600,
+        height: 500,
+        description: "",
+        active: true,
+        sortOrder: 1,
+      },
+      error: null,
+    });
+  });
+
+  it("texto exato visível, abaixo de Adicionar banner, abre o picker e adiciona ao hero", async () => {
+    render(
+      <MemoryRouter>
+        <SellerCustomization />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByTestId("customization-add-banner")).toBeTruthy();
+    const predefined = await screen.findByTestId("customization-predefined-banners");
+    expect(predefined.textContent).toContain(PREDEFINED_STORE_BANNERS_BUTTON_LABEL);
+
+    const actions = screen.getByTestId("customization-banner-actions");
+    const buttons = actions.querySelectorAll("button");
+    expect(buttons[0].textContent).toContain("Adicionar banner");
+    expect(buttons[1].textContent).toContain(PREDEFINED_STORE_BANNERS_BUTTON_LABEL);
+
+    fireEvent.click(predefined);
+    expect(await screen.findByTestId("admin-banner-picker-dialog")).toBeTruthy();
+    expect(screen.getByText("Escolha um banner pronto")).toBeTruthy();
+
+    fireEvent.click(await screen.findByTestId("admin-banner-use-b1"));
+    await waitFor(() => {
+      expect(storeThemeMocks.saveStoreCustomization).toHaveBeenCalled();
+      expect(toast.success).toHaveBeenCalledWith(ADMIN_BANNER_ADDED_TOAST);
+    });
+    const saved = storeThemeMocks.saveStoreCustomization.mock.calls.at(-1)?.[1];
+    expect(saved.theme.bannerUrls).toContain("https://cdn/predef.jpg");
+    expect(screen.getByAltText("Banner 1")).toBeTruthy();
+  });
+
+  it("não redireciona para Marketing ao abrir banners pré-definidos", async () => {
+    render(
+      <MemoryRouter initialEntries={["/sacoleira/personalizacao"]}>
+        <SellerCustomization />
+      </MemoryRouter>,
+    );
+    fireEvent.click(await screen.findByTestId("customization-predefined-banners"));
+    expect(await screen.findByTestId("admin-banner-picker-dialog")).toBeTruthy();
+    expect(screen.getByText("Escolha um banner pronto")).toBeTruthy();
+    expect(screen.getByText("Personalizar loja")).toBeTruthy();
   });
 });

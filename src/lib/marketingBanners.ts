@@ -27,6 +27,8 @@ export type MarketingBanner = {
 };
 
 export const STORE_BANNER_FORMAT_SLUG = "banner-loja";
+export const PREDEFINED_STORE_BANNERS_BUTTON_LABEL =
+  "Banners pré-definidos para sua loja";
 export const ADMIN_BANNERS_EMPTY_MESSAGE =
   "Não há banners prontos disponíveis no momento.";
 export const ADMIN_BANNER_ADDED_TOAST = "Banner adicionado à sua loja.";
