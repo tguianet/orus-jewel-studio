@@ -76,7 +76,7 @@ const LoginPage = ({ role }: Props) => {
     try {
       assertOnlineForCritical("reset_password");
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${window.location.origin}/redefinir-senha`,
       });
       if (error) {
         showAppError(normalizeError(error, { operation: "reset_password" }), { showCorrelation: false });

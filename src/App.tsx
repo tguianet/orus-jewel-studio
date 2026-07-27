@@ -113,6 +113,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
                 <Route path="/" element={<Landing />} />
                 <Route path="/login-admin" element={<LoginPage role="admin" />} />
                 <Route path="/login-sacoleira" element={<LoginPage role="sacoleira" />} />
+                <Route path="/redefinir-senha" element={<ResetPasswordPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/acesso-pendente" element={<PendingAccessPage />} />
                 <Route path="/escolher-area" element={<ChooseAreaPage />} />

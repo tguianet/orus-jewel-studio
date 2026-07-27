@@ -6,7 +6,7 @@ export const PWA_CRITICAL_BLOCK_MESSAGE =
   "Conclua a operação atual antes de atualizar.";
 
 const CRITICAL_PATH_RE =
-  /\/checkout(?:\/|$)|\/reset-password(?:\/|$)|\/saques(?:\/|$)|\/devolucoes(?:\/|$)|\/admin\/saques(?:\/|$)|\/admin\/devolucoes(?:\/|$)|\/admin\/pedidos(?:\/|$)|\/sacoleira\/pedidos(?:\/|$)|\/aceite|lgpd|consentimento/i;
+  /\/checkout(?:\/|$)|\/reset-password(?:\/|$)|\/redefinir-senha(?:\/|$)|\/saques(?:\/|$)|\/devolucoes(?:\/|$)|\/admin\/saques(?:\/|$)|\/admin\/devolucoes(?:\/|$)|\/admin\/pedidos(?:\/|$)|\/sacoleira\/pedidos(?:\/|$)|\/aceite|lgpd|consentimento/i;
 
 let depth = 0;
 const listeners = new Set<() => void>();
