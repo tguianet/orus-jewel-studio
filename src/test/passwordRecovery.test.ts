@@ -5,7 +5,11 @@ import {
   canSubmitPasswordRecovery,
   isPasswordRecoveryEvent,
   isPasswordStrongEnough,
+  isExpiredRecoveryMessage,
+  parseRecoveryParams,
   passwordsMatch,
+  RECOVERY_ERROR_INVALID,
+  RECOVERY_SUCCESS_MESSAGE,
 } from "@/lib/authSession";
 
 const root = path.resolve(__dirname, "../..");
@@ -63,5 +67,41 @@ describe("passwordRecovery", () => {
     const src = page();
     expect(src).toContain("canSubmitPasswordRecovery");
     expect(src).toContain("alreadySucceeded");
+  });
+});
+
+describe("recovery link parsing (/redefinir-senha)", () => {
+  it("aceita fluxo PKCE com ?code", () => {
+    const p = parseRecoveryParams("?code=abc123", "");
+    expect(p.code).toBe("abc123");
+    expect(p.errorDescription).toBeNull();
+  });
+
+  it("aceita fluxo legado com hash recovery", () => {
+    const p = parseRecoveryParams("", "#access_token=aa&refresh_token=bb&type=recovery");
+    expect(p.accessToken).toBe("aa");
+    expect(p.refreshToken).toBe("bb");
+    expect(p.isRecoveryType).toBe(true);
+  });
+
+  it("detecta link expirado", () => {
+    const p = parseRecoveryParams("?error=access_denied&error_code=otp_expired", "");
+    expect(p.expired).toBe(true);
+    expect(isExpiredRecoveryMessage("Email link is invalid or has expired")).toBe(true);
+  });
+
+  it("rota pública /redefinir-senha registrada e usada no redirectTo", () => {
+    const app = readFileSync(path.join(root, "src/App.tsx"), "utf8");
+    expect(app).toContain('path="/redefinir-senha"');
+    const login = readFileSync(path.join(root, "src/pages/LoginPage.tsx"), "utf8");
+    expect(login).toContain("${window.location.origin}/redefinir-senha");
+    expect(app).not.toMatch(/ProtectedRoute[^>]*redefinir-senha/);
+  });
+
+  it("mensagens de erro e sucesso padronizadas", () => {
+    const src = page();
+    expect(src).toContain("RECOVERY_SUCCESS_MESSAGE");
+    expect(RECOVERY_SUCCESS_MESSAGE).toBe("Senha alterada com sucesso. Entre novamente.");
+    expect(RECOVERY_ERROR_INVALID).toBe("Este link de recuperação não é mais válido.");
   });
 });
