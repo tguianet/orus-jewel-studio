@@ -127,14 +127,17 @@ export async function registerResellerWithReferral(input: {
   phone?: string;
   password: string;
   referralCode: string;
-}): Promise<{ error?: string }> {
+}): Promise<{ error?: string; cause?: unknown }> {
   const code = normalizeReferralCode(input.referralCode);
   if (!code) return { error: "Informe o código de indicação da sua patrocinadora." };
 
   // Revalida no servidor antes do cadastro (nunca confiar só no UI)
   const check = await validateReferralCode(code);
   if (!check.valid) {
-    return { error: friendlyReferralMessage(reasonToUiStatus(check.reason, false), check.sponsor_name) };
+    return {
+      error: friendlyReferralMessage(reasonToUiStatus(check.reason, false), check.sponsor_name),
+      cause: { message: `referral_invalid:${check.reason}`, code: "referral_invalid" },
+    };
   }
 
   const { error } = await supabase.auth.signUp({
@@ -151,14 +154,13 @@ export async function registerResellerWithReferral(input: {
   });
 
   if (error) {
-    if (/Código de indicação/i.test(error.message)) {
-      return { error: "Código de indicação inválido. Confira com a sua patrocinadora." };
-    }
-    return { error: error.message || "Não foi possível concluir o cadastro." };
+    const info = classifySignupError(error);
+    return { error: userMessageForCode(info.code), cause: error };
   }
 
   return {};
 }
+
 
 /** Domínio oficial do convite de rede (cadastro). */
 export const REFERRAL_INVITE_SIGNUP_URL = "https://amadaamante.app";
