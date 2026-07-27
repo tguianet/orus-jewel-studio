@@ -3,6 +3,7 @@ import { ShoppingBag, DollarSign, Heart, ExternalLink, Wallet } from "lucide-rea
 import { SellerLayout } from "@/layouts/SellerLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
+import { SellerReferralCodeCard } from "@/components/seller/SellerReferralCodeCard";
 import { formatBRL } from "@/lib/format";
 import { statusColors, statusLabels } from "@/lib/orderStatus";
 import { Button } from "@/components/ui/button";
@@ -162,6 +163,8 @@ const SellerDashboard = () => {
           {error}
         </div>
       )}
+
+      <SellerReferralCodeCard />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         <StatCard

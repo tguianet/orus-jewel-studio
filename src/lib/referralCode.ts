@@ -160,3 +160,47 @@ export async function registerResellerWithReferral(input: {
   return {};
 }
 
+/** Domínio oficial do convite de rede (cadastro). */
+export const REFERRAL_INVITE_SIGNUP_URL = "https://amadaamante.app";
+
+export const REFERRAL_CODE_MISSING_MESSAGE =
+  "Seu código de indicação ainda não está disponível.";
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function isUuidLike(value: string): boolean {
+  return UUID_RE.test(String(value || "").trim());
+}
+
+/**
+ * Código exibido no dashboard/rede: somente `resellers.referral_code`.
+ * Nunca usa UUID / reseller id como fallback.
+ */
+export function resolveOwnReferralCode(
+  referralCode: string | null | undefined,
+): string | null {
+  const code = normalizeReferralCode(String(referralCode || ""));
+  if (!code) return null;
+  if (isUuidLike(code)) return null;
+  return code;
+}
+
+export function buildReferralInviteMessage(referralCode: string): string {
+  const code = resolveOwnReferralCode(referralCode);
+  if (!code) return "";
+  return (
+    "✨ Quero te convidar para fazer parte da minha rede Amada Amante!\n\n"
+    + "Use meu código de indicação no cadastro:\n\n"
+    + `${code}\n\n`
+    + "Cadastre-se em:\n"
+    + REFERRAL_INVITE_SIGNUP_URL
+  );
+}
+
+export function buildReferralWhatsAppShareHref(referralCode: string): string | null {
+  const msg = buildReferralInviteMessage(referralCode);
+  if (!msg) return null;
+  return `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+}
+
