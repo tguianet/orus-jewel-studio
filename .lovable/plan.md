@@ -1,46 +1,50 @@
-# Etapa 1 — Expiração de reservas (com 1 bloqueio a resolver)
+## O que já foi verificado (leituras reais, nada alterado)
 
-## Estado verificado agora (leitura no banco)
+**Registro do log** (`public.operational_error_logs`, correlation_id `op_20260727_9fc2e81c`):
+- `error_code: UNKNOWN_ERROR`, `category: unknown`, `severity: error`, `operation: sign_up`
+- `technical_summary: "UNKNOWN_ERROR @ sign_up"`, `sanitized_context: {}` (vazio), `actor_role: anon`, sem `user_id`
+- Ou seja: **o log atual não guardou nenhum detalhe** — nem código do Auth, nem SQLSTATE, nem constraint.
 
-- Arquivos das 9 migrations existem no repositório, na ordem indicada.
-- `orders` **não** tem `expires_at`, `expired_at` nem `expiration_reason` → a migration 1 ainda não foi aplicada.
-- Funções presentes hoje: `mark_order_paid`, `restore_stock_on_order_cancelled`, `register_physical_return`, `cancel_paid_order`.
-- Seu acesso admin está intacto: `user_roles` tem 1 `admin` e 6 `sacoleira`.
-- Pedidos atuais: 8 `paid`, 1 `new`. `stock_movements` está vazio (0 linhas).
-- Não tenho como inspecionar o GitHub (`tguianet/orus-jewel-studio`) nem a branch a partir daqui — o sync é gerenciado pela plataforma; posso confirmar apenas o conteúdo do workspace.
+**Logs de origem**: consultas ao `auth_logs` e ao `postgres_logs` para 2026-07-27 17:05–17:10 UTC retornam vazio (a retenção só cobre as últimas horas; o registro mais antigo disponível é de 18:41 UTC). **Portanto a mensagem original desse evento específico não é mais recuperável** — qualquer afirmação de causa exata para esse correlation_id seria chute. O diagnóstico abaixo é do *fluxo*, e a instrumentação proposta garante que a próxima ocorrência traga a causa completa.
 
-## Bloqueio encontrado
+**Estado do banco no período**: o único usuário criado após 15:00 UTC é `pedroamadaamante@gmail.com` (17:22:26 UTC, código `NPNCMF2L`), e ele está **completo** — 1 profile, 1 role, 1 reseller, 1 seller_store. Não há usuário parcial nem registro órfão desse período. A falha das 17:07 foi ~15 min antes do cadastro bem-sucedido do mesmo perfil, o que é compatível com uma primeira tentativa recusada (código/patrocinadora ainda não aprovada, ou e-mail em estado inválido) seguida de nova tentativa.
 
-A migration **`20260728120000_liquid_cancel_restore.sql` não está aplicada**:
-- `cancel_order_with_stock_restore` e `protect_direct_order_cancel` não existem no banco;
-- a versão atual de `restore_stock_on_order_cancelled` grava movimentos `cancel_restore`, mas **não publica** os contadores `app.cancel_restore_units / _products / _skipped / _details`.
+**Causas estruturais confirmadas por leitura de código/SQL:**
 
-A migration 1 (`20260729120000_order_reservation_expiry.sql`) **lê exatamente esses contadores** (linhas 213–227) para relatar unidades restauradas por pedido expirado. Aplicada sozinha, `expire_abandoned_orders` funciona no cancelamento, mas reporta sempre 0 unidades restauradas, e a proteção líquida contra double-restock (net de devoluções físicas) da 20260728 fica ausente.
+1. `LoginPage.tsx:182` faz `normalizeError(new Error(error), { operation: "sign_up" })` — o erro do Auth é achatado numa **string** antes de normalizar. `status`, `code` (`user_already_exists`, `unexpected_failure`, `weak_password`…) e qualquer SQLSTATE são descartados. Em `normalizeError`, uma string sem `code`/`status` e sem palavra-chave conhecida cai direto em `UNKNOWN_ERROR` com `metadata` vazio. **Esta é a causa comprovada do log inútil.**
+2. `normalizeError` não trata HTTP 400/422/500 do Auth nem as mensagens "User already registered" / "Database error saving new user" — mesmo recebendo o objeto original, hoje classificaria mal.
+3. `handle_new_user` levanta `check_violation` com texto em PT ("Código de indicação inválido (%)") quando o código é inválido/inativo/bloqueado. O GoTrue converte qualquer exceção do trigger em **"Database error saving new user" (500)**, mascarando o motivo — o `registerResellerWithReferral` tenta casar `/Código de indicação/i` na mensagem, o que **nunca bate**.
+4. `handle_new_user` gera slug com `WHILE EXISTS (...)` — leitura seguida de insert, **sem tratamento de `unique_violation`**. Sob concorrência (ou nomes iguais) pode estourar 23505 e derrubar todo o cadastro.
+5. Não há erro de `profiles`/`user_roles`/`resellers` esperado: todos usam `ON CONFLICT DO NOTHING`. O ponto frágil restante é o slug e a exceção do código de indicação.
 
-## Proposta
+## Correção proposta
 
-1. Aplicar primeiro `20260728120000_liquid_cancel_restore.sql` (pré-requisito, não estava na sua lista porque presumivelmente já era considerado aplicado). Validar: trigger de restore líquido, bloqueio de cancelamento direto, restore não duplicado com devolução física prévia.
-2. Parar, reportar e aguardar sua autorização.
-3. Só então aplicar `20260729120000_order_reservation_expiry.sql`.
+**A. Trigger `handle_new_user` (migration nova, sem recriar o resto do fluxo)**
+- Manter o código de indicação obrigatório e o `status = 'pending'` (regra de aprovação inalterada).
+- Trocar a exceção genérica por `RAISE EXCEPTION ... USING ERRCODE='23514', MESSAGE='referral_invalid:<reason>'` — texto estável, sem PT, para casar no cliente.
+- Envolver o insert de `seller_stores` em bloco `BEGIN … EXCEPTION WHEN unique_violation` com retry de sufixo (`-2`, `-3`, … e fallback `-<8 chars do uuid>`), eliminando a corrida de slug.
+- Nada de dados alterados, nenhum usuário existente tocado.
 
-Se preferir, aplico apenas a 1 e aceito o relatório de unidades zerado — mas não recomendo.
+**B. Fluxo de cadastro no cliente**
+- `registerResellerWithReferral` passa a devolver o **objeto de erro** (code/status/message), não só string, e mapeia:
+  - e-mail existente (`user_already_exists` / "already registered") → **"Este e-mail já está cadastrado."**
+  - referral (`referral_invalid:*` ou revalidação falhando) → **"O código de indicação não é mais válido."**
+  - erro de trigger/banco ("Database error saving new user", 500) → mensagem amigável + correlation_id
+- `LoginPage.tsx` para de fazer `new Error(string)` e passa o erro original para `normalizeError`.
+- Nenhuma mensagem técnica chega ao usuário.
 
-## Validações da migration de expiração (etapa 3)
+**C. Observabilidade (fim do UNKNOWN_ERROR cego)**
+- Novos códigos: `AUTH_EMAIL_TAKEN`, `AUTH_SIGNUP_REFERRAL_INVALID`, `AUTH_SIGNUP_DB_ERROR` em `errorCodes.ts` + mensagens PT em `errorMessages.ts`.
+- `normalizeError` ganha um ramo de auth/signup que lê `code`, `status`, mensagem e SQLSTATE.
+- `sanitized_context` passa a registrar, já sanitizado: `auth_error_code`, `http_status`, `postgres_code`, `constraint`, `operation`, `correlation_id` e `signup_stage` (`auth_user | profile | role | reseller | store | referral_link`). Sem e-mail, sem senha, sem payload bruto.
 
-Objetos: `orders.expires_at/expired_at/expiration_reason`, índice parcial de ativos, tabela `order_reservation_settings` (RLS + grants: leitura para `authenticated`, tudo para `service_role`, `anon` revogado), `get_order_reserve_minutes`, `mark_order_paid` (reescrita), `expire_abandoned_orders`, `create_public_order` (reescrita com `expires_at`).
+## Testes
 
-Testes, todos em transação com `ROLLBACK`, sem tocar em pedidos reais:
-- pedido `new` vencido → cancelado + `expired_at` + restore uma única vez;
-- pedido `new` dentro do prazo → permanece ativo;
-- pedido `paid` → nunca expira; `mark_order_paid` em pedido vencido → rejeitado;
-- pedido já `cancelled`/expirado → não expira de novo;
-- `expire_abandoned_orders` executada 2× → idempotente, sem restore duplicado;
-- estoque e `stock_movements` conferidos antes/depois;
-- locking (`FOR UPDATE SKIP LOCKED`) verificado com duas sessões;
-- `anon` sem EXECUTE em `expire_abandoned_orders`; sacoleira negada;
-- assinatura de `create_public_order` conferida contra as chamadas do frontend (`StoreCheckout.tsx`) — sem overload ambíguo;
-- baseline de pedidos/comissões/carteira reconferido ao final.
+Novo `src/test/signupErrors.test.ts` cobrindo os 10 cenários pedidos (e-mail novo + código válido, e-mail existente, código inválido, patrocinadora bloqueada, slug duplicado, falha de trigger, repetição, ausência de órfãos, mensagem de frontend, log deixar de ser UNKNOWN_ERROR) com o client mockado, mais um checklist SQL `supabase/tests/signup_flow_checklist.sql` para slug duplicado e ausência de órfãos.
 
-## Regras mantidas
+Depois: `npm run lint`, `npm run build`, `npm test`, `npx tsc -p tsconfig.app.json --noEmit`, e `git status --short`. Sem commit, sem push, sem publicar.
 
-Sem publicação do frontend, sem alterar código nesta etapa, uma migration por vez, nenhuma migration antiga substituída, seu papel de admin preservado. Interrupção imediata se aparecer erro em estoque, pedidos, comissões, carteira, roles, auth ou checkout.
+## Riscos
+
+- A causa exata do evento das 17:07 permanece **não recuperável** (logs expirados); o plano corrige as classes de falha e garante diagnóstico completo na próxima ocorrência.
+- Alterar o trigger exige migration (aprovada por você antes de rodar); ela é idempotente e não toca dados existentes.
