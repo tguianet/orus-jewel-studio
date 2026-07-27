@@ -22,6 +22,9 @@ export type AppErrorCode =
   | "AUTH_INVALID_CREDENTIALS"
   | "AUTH_SESSION_EXPIRED"
   | "AUTH_ACCESS_DENIED"
+  | "AUTH_EMAIL_TAKEN"
+  | "AUTH_SIGNUP_REFERRAL_INVALID"
+  | "AUTH_SIGNUP_DB_ERROR"
   | "NETWORK_OFFLINE"
   | "NETWORK_TIMEOUT"
   | "RPC_FAILED"
@@ -45,6 +48,9 @@ export const ERROR_CODE_CATEGORY: Record<AppErrorCode, AppErrorCategory> = {
   AUTH_INVALID_CREDENTIALS: "authentication",
   AUTH_SESSION_EXPIRED: "authentication",
   AUTH_ACCESS_DENIED: "authorization",
+  AUTH_EMAIL_TAKEN: "validation",
+  AUTH_SIGNUP_REFERRAL_INVALID: "validation",
+  AUTH_SIGNUP_DB_ERROR: "database",
   NETWORK_OFFLINE: "network",
   NETWORK_TIMEOUT: "timeout",
   RPC_FAILED: "rpc",
@@ -69,6 +75,9 @@ export const ERROR_CODE_SEVERITY: Record<AppErrorCode, AppErrorSeverity> = {
   AUTH_INVALID_CREDENTIALS: "warning",
   AUTH_SESSION_EXPIRED: "warning",
   AUTH_ACCESS_DENIED: "warning",
+  AUTH_EMAIL_TAKEN: "warning",
+  AUTH_SIGNUP_REFERRAL_INVALID: "warning",
+  AUTH_SIGNUP_DB_ERROR: "critical",
   NETWORK_OFFLINE: "warning",
   NETWORK_TIMEOUT: "warning",
   RPC_FAILED: "error",
