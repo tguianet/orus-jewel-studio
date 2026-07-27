@@ -73,6 +73,131 @@ export function shouldShowInstallButton(opts: {
   return needsManualInstructions(opts.platform);
 }
 
+/** Copy do modal de instalação (Android/Desktop com BIP e iOS manual). */
+export const PWA_INSTALL_MODAL_TITLE = "Instale o aplicativo";
+export const PWA_INSTALL_MODAL_DESCRIPTION =
+  "Tenha acesso rápido ao Amada Amante diretamente pela tela inicial do seu dispositivo.";
+export const PWA_INSTALL_IOS_HINT =
+  "Toque em Compartilhar e depois em Adicionar à Tela de Início.";
+
+/** Dismiss só de sessão / TTL curto — nunca permanente. */
+export const PWA_INSTALL_DISMISS_SESSION_KEY = "amada_pwa_install_dismissed_at";
+export const PWA_INSTALL_DISMISS_TTL_MS = 30 * 60 * 1000; // 30 minutos
+
+/** Chaves legadas que bloqueavam reinstalação — devem ser removidas. */
+export const PWA_INSTALL_LEGACY_BLOCK_KEYS = [
+  "pwa-install-dismissed",
+  "pwa-installed",
+  "never-show-install",
+  "amada_pwa_installed",
+  "amada_pwa_never_install",
+  "amada-pwa-install-dismissed",
+] as const;
+
+export function clearLegacyInstallBlocks(
+  local: Storage | null = typeof localStorage !== "undefined" ? localStorage : null,
+  session: Storage | null = typeof sessionStorage !== "undefined" ? sessionStorage : null,
+) {
+  for (const key of PWA_INSTALL_LEGACY_BLOCK_KEYS) {
+    try {
+      local?.removeItem(key);
+    } catch {
+      /* ignore */
+    }
+    try {
+      session?.removeItem(key);
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+export function readInstallDismissed(
+  storage: Storage | null = typeof sessionStorage !== "undefined" ? sessionStorage : null,
+  now = Date.now(),
+): boolean {
+  if (!storage) return false;
+  try {
+    const raw = storage.getItem(PWA_INSTALL_DISMISS_SESSION_KEY);
+    if (!raw) return false;
+    const at = Number(raw);
+    if (!Number.isFinite(at)) {
+      storage.removeItem(PWA_INSTALL_DISMISS_SESSION_KEY);
+      return false;
+    }
+    if (now - at > PWA_INSTALL_DISMISS_TTL_MS) {
+      storage.removeItem(PWA_INSTALL_DISMISS_SESSION_KEY);
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function writeInstallDismissed(
+  storage: Storage | null = typeof sessionStorage !== "undefined" ? sessionStorage : null,
+  now = Date.now(),
+) {
+  try {
+    storage?.setItem(PWA_INSTALL_DISMISS_SESSION_KEY, String(now));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function clearInstallDismissed(
+  storage: Storage | null = typeof sessionStorage !== "undefined" ? sessionStorage : null,
+) {
+  try {
+    storage?.removeItem(PWA_INSTALL_DISMISS_SESSION_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
+ * Modal só com possibilidade real de instalação:
+ * - área instalável
+ * - não standalone
+ * - não marcado instalado (em memória)
+ * - sem dismiss temporário
+ * - sem operação crítica
+ * - e (BIP disponível OU iOS/manual)
+ */
+export function shouldShowInstallModal(opts: {
+  pathname: string;
+  standalone: boolean;
+  installed: boolean;
+  canPrompt: boolean;
+  platform: InstallPlatform;
+  dismissed: boolean;
+  criticalActive: boolean;
+}): boolean {
+  if (!resolveInstallArea(opts.pathname)) return false;
+  if (opts.standalone || opts.installed) return false;
+  if (opts.dismissed || opts.criticalActive) return false;
+  if (opts.canPrompt) return true;
+  return needsManualInstructions(opts.platform);
+}
+
+/**
+ * Novo beforeinstallprompt: limpa flags antigas e torna o app instalável de novo.
+ * (Não há evento confiável de uninstall — o BIP é a prova de reinstalabilidade.)
+ */
+export function onBeforeInstallPromptReceived(opts: {
+  standalone: boolean;
+}): {
+  clearInstalled: boolean;
+  clearDismissed: boolean;
+  openModal: boolean;
+} {
+  if (opts.standalone) {
+    return { clearInstalled: false, clearDismissed: false, openModal: false };
+  }
+  return { clearInstalled: true, clearDismissed: true, openModal: true };
+}
+
 export type ManualInstallSteps = { title: string; steps: string[] };
 
 export function manualInstallSteps(

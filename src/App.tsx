@@ -17,6 +17,7 @@ import { AppErrorBoundary } from "./components/errors/AppErrorBoundary";
 import { RouteErrorBoundary } from "./components/errors/RouteErrorBoundary";
 import { PwaManifestSwitcher } from "./pwa/PwaManifestSwitcher";
 import { PwaInstallFab } from "./components/system/PwaInstallFab";
+import { PwaInstallModal } from "./components/system/PwaInstallModal";
 import { AppUpdatePrompt } from "./components/system/AppUpdatePrompt";
 
 const Landing = lazy(() => import("./pages/Landing"));
@@ -102,6 +103,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
           <PwaUpdateProvider>
           <PwaManifestSwitcher />
           <PwaInstallFab />
+          <PwaInstallModal />
           <OfflineBanner />
           <AppUpdatePrompt />
           <LazyRouteErrorBoundary>
