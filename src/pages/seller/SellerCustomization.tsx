@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Switch } from "@/components/ui/switch";
-import { Check, ExternalLink, ImagePlus, Loader2, Plus, Trash2, Upload } from "lucide-react";
+import { Check, ExternalLink, ImageIcon, ImagePlus, Loader2, Plus, Trash2, Upload } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SellerLayout } from "@/layouts/SellerLayout";
 import { PageHeader } from "@/components/PageHeader";
@@ -20,6 +20,8 @@ import {
   uploadStoreAsset,
 } from "@/lib/storeTheme";
 import { SectionStyleControls } from "@/components/seller/SectionStyleControls";
+import { AdminBannerPickerDialog } from "@/components/seller/AdminBannerPickerDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 type Palette = { name: string; primary: string; secondary: string; custom?: boolean };
 
@@ -43,14 +45,13 @@ const saveCustomPalettes = (list: Palette[]) => {
   localStorage.setItem(CUSTOM_PALETTES_KEY, JSON.stringify(list));
 };
 
-import { useAuth } from "@/contexts/AuthContext";
-
 const SellerCustomization = () => {
   const { profile } = useAuth();
   const [store, setStore] = useState<StoreCustomization | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<"banner" | "logo" | null>(null);
+  const [adminBannerPickerOpen, setAdminBannerPickerOpen] = useState(false);
 
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -472,10 +473,31 @@ const SellerCustomization = () => {
               className="w-full"
               onClick={() => bannerRef.current?.click()}
               disabled={uploading === "banner"}
+              data-testid="customization-add-banner"
             >
               {uploading === "banner" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
               Adicionar banner
             </Button>
+            <Button
+              type="button"
+              variant="goldOutline"
+              className="w-full"
+              onClick={() => setAdminBannerPickerOpen(true)}
+              data-testid="customization-use-admin-banner"
+            >
+              <ImageIcon className="h-4 w-4" />
+              Usar banner do administrador
+            </Button>
+            <AdminBannerPickerDialog
+              open={adminBannerPickerOpen}
+              onOpenChange={setAdminBannerPickerOpen}
+              theme={theme}
+              onThemeChange={setTheme}
+              onPersist={async (next) => {
+                if (!store) throw new Error("Loja não encontrada");
+                await saveStoreCustomization(store.id, { theme: next });
+              }}
+            />
           </div>
 
           {/* 6. Hero — textos */}

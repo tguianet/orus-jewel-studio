@@ -12,10 +12,12 @@ import { toast } from "sonner";
 import {
   ImageFormat,
   MarketingBanner,
+  countStoresUsingBannerUrl,
   createMarketingBanner,
   deleteMarketingBanner,
   loadImageFormats,
   loadMarketingBanners,
+  loadSellerStoreThemesForBannerUsage,
   setMarketingBannerActive,
   uploadMarketingBannerFile,
 } from "@/lib/marketingBanners";
@@ -32,6 +34,9 @@ const AdminBanners = () => {
   const fileRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [dims, setDims] = useState<Record<string, { w: number; h: number }>>({});
+  const [storeThemes, setStoreThemes] = useState<
+    Array<{ bannerUrl?: string | null; bannerUrls?: string[] | null }>
+  >([]);
 
   const currentFormat = useMemo(
     () => formats.find((f) => f.slug === formatSlug) || null,
@@ -40,9 +45,14 @@ const AdminBanners = () => {
 
   const reload = async () => {
     setLoading(true);
-    const [fmts, all] = await Promise.all([loadImageFormats(false), loadMarketingBanners({ onlyActive: false })]);
+    const [fmts, all, themes] = await Promise.all([
+      loadImageFormats(false),
+      loadMarketingBanners({ onlyActive: false }),
+      loadSellerStoreThemesForBannerUsage(),
+    ]);
     setFormats(fmts);
     setBanners(all);
+    setStoreThemes(themes);
     setLoading(false);
   };
 
@@ -197,6 +207,11 @@ const AdminBanners = () => {
                     {!currentFormat && b.formatId && (
                       <> · {formats.find((f) => f.id === b.formatId)?.name || "—"}</>
                     )}
+                    {" · "}
+                    {(() => {
+                      const n = countStoresUsingBannerUrl(storeThemes, b.imageUrl);
+                      return n === 1 ? "1 loja usando" : `${n} lojas usando`;
+                    })()}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">

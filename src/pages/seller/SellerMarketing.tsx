@@ -13,15 +13,21 @@ import {
   saveStoreCustomization,
 } from "@/lib/storeTheme";
 import {
+  ADMIN_BANNER_ADDED_TOAST,
+  ADMIN_BANNER_DUPLICATE_TOAST,
+  ADMIN_BANNERS_EMPTY_MESSAGE,
   ImageFormat,
   MarketingBanner,
+  STORE_BANNER_FORMAT_SLUG,
+  appendAdminBannerToTheme,
+  isAdminBannerAlreadyInStore,
   loadImageFormats,
   loadMarketingBanners,
+  filterAvailableStoreBanners,
+  getStoreBannerFormat,
 } from "@/lib/marketingBanners";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-
-const BANNER_SLUG = "banner-loja";
 
 const SellerMarketing = () => {
   const { profile } = useAuth();
@@ -52,18 +58,18 @@ const SellerMarketing = () => {
     })();
   }, [profile?.storeId]);
 
-  const bannerFormat = useMemo(() => formats.find((f) => f.slug === BANNER_SLUG) || null, [formats]);
+  // Banners-loja disponíveis (galeria do admin)
+  const storeBanners = useMemo(
+    () => filterAvailableStoreBanners({ banners: adminBanners, formats }),
+    [adminBanners, formats]
+  );
+
+  const bannerFormat = useMemo(() => getStoreBannerFormat(formats), [formats]);
 
   // Categorias de redes sociais (todas exceto o banner-loja)
   const socialFormats = useMemo(
-    () => formats.filter((f) => f.slug !== BANNER_SLUG),
+    () => formats.filter((f) => f.slug !== STORE_BANNER_FORMAT_SLUG),
     [formats]
-  );
-
-  // Banners-loja disponíveis (galeria do admin)
-  const storeBanners = useMemo(
-    () => adminBanners.filter((b) => bannerFormat && b.formatId === bannerFormat.id),
-    [adminBanners, bannerFormat]
   );
 
   // garante uma aba ativa válida
@@ -84,14 +90,20 @@ const SellerMarketing = () => {
 
   const addAdminBanner = async (b: MarketingBanner) => {
     if (!store) return;
-    if (bannerList.includes(b.imageUrl)) return toast.info("Esse banner já está na sua loja.");
+    if (isAdminBannerAlreadyInStore(theme, b.imageUrl)) {
+      toast.info(ADMIN_BANNER_DUPLICATE_TOAST);
+      return;
+    }
+    const result = appendAdminBannerToTheme(theme, b.imageUrl);
+    if (!result.ok) {
+      toast.info(ADMIN_BANNER_DUPLICATE_TOAST);
+      return;
+    }
     try {
       setAdding(b.id);
-      const list = [...bannerList, b.imageUrl];
-      const nextTheme: StoreTheme = { ...theme, bannerUrl: list[0], bannerUrls: list };
-      setTheme(nextTheme);
-      await saveStoreCustomization(store.id, { theme: nextTheme });
-      toast.success("Banner adicionado à sua loja!");
+      setTheme(result.theme);
+      await saveStoreCustomization(store.id, { theme: result.theme });
+      toast.success(ADMIN_BANNER_ADDED_TOAST);
     } catch {
       toast.error("Falha ao adicionar.");
     } finally {
@@ -209,7 +221,7 @@ const SellerMarketing = () => {
         </p>
         {storeBanners.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-            Nenhum banner disponível no momento.
+            {ADMIN_BANNERS_EMPTY_MESSAGE}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
