@@ -2,7 +2,7 @@ const SENSITIVE_KEY =
   /^(password|passwd|access_token|refresh_token|authorization|api[_-]?key|pix_key|account_number|account_digit|document|cpf|cnpj|phone|email|address|customer_name|customer_phone|customer_address|payment_details|consent|consents|cookie|cookies|localstorage|secret|token)$/i;
 
 const ALLOWED_KEY =
-  /^(order_id|withdrawal_id|return_id|reseller_id|store_id|rpc_name|route|operation|status|http_status|error_code|correlation_id|entity_type|entity_id|severity|category|code|retryable|page|page_size)$/i;
+  /^(order_id|withdrawal_id|return_id|reseller_id|store_id|rpc_name|route|operation|status|http_status|error_code|correlation_id|entity_type|entity_id|severity|category|code|retryable|page|page_size|signup_stage|auth_error_code|postgres_code|constraint|referral_reason)$/i;
 
 const MAX_DEPTH = 4;
 const MAX_KEYS = 40;

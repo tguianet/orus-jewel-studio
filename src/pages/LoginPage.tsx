@@ -170,7 +170,7 @@ const LoginPage = ({ role }: Props) => {
     setBusy(true);
     try {
       assertOnlineForCritical("sign_up");
-      const { error } = await signUp({
+      const { error, cause } = await signUp({
         email: String(f.get("email")),
         password: String(f.get("password")),
         displayName: String(f.get("name")),
@@ -179,8 +179,8 @@ const LoginPage = ({ role }: Props) => {
       });
       if (error) {
         showAppError(
-          normalizeError(new Error(error), { operation: "sign_up" }),
-          { showCorrelation: false },
+          normalizeError(cause ?? { message: error }, { operation: "sign_up" }),
+          { showCorrelation: true },
         );
         return;
       }

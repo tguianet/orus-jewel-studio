@@ -1,6 +1,7 @@
 import { AppError, type ErrorContext, isAppError } from "./AppError";
 import type { AppErrorCode } from "./errorCodes";
 import { userMessageForCode } from "./errorMessages";
+import { classifySignupError, signupErrorMetadata } from "@/lib/signupErrors";
 
 type LooseErr = {
   message?: string;
@@ -55,7 +56,30 @@ export function normalizeError(error: unknown, context: ErrorContext = {}): AppE
   let retryable = false;
   let technicalMessage = message.slice(0, 400);
 
-  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+  const offline = typeof navigator !== "undefined" && navigator.onLine === false;
+
+  // Cadastro: classificação dedicada (nunca cai em UNKNOWN_ERROR cego)
+  if (!offline && context.operation === "sign_up") {
+    const info = classifySignupError(error);
+    return new AppError({
+      code: info.code,
+      userMessage: userMessageForCode(info.code),
+      technicalMessage: info.technicalMessage,
+      correlationId: context.correlationId,
+      retryable: false,
+      operation: "sign_up",
+      entityType: context.entityType,
+      entityId: context.entityId,
+      originalError: error,
+      metadata: {
+        ...context.metadata,
+        route: context.route,
+        ...signupErrorMetadata(info),
+      },
+    });
+  }
+
+  if (offline) {
     code = "NETWORK_OFFLINE";
   } else if (raw.name === "AbortError" || lower.includes("aborted")) {
     code = "NETWORK_TIMEOUT";
