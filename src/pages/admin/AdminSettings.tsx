@@ -29,6 +29,7 @@ import {
   countProductsPendingJewelryMaterial,
 } from "@/lib/commissionSettings";
 import { JEWELRY_MATERIAL_OPTIONS, type JewelryMaterial } from "@/lib/jewelryMaterial";
+import { normalizeError, reportError } from "@/lib/errors";
 import { PwaInstallButton } from "@/components/pwa/PwaInstallButton";
 import { PwaInstallInstructions } from "@/components/pwa/PwaInstallInstructions";
 
