@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { AppError } from "@/lib/errors";
 import type { Tables } from "@/integrations/supabase/types";
 import type { CommissionLevel } from "@/types/commerce";
 import {
