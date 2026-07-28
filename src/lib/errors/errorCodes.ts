@@ -99,5 +99,7 @@ export const ERROR_CODE_SEVERITY: Record<AppErrorCode, AppErrorSeverity> = {
   RETURN_FAILED: "critical",
   CONSENT_FAILED: "error",
   PWA_UPDATE_FAILED: "warning",
+  STORE_TEMPLATE_UNAVAILABLE: "error",
+  STORE_TEMPLATE_UPDATE_FAILED: "error",
   UNKNOWN_ERROR: "error",
 };
