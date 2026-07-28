@@ -30,3 +30,6 @@ export const PRODUCT_JEWELRY_MATERIAL_REQUIRED_MSG =
 
 export const PRODUCT_JEWELRY_MATERIAL_BLOCK_MSG =
   "Defina o tipo da joia antes de disponibilizar este produto para venda.";
+
+export const PRODUCT_ACTIVE_WITHOUT_TYPE_WARNING =
+  "Este produto não pode ser vendido enquanto o tipo da joia não for definido.";

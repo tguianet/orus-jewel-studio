@@ -1,4 +1,4 @@
-import { Check, Search, Pencil, Tags, Trash2, CheckSquare, Square, X } from "lucide-react";
+import { Check, Search, Pencil, Tags, Trash2, CheckSquare, Square, X, Gem } from "lucide-react";
 import { EditProductModal } from "@/components/EditProductModal";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AdminLayout } from "@/layouts/AdminLayout";
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { NewProductModal } from "@/components/NewProductModal";
 import { BulkUploadModal } from "@/components/BulkUploadModal";
+import { BulkJewelryClassifyPanel } from "@/components/admin/BulkJewelryClassifyPanel";
 import { formatBRL } from "@/lib/format";
 import type { Product } from "@/types/commerce";
 import { loadAdminProducts } from "@/lib/cloudStore";
@@ -18,12 +19,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import {
+  PRODUCT_ACTIVE_WITHOUT_TYPE_WARNING,
   PRODUCT_JEWELRY_MATERIAL_BLOCK_MSG,
   jewelryMaterialLabel,
 } from "@/lib/jewelryMaterial";
 
 type SortOption = "default" | "price-asc" | "price-desc" | "stock-asc" | "stock-desc";
 type JewelryFilter = "all" | "pending" | "gold" | "silver" | "plated";
+type StatusFilter = "all" | "active" | "inactive";
 
 const getCategoryFromParams = (searchParams: URLSearchParams) => {
   const category = searchParams.get("categoria");
@@ -40,6 +43,8 @@ const AdminProducts = () => {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("default");
   const [jewelryFilter, setJewelryFilter] = useState<JewelryFilter>("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [classifyMode, setClassifyMode] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [deleteCategoryOpen, setDeleteCategoryOpen] = useState(false);
@@ -73,6 +78,14 @@ const AdminProducts = () => {
     () => items.filter((p) => !p.jewelryMaterial).length,
     [items],
   );
+  const pendingActiveCount = useMemo(
+    () => items.filter((p) => !p.jewelryMaterial && p.active).length,
+    [items],
+  );
+  const pendingInactiveCount = useMemo(
+    () => items.filter((p) => !p.jewelryMaterial && !p.active).length,
+    [items],
+  );
 
   const visibleItems = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -85,7 +98,11 @@ const AdminProducts = () => {
         jewelryFilter === "all"
         || (jewelryFilter === "pending" && !product.jewelryMaterial)
         || product.jewelryMaterial === jewelryFilter;
-      return matchesCategory && matchesSearch && matchesJewelry;
+      const matchesStatus =
+        statusFilter === "all"
+        || (statusFilter === "active" && product.active)
+        || (statusFilter === "inactive" && !product.active);
+      return matchesCategory && matchesSearch && matchesJewelry && matchesStatus;
     });
 
     return filtered.sort((a, b) => {
@@ -95,7 +112,7 @@ const AdminProducts = () => {
       if (sortBy === "stock-desc") return b.stock - a.stock;
       return 0;
     });
-  }, [items, selectedCategory, search, sortBy, jewelryFilter]);
+  }, [items, selectedCategory, search, sortBy, jewelryFilter, statusFilter]);
 
   const categoryCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -174,8 +191,24 @@ const AdminProducts = () => {
         eyebrow="Catálogo do atacado"
         title="Produtos"
         description="Gerencie o estoque que ficará disponível para suas sacoleiras revenderem."
-        actions={<><BulkUploadModal onDone={loadProducts} /><NewProductModal onCreate={loadProducts} /></>}
+        actions={
+          <>
+            <Button type="button" variant="goldOutline" onClick={() => setClassifyMode(true)}>
+              <Gem className="h-4 w-4" /> Classificar tipo
+            </Button>
+            <BulkUploadModal onDone={loadProducts} />
+            <NewProductModal onCreate={loadProducts} />
+          </>
+        }
       />
+
+    {classifyMode && (
+      <BulkJewelryClassifyPanel
+        products={items}
+        onClose={() => setClassifyMode(false)}
+        onClassified={loadProducts}
+      />
+    )}
 
     <div className="mb-5 flex flex-col sm:flex-row gap-3">
       <div className="relative flex-1">
@@ -237,6 +270,16 @@ const AdminProducts = () => {
             <SelectItem value="plated">Folheado</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
+          <SelectTrigger className="w-full sm:w-44">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os status</SelectItem>
+            <SelectItem value="active">Ativo</SelectItem>
+            <SelectItem value="inactive">Inativo</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
           <SelectTrigger className="w-full sm:w-56">
             <SelectValue placeholder="Ordenar" />
@@ -271,21 +314,21 @@ const AdminProducts = () => {
       </div>
     </div>
 
-    {pendingJewelryCount > 0 && (
+    {pendingJewelryCount > 0 && !classifyMode && (
       <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
         <p className="font-medium text-destructive">
-          {pendingJewelryCount} produto(s) pendente(s) de classificação de tipo da joia.
+          {pendingJewelryCount} produto(s) pendente(s) de classificação de tipo da joia
+          {" "}(ativos: {pendingActiveCount} · inativos: {pendingInactiveCount}).
         </p>
         <p className="text-muted-foreground mt-1">{PRODUCT_JEWELRY_MATERIAL_BLOCK_MSG}</p>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="mt-2"
-          onClick={() => setJewelryFilter("pending")}
-        >
-          Ver pendentes
-        </Button>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <Button type="button" variant="gold" size="sm" onClick={() => setClassifyMode(true)}>
+            <Gem className="h-4 w-4" /> Abrir classificação em massa
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={() => setJewelryFilter("pending")}>
+            Ver pendentes na grade
+          </Button>
+        </div>
       </div>
     )}
 
@@ -367,7 +410,11 @@ const AdminProducts = () => {
             <h3 className="font-display text-lg leading-tight mb-2">{p.name}</h3>
             <p className="text-xs text-muted-foreground mb-2">
               Tipo: <span className="text-foreground">{jewelryMaterialLabel(p.jewelryMaterial)}</span>
-            </p>            <div className="flex items-end justify-between">
+            </p>
+            {!p.jewelryMaterial && p.active && (
+              <p className="text-[11px] text-destructive mb-2">{PRODUCT_ACTIVE_WITHOUT_TYPE_WARNING}</p>
+            )}
+            <div className="flex items-end justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Atacado</p>
                 <p className="font-medium text-primary">{formatBRL(p.wholesalePrice)}</p>
