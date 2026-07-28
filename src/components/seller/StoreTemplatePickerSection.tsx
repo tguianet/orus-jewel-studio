@@ -43,6 +43,10 @@ type Props = {
   theme: StoreTheme;
   templateKey: string;
   onTemplateKeyChange: (key: StoreTemplateKey) => void;
+  title?: string;
+  description?: string;
+  chooseLabel?: string;
+  hideOuterTitle?: boolean;
 };
 
 export function StoreTemplatePickerSection({
@@ -53,6 +57,10 @@ export function StoreTemplatePickerSection({
   theme,
   templateKey,
   onTemplateKeyChange,
+  title = "Escolha o modelo da sua loja",
+  description = "Visualize e aplique um layout pronto. Produtos, banners e cores são mantidos.",
+  chooseLabel = "Usar este modelo",
+  hideOuterTitle = false,
 }: Props) {
   const current = normalizeStoreTemplateKey(templateKey);
   const templates = listActiveStoreTemplates();
@@ -188,17 +196,22 @@ export function StoreTemplatePickerSection({
       className="rounded-xl border border-border bg-card p-6 space-y-4"
       data-testid="store-template-picker"
     >
-      <div className="flex items-baseline justify-between gap-3 flex-wrap">
-        <div>
-          <h3 className="font-display text-xl">Escolha o modelo da sua loja</h3>
-          <p className="text-xs text-muted-foreground mt-1">
-            Visualize e aplique um layout pronto. Produtos, banners e cores são mantidos.
-          </p>
+      {!hideOuterTitle && (
+        <div className="flex items-baseline justify-between gap-3 flex-wrap">
+          <div>
+            <h3 className="font-display text-xl">{title}</h3>
+            <p className="text-xs text-muted-foreground mt-1">{description}</p>
+          </div>
+          <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+            Atual: {getStoreTemplateMeta(current).name}
+          </span>
         </div>
-        <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
-          Atual: {getStoreTemplateMeta(current).name}
-        </span>
-      </div>
+      )}
+      {hideOuterTitle && (
+        <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
+          Modelo atual: {getStoreTemplateMeta(current).name}
+        </p>
+      )}
 
       <div className="grid sm:grid-cols-3 gap-3">
         {templates.map((tpl) => {
@@ -249,7 +262,7 @@ export function StoreTemplatePickerSection({
                     data-testid={`store-template-use-${tpl.key}`}
                   >
                     {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-                    Usar este modelo
+                    {chooseLabel}
                   </Button>
                 </div>
               </div>
@@ -296,7 +309,7 @@ export function StoreTemplatePickerSection({
                   disabled={saving}
                   onClick={() => void applyTemplate(previewKey)}
                 >
-                  Usar este modelo
+                  {chooseLabel}
                 </Button>
               )}
             </div>

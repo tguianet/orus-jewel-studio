@@ -357,11 +357,11 @@ describe("AdminBannerPickerDialog", () => {
 });
 
 describe("SellerCustomization — botão banners pré-definidos", () => {
-  const customizationSrc = () =>
-    readFileSync(join(process.cwd(), "src/pages/seller/SellerCustomization.tsx"), "utf8");
+  const coverSrc = () =>
+    readFileSync(join(process.cwd(), "src/components/seller/customization/CoverStep.tsx"), "utf8");
 
-  it("botão aparece em SellerCustomization com texto exato abaixo de Adicionar banner", () => {
-    const src = customizationSrc();
+  it("botão aparece na etapa Capa com texto exato abaixo de Adicionar banner", () => {
+    const src = coverSrc();
     const addIdx = src.indexOf('data-testid="customization-add-banner"');
     const predefinedIdx = src.indexOf('data-testid="customization-predefined-banners"');
     expect(addIdx).toBeGreaterThan(-1);
@@ -408,8 +408,8 @@ describe("SellerCustomization — botão banners pré-definidos", () => {
       "utf8",
     );
     expect(picker).toContain("grid grid-cols-1 sm:grid-cols-2");
-    expect(customizationSrc()).toContain("whitespace-normal");
-    expect(customizationSrc()).toContain("w-full");
+    expect(coverSrc()).toContain("whitespace-normal");
+    expect(coverSrc()).toContain("w-full");
   });
 });
 
@@ -456,6 +456,10 @@ describe("SellerCustomization — render do botão e modal", () => {
       </MemoryRouter>,
     );
 
+    // Wizard: Modelo → Identidade → Capa
+    fireEvent.click(await screen.findByTestId("customization-continue"));
+    fireEvent.click(await screen.findByTestId("customization-continue"));
+
     expect(await screen.findByTestId("customization-add-banner")).toBeTruthy();
     const predefined = await screen.findByTestId("customization-predefined-banners");
     expect(predefined.textContent).toContain(PREDEFINED_STORE_BANNERS_BUTTON_LABEL);
@@ -485,6 +489,8 @@ describe("SellerCustomization — render do botão e modal", () => {
         <SellerCustomization />
       </MemoryRouter>,
     );
+    fireEvent.click(await screen.findByTestId("customization-continue"));
+    fireEvent.click(await screen.findByTestId("customization-continue"));
     fireEvent.click(await screen.findByTestId("customization-predefined-banners"));
     expect(await screen.findByTestId("admin-banner-picker-dialog")).toBeTruthy();
     expect(screen.getByText("Escolha um banner pronto")).toBeTruthy();
