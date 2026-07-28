@@ -259,6 +259,63 @@ export type Database = {
           },
         ]
       }
+      global_store_banners: {
+        Row: {
+          button_text: string | null
+          button_url: string | null
+          created_at: string
+          created_by: string | null
+          ends_at: string | null
+          id: string
+          image_url: string
+          is_active: boolean
+          is_mandatory: boolean
+          mobile_image_url: string | null
+          position: number
+          starts_at: string | null
+          subtitle: string | null
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          button_text?: string | null
+          button_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string | null
+          id?: string
+          image_url: string
+          is_active?: boolean
+          is_mandatory?: boolean
+          mobile_image_url?: string | null
+          position?: number
+          starts_at?: string | null
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          button_text?: string | null
+          button_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string | null
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          is_mandatory?: boolean
+          mobile_image_url?: string | null
+          position?: number
+          starts_at?: string | null
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       image_formats: {
         Row: {
           active: boolean
@@ -1768,6 +1825,37 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_delete_global_store_banner: {
+        Args: { p_id: string }
+        Returns: Json
+      }
+      admin_duplicate_global_store_banner: {
+        Args: { p_id: string }
+        Returns: {
+          button_text: string | null
+          button_url: string | null
+          created_at: string
+          created_by: string | null
+          ends_at: string | null
+          id: string
+          image_url: string
+          is_active: boolean
+          is_mandatory: boolean
+          mobile_image_url: string | null
+          position: number
+          starts_at: string | null
+          subtitle: string | null
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "global_store_banners"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_export_report: {
         Args: { p_filters?: Json; p_report_type: string }
         Returns: Json
@@ -1910,6 +1998,33 @@ export type Database = {
         Returns: Json
       }
       admin_list_administrators: { Args: never; Returns: Json }
+      admin_list_global_store_banners: {
+        Args: never
+        Returns: {
+          button_text: string | null
+          button_url: string | null
+          created_at: string
+          created_by: string | null
+          ends_at: string | null
+          id: string
+          image_url: string
+          is_active: boolean
+          is_mandatory: boolean
+          mobile_image_url: string | null
+          position: number
+          starts_at: string | null
+          subtitle: string | null
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "global_store_banners"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       admin_list_legal_consents: {
         Args: {
           p_context?: string
@@ -1983,6 +2098,33 @@ export type Database = {
         Args: { p_limit?: number; p_query: string }
         Returns: Json
       }
+      admin_set_global_store_banner_active: {
+        Args: { p_id: string; p_is_active: boolean }
+        Returns: {
+          button_text: string | null
+          button_url: string | null
+          created_at: string
+          created_by: string | null
+          ends_at: string | null
+          id: string
+          image_url: string
+          is_active: boolean
+          is_mandatory: boolean
+          mobile_image_url: string | null
+          position: number
+          starts_at: string | null
+          subtitle: string | null
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "global_store_banners"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_set_reseller_sponsor: {
         Args: {
           p_reason: string
@@ -1990,6 +2132,33 @@ export type Database = {
           p_sponsor_reseller_id: string
         }
         Returns: Json
+      }
+      admin_upsert_global_store_banner: {
+        Args: { p_payload: Json }
+        Returns: {
+          button_text: string | null
+          button_url: string | null
+          created_at: string
+          created_by: string | null
+          ends_at: string | null
+          id: string
+          image_url: string
+          is_active: boolean
+          is_mandatory: boolean
+          mobile_image_url: string | null
+          position: number
+          starts_at: string | null
+          subtitle: string | null
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "global_store_banners"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       approve_withdrawal: { Args: { p_withdrawal_id: string }; Returns: Json }
       can_access_order: {
@@ -2124,6 +2293,7 @@ export type Database = {
         Args: { _reseller_id: string; _user_id?: string }
         Returns: boolean
       }
+      is_safe_http_url: { Args: { p_url: string }; Returns: boolean }
       list_my_withdrawals: {
         Args: { p_page?: number; p_page_size?: number }
         Returns: Json
