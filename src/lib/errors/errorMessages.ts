@@ -24,6 +24,9 @@ export const USER_ERROR_MESSAGES: Record<AppErrorCode, string> = {
   RETURN_FAILED: "Não foi possível registrar a devolução.",
   CONSENT_FAILED: "Não foi possível registrar o consentimento.",
   PWA_UPDATE_FAILED: "Não foi possível atualizar o aplicativo. Tente novamente.",
+  STORE_TEMPLATE_UNAVAILABLE:
+    "Os modelos de loja ainda não estão liberados no banco. Peça ao administrador para aplicar a atualização de banco (coluna template_key).",
+  STORE_TEMPLATE_UPDATE_FAILED: "Não foi possível aplicar o modelo. Tente novamente.",
   UNKNOWN_ERROR: "Ocorreu um erro inesperado. Tente novamente.",
 };
 

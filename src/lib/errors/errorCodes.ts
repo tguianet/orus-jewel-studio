@@ -42,6 +42,8 @@ export type AppErrorCode =
   | "RETURN_FAILED"
   | "CONSENT_FAILED"
   | "PWA_UPDATE_FAILED"
+  | "STORE_TEMPLATE_UNAVAILABLE"
+  | "STORE_TEMPLATE_UPDATE_FAILED"
   | "UNKNOWN_ERROR";
 
 export const ERROR_CODE_CATEGORY: Record<AppErrorCode, AppErrorCategory> = {
