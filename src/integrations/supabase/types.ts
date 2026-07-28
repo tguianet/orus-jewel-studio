@@ -1750,6 +1750,10 @@ export type Database = {
         Returns: number
       }
       _withdrawal_actor_role: { Args: never; Returns: string }
+      admin_bulk_set_jewelry_material: {
+        Args: { p_jewelry_material: string; p_product_ids: string[] }
+        Returns: Json
+      }
       admin_count_products_pending_jewelry_material: {
         Args: never
         Returns: number
@@ -1802,6 +1806,7 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_get_jewelry_material_summary: { Args: never; Returns: Json }
       admin_get_operational_error: {
         Args: { p_error_id: string }
         Returns: Json
