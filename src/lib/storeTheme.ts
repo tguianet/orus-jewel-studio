@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { AppError } from "@/lib/errors";
 import defaultBanner from "@/assets/default-store-banner.jpg";
 
 export const DEFAULT_BANNER = defaultBanner;
