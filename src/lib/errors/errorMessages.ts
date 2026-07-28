@@ -27,6 +27,9 @@ export const USER_ERROR_MESSAGES: Record<AppErrorCode, string> = {
   STORE_TEMPLATE_UNAVAILABLE:
     "Os modelos de loja ainda não estão liberados no banco. Peça ao administrador para aplicar a atualização de banco (coluna template_key).",
   STORE_TEMPLATE_UPDATE_FAILED: "Não foi possível aplicar o modelo. Tente novamente.",
+  MLM_COMMISSIONS_MODULE_MISSING:
+    "O módulo de comissões por tipo ainda não foi ativado no banco.",
+  MLM_COMMISSIONS_LOAD_FAILED: "Não foi possível carregar as comissões.",
   UNKNOWN_ERROR: "Ocorreu um erro inesperado. Tente novamente.",
 };
 

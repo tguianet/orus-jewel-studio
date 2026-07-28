@@ -99,12 +99,69 @@ export const updateCommissionSettings = async (rates: {
   return data;
 };
 
+/** Classifica falhas da RPC de comissões em AppError com diagnóstico sanitizado. */
+const toCommissionAppError = (
+  raw: unknown,
+  rpcName: string,
+  operation: string,
+): AppError => {
+  const err = (raw ?? {}) as {
+    code?: string;
+    message?: string;
+    details?: string;
+    hint?: string;
+  };
+  const code = String(err.code ?? "");
+  const message = String(err.message ?? "");
+
+  // Migration ausente: função inexistente / schema cache desatualizado
+  const missingModule =
+    code === "PGRST202" ||
+    code === "42883" ||
+    code === "42P01" ||
+    /could not find the function|does not exist|schema cache/i.test(message);
+
+  // Permissão / RLS
+  const denied =
+    code === "42501" ||
+    code === "PGRST301" ||
+    /permission denied|apenas administradores|não autenticado/i.test(message);
+
+  const appCode = missingModule
+    ? "MLM_COMMISSIONS_MODULE_MISSING"
+    : denied
+      ? "AUTH_ACCESS_DENIED"
+      : "MLM_COMMISSIONS_LOAD_FAILED";
+
+  return new AppError({
+    code: appCode,
+    technicalMessage: message || "Falha desconhecida na RPC de comissões.",
+    originalError: raw,
+    operation,
+    entityType: "mlm_commission_rates",
+    metadata: {
+      rpc_name: rpcName,
+      pg_code: err.code ?? null,
+      pg_details: err.details ?? null,
+      pg_hint: err.hint ?? null,
+    },
+  });
+};
+
 export const loadMlmCommissionRates = async (): Promise<MlmCommissionRateRow[]> => {
   const { data, error } = await supabase.rpc("get_mlm_commission_rates");
-  if (error) throw error;
+  if (error) {
+    throw toCommissionAppError(error, "get_mlm_commission_rates", "admin.commissions.load");
+  }
   const rows = Array.isArray(data) ? data : [];
   if (rows.length === 0) {
-    throw new Error("Matriz de comissões não encontrada no banco.");
+    throw new AppError({
+      code: "MLM_COMMISSIONS_MODULE_MISSING",
+      technicalMessage: "get_mlm_commission_rates retornou 0 linhas.",
+      operation: "admin.commissions.load",
+      entityType: "mlm_commission_rates",
+      metadata: { rpc_name: "get_mlm_commission_rates" },
+    });
   }
   return rows.map((r) => {
     const material = r.jewelry_material;
