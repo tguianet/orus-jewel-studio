@@ -21,7 +21,7 @@ export function WhatsAppFab({ phone, storeName, large }: Props) {
       }`}
     >
       <MessageCircle className={large ? "h-6 w-6" : "h-5 w-5"} />
-      <span className="hidden @sm:inline font-medium">WhatsApp</span>
+      <span className="hidden sm:inline font-medium">WhatsApp</span>
     </a>
   );
 }

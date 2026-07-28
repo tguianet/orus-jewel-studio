@@ -32,6 +32,8 @@ export type StoreTemplateHomeProps = {
   productsError: string | null;
   /** When true, templates should avoid heavy autoplay if desired */
   previewMode?: boolean;
+  /** Só na prévia: força layout de celular dentro da moldura (viewport real permanece desktop) */
+  previewViewport?: "desktop" | "mobile";
 };
 
 export function normalizeStoreTemplateKey(value: unknown): StoreTemplateKey {

@@ -21,8 +21,11 @@ const MinimalHome = ({
   query,
   productsLoading,
   productsError,
+  previewMode,
+  previewViewport,
 }: StoreTemplateHomeProps) => {
   const t = { ...defaultTheme, ...(theme || {}) };
+  const narrowPreview = Boolean(previewMode && previewViewport === "mobile");
   const [catMenuOpen, setCatMenuOpen] = useState(false);
   const [quickProduct, setQuickProduct] = useState<CloudStoreProduct | null>(null);
   const navigate = useNavigate();
@@ -31,15 +34,15 @@ const MinimalHome = ({
   return (
     <div className="bg-background text-foreground">
       <section className="border-b border-border/60">
-        <div className="container py-10 @sm:py-14 max-w-3xl text-center">
+        <div className="container py-10 sm:py-14 max-w-3xl text-center">
           <p className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground mb-4">
             {t.heroEyebrow || "Coleção"}
           </p>
-          <h1 className="font-display text-4xl @sm:text-6xl font-light tracking-tight">
+          <h1 className="font-display text-4xl sm:text-6xl font-light tracking-tight">
             {t.heroTitle1 || store.storeName}
           </h1>
           {(t.heroTitleHighlight || t.description) && (
-            <p className="mt-4 text-sm @sm:text-base text-muted-foreground leading-relaxed">
+            <p className="mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed">
               {t.heroTitleHighlight || t.description}
             </p>
           )}
@@ -65,9 +68,9 @@ const MinimalHome = ({
         )}
       </section>
 
-      <section id="vitrine" className="container py-10 @sm:py-14 scroll-mt-20">
+      <section id="vitrine" className="container py-10 sm:py-14 scroll-mt-20">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="font-display text-xl @sm:text-2xl font-light tracking-wide">
+          <h2 className="font-display text-xl sm:text-2xl font-light tracking-wide">
             {query ? `Resultados` : "Peças"}
           </h2>
           <button
@@ -79,7 +82,7 @@ const MinimalHome = ({
           </button>
         </div>
 
-        <div className="hidden @md:flex justify-center gap-6 mb-10">
+        <div className={`${narrowPreview ? "hidden" : "hidden md:flex"} justify-center gap-6 mb-10`}>
           {cats.map((c) => (
             <button
               key={c}
@@ -128,7 +131,7 @@ const MinimalHome = ({
         ) : filtered.length === 0 ? (
           <p className="text-center text-sm text-muted-foreground py-16">Nenhuma peça encontrada.</p>
         ) : (
-          <div className="grid grid-cols-2 @lg:grid-cols-3 gap-x-4 gap-y-10 @sm:gap-x-8 @sm:gap-y-14">
+          <div className={`grid gap-x-4 gap-y-10 sm:gap-x-8 sm:gap-y-14 ${narrowPreview ? "grid-cols-2" : "grid-cols-2 lg:grid-cols-3"}`}>
             {filtered.map((p) => (
               <StoreProductCard
                 key={p.id}
@@ -136,6 +139,7 @@ const MinimalHome = ({
                 storeSlug={store.storeSlug}
                 density="large"
                 showHeart={false}
+                forceMobile={narrowPreview}
                 onMobileTap={setQuickProduct}
               />
             ))}

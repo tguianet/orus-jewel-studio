@@ -10,6 +10,8 @@ type Props = {
   onMobileTap?: (p: CloudStoreProduct) => void;
   showHeart?: boolean;
   emphasizePrice?: boolean;
+  /** Força card compacto da prévia celular (viewport desktop + moldura estreita) */
+  forceMobile?: boolean;
 };
 
 export function StoreProductCard({
@@ -19,6 +21,7 @@ export function StoreProductCard({
   onMobileTap,
   showHeart = true,
   emphasizePrice = false,
+  forceMobile = false,
 }: Props) {
   const mobile = (
     <button type="button" onClick={() => onMobileTap?.(product)} className="group block text-left w-full">
@@ -80,8 +83,8 @@ export function StoreProductCard({
 
   return (
     <>
-      <div className="@sm:hidden">{mobile}</div>
-      <div className="hidden @sm:block">{desktop}</div>
+      <div className={forceMobile ? "block" : "sm:hidden"}>{mobile}</div>
+      <div className={forceMobile ? "hidden" : "hidden sm:block"}>{desktop}</div>
     </>
   );
 }

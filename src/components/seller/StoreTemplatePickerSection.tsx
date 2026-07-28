@@ -330,6 +330,7 @@ export function StoreTemplatePickerSection({
                     productsLoading={previewLoading}
                     productsError={previewError}
                     previewMode
+                    previewViewport={previewDevice}
                   />
                 </div>
               )}

@@ -394,6 +394,7 @@ describe("store templates — prévia mobile responsiva", () => {
     expect(picker).toContain("w-[375px]");
     expect(picker).toContain("max-w-[min(100%,390px)]");
     expect(picker).toContain('data-preview-viewport={previewDevice === "mobile" ? "375" : "desktop"}');
+    expect(picker).toContain("previewViewport={previewDevice}");
 
     render(
       <MemoryRouter>
@@ -418,22 +419,23 @@ describe("store templates — prévia mobile responsiva", () => {
     expect(vp).toBeLessThanOrEqual(390);
   });
 
-  it("não existe overflow horizontal no frame da prévia", () => {
+  it("não existe overflow horizontal no frame da prévia; @container só na prévia", () => {
     const picker = readTpl("src/components/seller/StoreTemplatePickerSection.tsx");
     const renderer = readTpl("src/components/store/templates/StoreTemplateRenderer.tsx");
     expect(picker).toContain("overflow-x-hidden");
     expect(renderer).toContain("overflow-x-hidden");
     expect(renderer).toContain("@container");
+    expect(renderer).toContain("previewMode");
+    // Loja pública não fica presa em @container
+    expect(renderer).toContain(': "w-full min-w-0"');
   });
 
-  it("seção de materiais não mantém 3 colunas no celular", () => {
+  it("materiais empilham na prévia celular; loja pública mantém md:grid-cols-3", () => {
     const elegance = readTpl("src/components/store/templates/elegance/EleganceHome.tsx");
     expect(elegance).toContain("store-materials-grid");
-    expect(elegance).toContain("grid grid-cols-1 @md:grid-cols-3");
-    expect(elegance).not.toContain("grid md:grid-cols-3");
-    // Vitrine estreita: no máximo 2 colunas (não 3)
-    expect(elegance).toContain("grid grid-cols-2 gap-3 @sm:hidden");
-    expect(elegance).not.toContain("grid grid-cols-3 gap-2");
+    expect(elegance).toContain('narrowPreview ? "grid grid-cols-1 gap-5" : "grid md:grid-cols-3 gap-5"');
+    // Vitrine pública: 3 colunas no celular (visual original)
+    expect(elegance).toContain("grid grid-cols-3 gap-2 sm:hidden");
   });
 
   it("textos dos templates não usam break-all", () => {
@@ -446,27 +448,31 @@ describe("store templates — prévia mobile responsiva", () => {
     }
   });
 
-  it("Elegance, Boutique e Minimal usam container queries em 360px", () => {
+  it("Elegance restaura media queries da loja; prévia usa narrowPreview", () => {
     const renderer = readTpl("src/components/store/templates/StoreTemplateRenderer.tsx");
     expect(renderer).toContain("@container");
     expect(renderer).toContain("min-w-0");
 
     const elegance = readTpl("src/components/store/templates/elegance/EleganceHome.tsx");
-    expect(elegance).toContain("grid-cols-2 gap-3 @sm:hidden");
-    expect(elegance).toContain("@sm:min-h-[520px]");
-    expect(elegance).toContain("@md:grid-cols-3");
+    expect(elegance).toContain("grid grid-cols-3 gap-2 sm:hidden");
+    expect(elegance).toContain("hidden sm:grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4");
+    expect(elegance).toContain("min-h-[520px]");
+    expect(elegance).toContain("narrowPreview");
+    expect(elegance).not.toContain("@sm:");
+    expect(elegance).not.toContain("@md:");
 
     const boutique = readTpl("src/components/store/templates/boutique/BoutiqueHome.tsx");
-    expect(boutique).toContain("grid grid-cols-2 @sm:grid-cols-3");
-    expect(boutique).toContain("@sm:grid-cols-[1.2fr_1fr]");
+    expect(boutique).toContain("narrowPreview");
+    expect(boutique).toContain("grid-cols-2 sm:grid-cols-3 lg:grid-cols-4");
 
     const minimal = readTpl("src/components/store/templates/minimal/MinimalHome.tsx");
-    expect(minimal).toContain("grid grid-cols-2 @lg:grid-cols-3");
-    expect(minimal).toContain("@sm:text-6xl");
+    expect(minimal).toContain("narrowPreview");
+    expect(minimal).toContain("grid-cols-2 lg:grid-cols-3");
 
     const card = readTpl("src/components/store/templates/shared/StoreProductCard.tsx");
-    expect(card).toContain("@sm:hidden");
-    expect(card).toContain("hidden @sm:block");
+    expect(card).toContain("forceMobile");
+    expect(card).toContain("sm:hidden");
+    expect(card).toContain("hidden sm:block");
   });
 
   it("desktop permanece com frame larga e device desktop", async () => {
@@ -513,7 +519,6 @@ describe("store templates — prévia mobile responsiva", () => {
     fireEvent.click(frame);
     expect(updateTemplate).not.toHaveBeenCalled();
 
-    // Fecha pelo onOpenChange do Dialog (Escape)
     fireEvent.keyDown(dialog, { key: "Escape", code: "Escape" });
     await waitFor(() => {
       expect(screen.queryByTestId("store-template-preview-dialog")).toBeNull();
