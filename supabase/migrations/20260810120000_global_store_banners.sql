@@ -120,7 +120,7 @@ CREATE POLICY "Admins can select all global store banners"
 ON public.global_store_banners
 FOR SELECT
 TO authenticated
-USING (public.is_admin());
+USING (public.is_admin(auth.uid()));
 
 -- Escrita só via RPC DEFINER (sem INSERT/UPDATE/DELETE direto para authenticated)
 GRANT SELECT ON TABLE public.global_store_banners TO anon, authenticated;
@@ -137,7 +137,7 @@ SET search_path = public
 STABLE
 AS $$
 BEGIN
-  IF auth.uid() IS NULL OR NOT public.is_admin() THEN
+  IF auth.uid() IS NULL OR NOT public.is_admin(auth.uid()) THEN
     RAISE EXCEPTION 'Apenas administradores';
   END IF;
   RETURN QUERY
