@@ -83,7 +83,9 @@ export const BulkUploadModal = ({ onDone }: BulkUploadModalProps) => {
           stock: 0,
           min_order: 1,
           image_url: data.publicUrl,
-          status: "active",
+          // Sem tipo da joia: inativo até o admin classificar (Ouro/Prata/Folheado).
+          status: "inactive",
+          jewelry_material: null,
         } as never);
         if (insErr) throw insErr;
         next[i] = { ...next[i], status: "done" };
@@ -120,7 +122,7 @@ export const BulkUploadModal = ({ onDone }: BulkUploadModalProps) => {
             </Button>
             <h2 className="font-display text-2xl mb-1">Cadastro em massa</h2>
             <p className="text-xs text-muted-foreground mb-4">
-              Envie várias imagens de uma vez. Os produtos ficarão na categoria <strong>{BULK_CATEGORY}</strong> (oculta para as sacoleiras). Depois edite cada um e mova para a categoria correta.
+              Envie várias imagens de uma vez. Os produtos ficam <strong>inativos</strong> na categoria <strong>{BULK_CATEGORY}</strong> até você definir o tipo da joia (Ouro, Prata ou Folheado), preços e categoria correta.
             </p>
 
             <input

@@ -17,8 +17,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+import {
+  PRODUCT_JEWELRY_MATERIAL_BLOCK_MSG,
+  jewelryMaterialLabel,
+} from "@/lib/jewelryMaterial";
 
 type SortOption = "default" | "price-asc" | "price-desc" | "stock-asc" | "stock-desc";
+type JewelryFilter = "all" | "pending" | "gold" | "silver" | "plated";
 
 const getCategoryFromParams = (searchParams: URLSearchParams) => {
   const category = searchParams.get("categoria");
@@ -34,13 +39,13 @@ const AdminProducts = () => {
   const [highlightedCategory, setHighlightedCategory] = useState<string>(() => getCategoryFromParams(searchParams));
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("default");
+  const [jewelryFilter, setJewelryFilter] = useState<JewelryFilter>("all");
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [deleteCategoryOpen, setDeleteCategoryOpen] = useState(false);
   const [deleteSelectedOpen, setDeleteSelectedOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
-
   const loadProducts = useCallback(async () => {
     try {
       const rows = await loadAdminProducts();
@@ -64,6 +69,11 @@ const AdminProducts = () => {
     loadProducts();
   }, [loadProducts]);
 
+  const pendingJewelryCount = useMemo(
+    () => items.filter((p) => !p.jewelryMaterial).length,
+    [items],
+  );
+
   const visibleItems = useMemo(() => {
     const term = search.trim().toLowerCase();
     const filtered = items.filter((product) => {
@@ -71,7 +81,11 @@ const AdminProducts = () => {
       const matchesSearch = !term
         || product.name.toLowerCase().includes(term)
         || product.code.toLowerCase().includes(term);
-      return matchesCategory && matchesSearch;
+      const matchesJewelry =
+        jewelryFilter === "all"
+        || (jewelryFilter === "pending" && !product.jewelryMaterial)
+        || product.jewelryMaterial === jewelryFilter;
+      return matchesCategory && matchesSearch && matchesJewelry;
     });
 
     return filtered.sort((a, b) => {
@@ -81,7 +95,7 @@ const AdminProducts = () => {
       if (sortBy === "stock-desc") return b.stock - a.stock;
       return 0;
     });
-  }, [items, selectedCategory, search, sortBy]);
+  }, [items, selectedCategory, search, sortBy, jewelryFilter]);
 
   const categoryCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -211,6 +225,18 @@ const AdminProducts = () => {
     <div className="mb-4 flex flex-col gap-3 rounded-xl border border-border bg-card px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
       <p className="text-sm text-muted-foreground">Categoria atual: <span className="font-medium text-foreground">{selectedCategory}</span>{search.trim() && <> · Busca: <span className="font-medium text-foreground">{search.trim()}</span></>}</p>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap">
+        <Select value={jewelryFilter} onValueChange={(value) => setJewelryFilter(value as JewelryFilter)}>
+          <SelectTrigger className="w-full sm:w-56">
+            <SelectValue placeholder="Tipo da joia" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os tipos</SelectItem>
+            <SelectItem value="pending">Pendentes de classificação{pendingJewelryCount > 0 ? ` (${pendingJewelryCount})` : ""}</SelectItem>
+            <SelectItem value="gold">Ouro</SelectItem>
+            <SelectItem value="silver">Prata</SelectItem>
+            <SelectItem value="plated">Folheado</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
           <SelectTrigger className="w-full sm:w-56">
             <SelectValue placeholder="Ordenar" />
@@ -222,8 +248,7 @@ const AdminProducts = () => {
             <SelectItem value="stock-asc">Menor estoque</SelectItem>
             <SelectItem value="stock-desc">Maior estoque</SelectItem>
           </SelectContent>
-        </Select>
-        {!selectMode ? (
+        </Select>        {!selectMode ? (
           <Button variant="outline" size="sm" onClick={() => setSelectMode(true)}>
             <CheckSquare className="h-4 w-4" /> Selecionar
           </Button>
@@ -245,6 +270,24 @@ const AdminProducts = () => {
         <p className="text-sm text-primary">{visibleItems.length} produto(s)</p>
       </div>
     </div>
+
+    {pendingJewelryCount > 0 && (
+      <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
+        <p className="font-medium text-destructive">
+          {pendingJewelryCount} produto(s) pendente(s) de classificação de tipo da joia.
+        </p>
+        <p className="text-muted-foreground mt-1">{PRODUCT_JEWELRY_MATERIAL_BLOCK_MSG}</p>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="mt-2"
+          onClick={() => setJewelryFilter("pending")}
+        >
+          Ver pendentes
+        </Button>
+      </div>
+    )}
 
     {selectMode && (
       <div className="mb-4 flex flex-col gap-3 rounded-xl border border-primary/40 bg-primary/5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
@@ -305,7 +348,14 @@ const AdminProducts = () => {
         >
           <div className="aspect-square overflow-hidden relative">
             <img src={p.image} alt={p.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-            <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider border bg-success/15 text-success border-success/30">Ativo</span>
+            <span className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider border ${p.active ? "bg-success/15 text-success border-success/30" : "bg-muted text-muted-foreground border-border"}`}>
+              {p.active ? "Ativo" : "Inativo"}
+            </span>
+            {!p.jewelryMaterial && (
+              <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider border bg-destructive/15 text-destructive border-destructive/30">
+                Tipo pendente
+              </span>
+            )}
             {selectMode && (
               <div className="absolute top-2 left-2 rounded-md bg-background/90 p-1 shadow">
                 <Checkbox checked={isSelected} onCheckedChange={() => toggleSelected(p.id)} onClick={(e) => e.stopPropagation()} />
@@ -315,7 +365,9 @@ const AdminProducts = () => {
           <div className="p-4">
             <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">{p.category} · {p.code}</p>
             <h3 className="font-display text-lg leading-tight mb-2">{p.name}</h3>
-            <div className="flex items-end justify-between">
+            <p className="text-xs text-muted-foreground mb-2">
+              Tipo: <span className="text-foreground">{jewelryMaterialLabel(p.jewelryMaterial)}</span>
+            </p>            <div className="flex items-end justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Atacado</p>
                 <p className="font-medium text-primary">{formatBRL(p.wholesalePrice)}</p>

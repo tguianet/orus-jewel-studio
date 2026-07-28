@@ -91,11 +91,17 @@ export type CommissionReportItem = {
   id: string;
   reseller_id: string;
   order_id: string;
+  order_item_id?: string | null;
+  product_id?: string | null;
   level: number;
   rate: number;
+  percentage_applied?: number | null;
+  base_amount?: number | null;
   amount: number;
+  jewelry_material?: "gold" | "silver" | "plated" | null;
   status: string;
   created_at: string;
+  commission_mode?: "legacy_order" | "per_item";
 };
 
 export type WalletReportItem = {

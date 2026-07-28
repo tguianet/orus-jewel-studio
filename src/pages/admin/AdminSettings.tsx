@@ -19,22 +19,18 @@ import {
   slugify,
   updateImageFormat,
 } from "@/lib/marketingBanners";
-import type { CommissionSettings } from "@/lib/commissionSettings";
+import type { MlmCommissionMatrixPercents } from "@/lib/commissionSettings";
 import {
-  loadCommissionSettings,
-  percentToRate,
-  rateToPercent,
-  updateCommissionSettings,
-  validateCommissionPercents,
+  emptyMatrixPercents,
+  loadMlmCommissionRates,
+  ratesToMatrixPercents,
+  updateMlmCommissionRates,
+  validateMlmMatrixPercents,
+  countProductsPendingJewelryMaterial,
 } from "@/lib/commissionSettings";
+import { JEWELRY_MATERIAL_OPTIONS, type JewelryMaterial } from "@/lib/jewelryMaterial";
 import { PwaInstallButton } from "@/components/pwa/PwaInstallButton";
 import { PwaInstallInstructions } from "@/components/pwa/PwaInstallInstructions";
-
-const parsePercentInput = (raw: string): number => {
-  const normalized = raw.trim().replace(",", ".");
-  if (normalized === "") return Number.NaN;
-  return Number(normalized);
-};
 
 const AdminSettings = () => {
   const [formats, setFormats] = useState<ImageFormat[]>([]);
@@ -45,12 +41,12 @@ const AdminSettings = () => {
 
   const [commissionLoading, setCommissionLoading] = useState(true);
   const [commissionSaving, setCommissionSaving] = useState(false);
-  const [commissionSettings, setCommissionSettings] = useState<CommissionSettings | null>(null);
+  const [commissionMatrix, setCommissionMatrix] = useState<MlmCommissionMatrixPercents>(emptyMatrixPercents());
+  const [commissionLoaded, setCommissionLoaded] = useState(false);
   const [commissionError, setCommissionError] = useState<string | null>(null);
   const [commissionSuccess, setCommissionSuccess] = useState<string | null>(null);
-  const [level1Percent, setLevel1Percent] = useState("");
-  const [level2Percent, setLevel2Percent] = useState("");
-  const [level3Percent, setLevel3Percent] = useState("");
+  const [lastChangeLabel, setLastChangeLabel] = useState<string | null>(null);
+  const [pendingJewelryCount, setPendingJewelryCount] = useState<number | null>(null);
 
   const printTodayOrders = async () => {
     try {
@@ -125,21 +121,37 @@ ${orders.map((o) => `
     } finally { setPrinting(false); }
   };
 
-  const applyCommissionSettings = (settings: CommissionSettings) => {
-    setCommissionSettings(settings);
-    setLevel1Percent(String(rateToPercent(Number(settings.level_1_rate))));
-    setLevel2Percent(String(rateToPercent(Number(settings.level_2_rate))));
-    setLevel3Percent(String(rateToPercent(Number(settings.level_3_rate))));
+  const applyCommissionMatrix = (rows: Awaited<ReturnType<typeof loadMlmCommissionRates>>) => {
+    setCommissionMatrix(ratesToMatrixPercents(rows));
+    setCommissionLoaded(true);
+    const latest = rows
+      .map((r) => r.updated_at)
+      .filter(Boolean)
+      .sort()
+      .at(-1);
+    const who = rows.find((r) => r.updated_by)?.updated_by;
+    if (latest) {
+      const when = new Date(latest).toLocaleString("pt-BR");
+      setLastChangeLabel(
+        `${when}${who ? ` · por ${who.slice(0, 8)}…` : " · usuário não registrado"}`,
+      );
+    } else {
+      setLastChangeLabel(null);
+    }
   };
 
   const reloadCommissions = async () => {
     setCommissionLoading(true);
     setCommissionError(null);
     try {
-      const settings = await loadCommissionSettings();
-      applyCommissionSettings(settings);
+      const [rows, pending] = await Promise.all([
+        loadMlmCommissionRates(),
+        countProductsPendingJewelryMaterial().catch(() => null),
+      ]);
+      applyCommissionMatrix(rows);
+      setPendingJewelryCount(pending);
     } catch (e: unknown) {
-      setCommissionSettings(null);
+      setCommissionLoaded(false);
       setCommissionError(e instanceof Error ? e.message : "Falha ao carregar comissões do banco.");
     } finally {
       setCommissionLoading(false);
@@ -154,22 +166,17 @@ ${orders.map((o) => `
 
   useEffect(() => {
     void reload();
-    // Carga inicial da aba Comissões (admin → Supabase; sem fallback silencioso)
-    void (async () => {
-      setCommissionLoading(true);
-      setCommissionError(null);
-      try {
-        const settings = await loadCommissionSettings();
-        applyCommissionSettings(settings);
-      } catch (e: unknown) {
-        setCommissionSettings(null);
-        setCommissionError(e instanceof Error ? e.message : "Falha ao carregar comissões do banco.");
-      } finally {
-        setCommissionLoading(false);
-      }
-    })();
+    void reloadCommissions();
   }, []);
 
+  const setMatrixCell = (material: JewelryMaterial, level: 1 | 2 | 3, value: string) => {
+    setCommissionMatrix((prev) => ({
+      ...prev,
+      [material]: { ...prev[material], [level]: value },
+    }));
+    setCommissionSuccess(null);
+    setCommissionError(null);
+  };
   const addFormat = async () => {
     const name = draft.name.trim();
     if (!name) return toast.error("Dê um nome ao formato.");
@@ -210,10 +217,7 @@ ${orders.map((o) => `
     setCommissionSuccess(null);
     setCommissionError(null);
 
-    const p1 = parsePercentInput(level1Percent);
-    const p2 = parsePercentInput(level2Percent);
-    const p3 = parsePercentInput(level3Percent);
-    const validationError = validateCommissionPercents(p1, p2, p3);
+    const validationError = validateMlmMatrixPercents(commissionMatrix);
     if (validationError) {
       setCommissionError(validationError);
       toast.error(validationError);
@@ -221,18 +225,15 @@ ${orders.map((o) => `
     }
 
     const confirmed = confirm(
-      `Confirmar novas comissões?\n\nNível 1: ${p1}%\nNível 2: ${p2}%\nNível 3: ${p3}%\n\nEssa alteração vale apenas para vendas futuras. Pedidos e comissões já gerados não serão recalculados.`,
+      "Confirmar nova matriz de comissões (Ouro / Prata / Folheado × níveis 1–3)?\n\nEssa alteração vale apenas para vendas futuras. Pedidos e comissões já gerados não serão recalculados.",
     );
     if (!confirmed) return;
 
     try {
       setCommissionSaving(true);
-      const updated = await updateCommissionSettings({
-        level1: percentToRate(p1),
-        level2: percentToRate(p2),
-        level3: percentToRate(p3),
-      });
-      applyCommissionSettings(updated);
+      await updateMlmCommissionRates(commissionMatrix);
+      const refreshed = await loadMlmCommissionRates();
+      applyCommissionMatrix(refreshed);
       const msg = "Comissões salvas com sucesso. Válidas apenas para vendas futuras.";
       setCommissionSuccess(msg);
       toast.success(msg);
@@ -244,15 +245,6 @@ ${orders.map((o) => `
       setCommissionSaving(false);
     }
   };
-
-  const lastChangeLabel = (() => {
-    if (!commissionSettings) return null;
-    const when = new Date(commissionSettings.updated_at).toLocaleString("pt-BR");
-    const who = commissionSettings.updated_by
-      ? ` · por ${commissionSettings.updated_by.slice(0, 8)}…`
-      : " · usuário não registrado";
-    return `${when}${who}`;
-  })();
 
   return (
     <AdminLayout>
@@ -328,20 +320,34 @@ ${orders.map((o) => `
             <div>
               <h3 className="font-display text-xl">Comissões MLM</h3>
               <p className="text-xs text-muted-foreground mt-1">
-                Percentuais por nível da rede. Persistidos no Supabase e aplicados apenas em vendas futuras.
+                Percentuais por tipo de joia e nível da rede. Configurados no Lovable Cloud e aplicados apenas em vendas futuras.
               </p>
             </div>
 
             <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-muted-foreground">
               Alterar estes valores <span className="text-foreground font-medium">não recalcula</span> pedidos
-              nem comissões já geradas. A taxa e o valor originais permanecem nas linhas existentes.
+              nem comissões já geradas. As taxas originais permanecem nas linhas existentes.
             </div>
+
+            {pendingJewelryCount != null && pendingJewelryCount > 0 && (
+              <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
+                <p className="font-medium text-destructive">
+                  {pendingJewelryCount} produto(s) pendente(s) de classificação de tipo da joia.
+                </p>
+                <p className="text-muted-foreground mt-1">
+                  Defina o tipo da joia antes de disponibilizar este produto para venda.{" "}
+                  <Link to="/admin/produtos" className="underline text-foreground">
+                    Ir para produtos
+                  </Link>
+                </p>
+              </div>
+            )}
 
             {commissionLoading ? (
               <div className="flex items-center justify-center h-28 text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin mr-2" /> Carregando comissões...
               </div>
-            ) : !commissionSettings ? (
+            ) : !commissionLoaded ? (
               <div className="space-y-3">
                 <p className="text-sm text-destructive" role="alert">
                   {commissionError || "Não foi possível carregar a configuração de comissões."}
@@ -352,58 +358,40 @@ ${orders.map((o) => `
               </div>
             ) : (
               <>
-                <div className="grid sm:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="commission-l1">Comissão do nível 1 (%)</Label>
-                    <Input
-                      id="commission-l1"
-                      type="text"
-                      inputMode="decimal"
-                      value={level1Percent}
-                      onChange={(e) => {
-                        setLevel1Percent(e.target.value);
-                        setCommissionSuccess(null);
-                        setCommissionError(null);
-                      }}
-                      className="mt-1.5"
-                      disabled={commissionSaving}
-                      placeholder="25"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="commission-l2">Comissão do nível 2 (%)</Label>
-                    <Input
-                      id="commission-l2"
-                      type="text"
-                      inputMode="decimal"
-                      value={level2Percent}
-                      onChange={(e) => {
-                        setLevel2Percent(e.target.value);
-                        setCommissionSuccess(null);
-                        setCommissionError(null);
-                      }}
-                      className="mt-1.5"
-                      disabled={commissionSaving}
-                      placeholder="3"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="commission-l3">Comissão do nível 3 (%)</Label>
-                    <Input
-                      id="commission-l3"
-                      type="text"
-                      inputMode="decimal"
-                      value={level3Percent}
-                      onChange={(e) => {
-                        setLevel3Percent(e.target.value);
-                        setCommissionSuccess(null);
-                        setCommissionError(null);
-                      }}
-                      className="mt-1.5"
-                      disabled={commissionSaving}
-                      placeholder="2"
-                    />
-                  </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[520px] text-sm">
+                    <thead>
+                      <tr className="border-b border-border text-left text-muted-foreground">
+                        <th className="py-2 pr-3 font-medium">Tipo</th>
+                        <th className="py-2 px-2 font-medium">Nível 1 (%)</th>
+                        <th className="py-2 px-2 font-medium">Nível 2 (%)</th>
+                        <th className="py-2 px-2 font-medium">Nível 3 (%)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {JEWELRY_MATERIAL_OPTIONS.map(({ value, label }) => (
+                        <tr key={value} className="border-b border-border/60">
+                          <td className="py-3 pr-3 font-medium">{label}</td>
+                          {([1, 2, 3] as const).map((level) => (
+                            <td key={level} className="py-3 px-2">
+                              <Label className="sr-only">
+                                {label} nível {level}
+                              </Label>
+                              <Input
+                                type="text"
+                                inputMode="decimal"
+                                value={commissionMatrix[value][level]}
+                                onChange={(e) => setMatrixCell(value, level, e.target.value)}
+                                disabled={commissionSaving}
+                                className="max-w-[7rem]"
+                                placeholder="0"
+                              />
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
 
                 {lastChangeLabel && (
@@ -420,7 +408,7 @@ ${orders.map((o) => `
                 )}
 
                 <div className="flex flex-wrap gap-3">
-                  <Button variant="gold" onClick={saveCommissions} disabled={commissionSaving}>
+                  <Button variant="gold" onClick={() => void saveCommissions()} disabled={commissionSaving}>
                     {commissionSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                     Salvar comissões
                   </Button>

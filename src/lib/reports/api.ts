@@ -160,6 +160,7 @@ export async function fetchAdminCommissionReport(opts: {
   end: Date;
   page?: number;
   status?: string | null;
+  jewelryMaterial?: string | null;
 }): Promise<{ summary: Record<string, number>; items: unknown[] } & ReportPagination> {
   const data = await rpcJson("admin_get_commission_report", {
     p_start_date: opts.start.toISOString(),
@@ -167,6 +168,7 @@ export async function fetchAdminCommissionReport(opts: {
     p_level: null,
     p_status: opts.status ?? null,
     p_reseller_id: null,
+    p_jewelry_material: opts.jewelryMaterial ?? null,
     p_page: opts.page ?? 1,
     p_page_size: 25,
   }) as {
@@ -175,15 +177,17 @@ export async function fetchAdminCommissionReport(opts: {
     page?: number;
     page_size?: number;
     total_count?: number;
+    total?: number;
     total_pages?: number;
   };
+  const totalCount = data.total_count ?? data.total ?? 0;
   return {
     summary: data.summary ?? {},
     items: data.items ?? [],
     page: data.page ?? 1,
     pageSize: data.page_size ?? 25,
-    totalCount: data.total_count ?? 0,
-    totalPages: data.total_pages ?? 1,
+    totalCount,
+    totalPages: data.total_pages ?? Math.max(1, Math.ceil(totalCount / (data.page_size ?? 25))),
   };
 }
 

@@ -8,6 +8,12 @@ import { loadCategories } from "@/lib/categories";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ProductImageGallery } from "@/components/ProductImageGallery";
+import {
+  JEWELRY_MATERIAL_OPTIONS,
+  PRODUCT_JEWELRY_MATERIAL_BLOCK_MSG,
+  PRODUCT_JEWELRY_MATERIAL_REQUIRED_MSG,
+  isJewelryMaterial,
+} from "@/lib/jewelryMaterial";
 
 
 interface EditProductModalProps {
@@ -73,7 +79,19 @@ export const EditProductModal = ({ product, open, onOpenChange, onUpdated }: Edi
     const stock = Number(form.get("stock") || product.stock);
     const minOrder = Number(form.get("minOrder") || product.minOrder);
     const status = String(form.get("status") || (product.active ? "active" : "inactive"));
+    const jewelryMaterialRaw = String(form.get("jewelryMaterial") || "");
     const primary = images[0] || product.image;
+
+    if (!isJewelryMaterial(jewelryMaterialRaw)) {
+      toast.error(PRODUCT_JEWELRY_MATERIAL_REQUIRED_MSG);
+      setSaving(false);
+      return;
+    }
+    if (status === "active" && !isJewelryMaterial(jewelryMaterialRaw)) {
+      toast.error(PRODUCT_JEWELRY_MATERIAL_BLOCK_MSG);
+      setSaving(false);
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -90,9 +108,9 @@ export const EditProductModal = ({ product, open, onOpenChange, onUpdated }: Edi
           image_url: primary,
           images,
           status: status as "active" | "inactive",
+          jewelry_material: jewelryMaterialRaw,
         })
         .eq("id", product.id);
-
 
       if (error) throw error;
 
@@ -152,11 +170,34 @@ export const EditProductModal = ({ product, open, onOpenChange, onUpdated }: Edi
               </select>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="edit-stock">Estoque</Label>
-              <Input id="edit-stock" name="stock" type="number" min="0" defaultValue={product.stock} required />
+              <Label htmlFor="edit-jewelryMaterial">Tipo da joia</Label>
+              <select
+                id="edit-jewelryMaterial"
+                name="jewelryMaterial"
+                required
+                defaultValue={product.jewelryMaterial ?? ""}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="" disabled>
+                  Selecione…
+                </option>
+                {JEWELRY_MATERIAL_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              {!product.jewelryMaterial && (
+                <p className="text-xs text-destructive">{PRODUCT_JEWELRY_MATERIAL_BLOCK_MSG}</p>
+              )}
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-stock">Estoque</Label>
+              <Input id="edit-stock" name="stock" type="number" min="0" defaultValue={product.stock} required />
+            </div>
+          </div>          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="edit-wholesale">Preço atacado</Label>
               <Input id="edit-wholesale" name="wholesalePrice" type="number" min="0" step="0.01" defaultValue={product.wholesalePrice} required />

@@ -8,6 +8,11 @@ import { loadCategories } from "@/lib/categories";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ProductImageGallery } from "@/components/ProductImageGallery";
+import {
+  JEWELRY_MATERIAL_OPTIONS,
+  PRODUCT_JEWELRY_MATERIAL_REQUIRED_MSG,
+  isJewelryMaterial,
+} from "@/lib/jewelryMaterial";
 
 interface NewProductModalProps {
   onCreate?: (product: Product) => void | Promise<void>;
@@ -64,9 +69,16 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
     const wholesalePrice = Number(form.get("wholesalePrice") || 0);
     const suggestedPrice = Number(form.get("suggestedPrice") || wholesalePrice * 2);
     const stock = Number(form.get("stock") || 0);
+    const jewelryMaterial = String(form.get("jewelryMaterial") || "");
     const code = `AUR-${category.charAt(0).toUpperCase()}${Date.now().toString().slice(-3)}`;
     const primary = images[0] || null;
     const computedCost = Math.round(wholesalePrice * 0.58);
+
+    if (!isJewelryMaterial(jewelryMaterial)) {
+      toast.error(PRODUCT_JEWELRY_MATERIAL_REQUIRED_MSG);
+      setSaving(false);
+      return;
+    }
 
     try {
       const { data: savedProduct, error: productError } = await supabase
@@ -86,9 +98,10 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
           image_url: primary,
           images,
           status: "active",
+          jewelry_material: jewelryMaterial,
         })
         // Sem cost_price no RETURNING — coluna revogada para authenticated SELECT.
-        .select("id,code,name,description,wholesale_price,suggested_price,stock,min_order,image_url,images,category_name")
+        .select("id,code,name,description,wholesale_price,suggested_price,stock,min_order,image_url,images,category_name,jewelry_material")
         .single();
 
       if (productError) throw productError;
@@ -108,6 +121,7 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
         image: savedProduct.image_url || primary || "/placeholder.svg",
         images: savedImages,
         active: true,
+        jewelryMaterial: jewelryMaterial,
       };
 
       try {
@@ -164,6 +178,30 @@ export const NewProductModal = ({ onCreate }: NewProductModalProps) => {
                   </select>
                   {categoriesError && <p className="text-xs text-destructive">{categoriesError}</p>}
                 </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="jewelryMaterial">Tipo da joia</Label>
+                  <select
+                    id="jewelryMaterial"
+                    name="jewelryMaterial"
+                    required
+                    defaultValue=""
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <option value="" disabled>
+                      Selecione…
+                    </option>
+                    {JEWELRY_MATERIAL_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] text-muted-foreground">
+                    Material comercial para comissão MLM (não é a categoria).
+                  </p>
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="stock">Estoque</Label>
                   <Input id="stock" name="stock" type="number" min="0" defaultValue="10" required />

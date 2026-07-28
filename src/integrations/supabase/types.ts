@@ -166,11 +166,15 @@ export type Database = {
       commissions: {
         Row: {
           amount: number
+          base_amount: number | null
           created_at: string
           id: string
+          jewelry_material: Database["public"]["Enums"]["jewelry_material"] | null
           level: number
           order_id: string
           order_item_id: string | null
+          percentage_applied: number | null
+          product_id: string | null
           rate: number
           reseller_id: string
           source_reseller_id: string | null
@@ -179,11 +183,15 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          base_amount?: number | null
           created_at?: string
           id?: string
+          jewelry_material?: Database["public"]["Enums"]["jewelry_material"] | null
           level: number
           order_id: string
           order_item_id?: string | null
+          percentage_applied?: number | null
+          product_id?: string | null
           rate: number
           reseller_id: string
           source_reseller_id?: string | null
@@ -192,11 +200,15 @@ export type Database = {
         }
         Update: {
           amount?: number
+          base_amount?: number | null
           created_at?: string
           id?: string
+          jewelry_material?: Database["public"]["Enums"]["jewelry_material"] | null
           level?: number
           order_id?: string
           order_item_id?: string | null
+          percentage_applied?: number | null
+          product_id?: string | null
           rate?: number
           reseller_id?: string
           source_reseller_id?: string | null
@@ -216,6 +228,13 @@ export type Database = {
             columns: ["order_item_id"]
             isOneToOne: false
             referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
           {
@@ -595,6 +614,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          jewelry_material: Database["public"]["Enums"]["jewelry_material"] | null
           order_id: string
           product_id: string | null
           product_name: string
@@ -606,6 +626,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          jewelry_material?: Database["public"]["Enums"]["jewelry_material"] | null
           order_id: string
           product_id?: string | null
           product_name: string
@@ -617,6 +638,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          jewelry_material?: Database["public"]["Enums"]["jewelry_material"] | null
           order_id?: string
           product_id?: string | null
           product_name?: string
@@ -908,6 +930,7 @@ export type Database = {
           id: string
           image_url: string | null
           images: string[]
+          jewelry_material: Database["public"]["Enums"]["jewelry_material"] | null
           min_order: number
           name: string
           seller_store_id: string | null
@@ -927,6 +950,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           images?: string[]
+          jewelry_material?: Database["public"]["Enums"]["jewelry_material"] | null
           min_order?: number
           name: string
           seller_store_id?: string | null
@@ -946,6 +970,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           images?: string[]
+          jewelry_material?: Database["public"]["Enums"]["jewelry_material"] | null
           min_order?: number
           name?: string
           seller_store_id?: string | null
@@ -1580,6 +1605,36 @@ export type Database = {
         }
         Relationships: []
       }
+      mlm_commission_rates: {
+        Row: {
+          created_at: string
+          id: string
+          jewelry_material: Database["public"]["Enums"]["jewelry_material"]
+          level: number
+          percentage: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          jewelry_material: Database["public"]["Enums"]["jewelry_material"]
+          level: number
+          percentage: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          jewelry_material?: Database["public"]["Enums"]["jewelry_material"]
+          level?: number
+          percentage?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       reseller_wallet_summary: {
@@ -1687,6 +1742,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_count_products_pending_jewelry_material: {
+        Args: never
+        Returns: number
+      }
       admin_export_report: {
         Args: { p_filters?: Json; p_report_type: string }
         Returns: Json
@@ -1694,6 +1753,7 @@ export type Database = {
       admin_get_commission_report: {
         Args: {
           p_end_date: string
+          p_jewelry_material?: string
           p_level?: number
           p_page?: number
           p_page_size?: number
@@ -1990,6 +2050,16 @@ export type Database = {
           level_3_rate: number
         }[]
       }
+      get_mlm_commission_rates: {
+        Args: never
+        Returns: {
+          jewelry_material: Database["public"]["Enums"]["jewelry_material"]
+          level: number
+          percentage: number
+          updated_at: string
+          updated_by: string | null
+        }[]
+      }
       get_my_consents: { Args: never; Returns: Json }
       get_my_withdrawal_summary: { Args: never; Returns: Json }
       get_order_reserve_minutes: { Args: never; Returns: number }
@@ -2236,6 +2306,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      update_mlm_commission_rates: {
+        Args: { p_rates: Json }
+        Returns: Json
+      }
       update_withdrawal_settings: { Args: { p_minimum: number }; Returns: Json }
       upsert_my_payout_profile: {
         Args: { p_payment_details: Json; p_payment_method: string }
@@ -2264,6 +2338,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "sacoleira"
+      jewelry_material: "gold" | "silver" | "plated"
       order_origin: "loja_online" | "whatsapp" | "manual"
       order_status:
         | "new"
@@ -2417,6 +2492,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "sacoleira"],
+      jewelry_material: ["gold", "silver", "plated"],
       order_origin: ["loja_online", "whatsapp", "manual"],
       order_status: [
         "new",

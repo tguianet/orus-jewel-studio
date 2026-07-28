@@ -39,6 +39,7 @@ type StoreProductQueryRow = {
     images: string[] | null;
     status: string;
     category_name: string | null;
+    jewelry_material: "gold" | "silver" | "plated" | null;
     categories: { name: string } | null;
   } | null;
 };
@@ -58,16 +59,17 @@ type ProductRowNoCost = Pick<
   | "images"
   | "category_name"
   | "status"
+  | "jewelry_material"
 >;
 
 export const RESELLER_PRODUCT_SELECT =
-  "id,code,name,description,wholesale_price,suggested_price,stock,min_order,image_url,images,category_name,status";
+  "id,code,name,description,wholesale_price,suggested_price,stock,min_order,image_url,images,category_name,status,jewelry_material";
 
 export const ADMIN_PRODUCT_SELECT_NO_COST =
-  "id,code,name,description,wholesale_price,suggested_price,stock,min_order,image_url,images,category_name,status";
+  "id,code,name,description,wholesale_price,suggested_price,stock,min_order,image_url,images,category_name,status,jewelry_material";
 
 export const PUBLIC_PRODUCT_NESTED_SELECT =
-  "id, code, name, description, suggested_price, stock, min_order, image_url, images, status, category_name, categories(name)";
+  "id, code, name, description, suggested_price, stock, min_order, image_url, images, status, category_name, jewelry_material, categories(name)";
 
 type StoreProductLink = Pick<Tables<"store_products">, "id" | "product_id" | "resale_price" | "active" | "images">;
 
@@ -193,7 +195,8 @@ export const loadStoreProducts = async (sellerStoreId: string): Promise<CloudSto
   return (data as unknown as StoreProductQueryRow[])
     .map((item) => {
       const product = item.products;
-      if (!product || product.status !== "active") return null;
+      // Sem tipo de joia: não pode ser vendido (sem fallback silencioso).
+      if (!product || product.status !== "active" || !product.jewelry_material) return null;
       const category = product.categories?.name || product.category_name || "Joias";
       const productImages: string[] = Array.isArray(product.images) ? product.images : [];
       const storeImages: string[] = Array.isArray(item.images) ? item.images : [];
@@ -212,6 +215,7 @@ export const loadStoreProducts = async (sellerStoreId: string): Promise<CloudSto
         image: primary,
         images: finalGallery,
         active: product.status === "active",
+        jewelryMaterial: product.jewelry_material,
         resellerPrice: Number(item.resale_price || product.suggested_price || 0),
         sellerStoreId: item.seller_store_id,
       } satisfies CloudStoreProduct;
@@ -257,6 +261,7 @@ const mapResellerProductRow = (p: ProductRowNoCost): ResellerProduct => {
     image: finalGallery[0] || imageByCategory(p.category_name),
     images: finalGallery,
     active: p.status === "active",
+    jewelryMaterial: p.jewelry_material ?? null,
   };
 };
 
@@ -319,7 +324,9 @@ export const loadCatalogForStore = async (storeId: string): Promise<CatalogProdu
       },
     ]),
   );
-  return ((products ?? []) as ProductRowNoCost[]).map((p) => {
+  return ((products ?? []) as ProductRowNoCost[])
+    .filter((p) => p.jewelry_material != null)
+    .map((p) => {
     const link = linkByProduct.get(p.id);
     const productImages: string[] = Array.isArray(p.images) ? p.images : [];
     const gallery = [...productImages, ...(link?.images ?? [])].filter(Boolean);

@@ -1,6 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import type { CommissionLevel } from "@/types/commerce";
+import {
+  JEWELRY_MATERIALS,
+  type JewelryMaterial,
+  isJewelryMaterial,
+} from "@/lib/jewelryMaterial";
 
 export type CommissionSettings = Tables<"commission_settings">;
 
@@ -15,6 +20,26 @@ export type CommissionRule = {
   rate: number;
   label: string;
 };
+
+export type MlmCommissionRateRow = {
+  jewelry_material: JewelryMaterial;
+  level: 1 | 2 | 3;
+  percentage: number;
+  updated_at?: string;
+  updated_by?: string | null;
+};
+
+/** Matriz 3×3 editável na UI (percentuais 0–100). */
+export type MlmCommissionMatrixPercents = Record<
+  JewelryMaterial,
+  { 1: string; 2: string; 3: string }
+>;
+
+export const emptyMatrixPercents = (): MlmCommissionMatrixPercents => ({
+  gold: { 1: "", 2: "", 3: "" },
+  silver: { 1: "", 2: "", 3: "" },
+  plated: { 1: "", 2: "", 3: "" },
+});
 
 export const settingsToRules = (settings: Pick<
   CurrentCommissionRates,
@@ -57,6 +82,7 @@ export const getCurrentCommissionRates = async (): Promise<CurrentCommissionRate
   };
 };
 
+/** @deprecated Prefer updateMlmCommissionRates (matriz por material). */
 export const updateCommissionSettings = async (rates: {
   level1: number;
   level2: number;
@@ -73,8 +99,85 @@ export const updateCommissionSettings = async (rates: {
   return data;
 };
 
+export const loadMlmCommissionRates = async (): Promise<MlmCommissionRateRow[]> => {
+  const { data, error } = await supabase.rpc("get_mlm_commission_rates");
+  if (error) throw error;
+  const rows = Array.isArray(data) ? data : [];
+  if (rows.length === 0) {
+    throw new Error("Matriz de comissões não encontrada no banco.");
+  }
+  return rows.map((r) => {
+    const material = r.jewelry_material;
+    if (!isJewelryMaterial(material)) {
+      throw new Error(`Material inválido na matriz: ${String(material)}`);
+    }
+    const level = Number(r.level);
+    if (level !== 1 && level !== 2 && level !== 3) {
+      throw new Error(`Nível inválido na matriz: ${String(r.level)}`);
+    }
+    return {
+      jewelry_material: material,
+      level,
+      percentage: Number(r.percentage),
+      updated_at: r.updated_at ?? undefined,
+      updated_by: r.updated_by ?? null,
+    };
+  });
+};
+
+export const ratesToMatrixPercents = (rows: MlmCommissionRateRow[]): MlmCommissionMatrixPercents => {
+  const matrix = emptyMatrixPercents();
+  for (const row of rows) {
+    matrix[row.jewelry_material][row.level] = String(rateToPercent(row.percentage));
+  }
+  return matrix;
+};
+
+export const updateMlmCommissionRates = async (
+  matrix: MlmCommissionMatrixPercents,
+): Promise<MlmCommissionRateRow[]> => {
+  const payload: { jewelry_material: JewelryMaterial; level: number; percentage: number }[] = [];
+  for (const material of JEWELRY_MATERIALS) {
+    for (const level of [1, 2, 3] as const) {
+      const raw = matrix[material][level];
+      const percent = parsePercentInput(raw);
+      if (!Number.isFinite(percent)) {
+        throw new Error("Informe percentuais válidos (sem campos vazios).");
+      }
+      payload.push({
+        jewelry_material: material,
+        level,
+        percentage: percentToRate(percent),
+      });
+    }
+  }
+
+  const { data, error } = await supabase.rpc("update_mlm_commission_rates", {
+    p_rates: payload,
+  });
+  if (error) throw error;
+  const rows = Array.isArray(data) ? data : [];
+  return rows.map((r: { jewelry_material: string; level: number; percentage: number }) => ({
+    jewelry_material: r.jewelry_material as JewelryMaterial,
+    level: Number(r.level) as 1 | 2 | 3,
+    percentage: Number(r.percentage),
+  }));
+};
+
+export const countProductsPendingJewelryMaterial = async (): Promise<number> => {
+  const { data, error } = await supabase.rpc("admin_count_products_pending_jewelry_material");
+  if (error) throw error;
+  return Number(data ?? 0);
+};
+
 export const percentToRate = (percent: number) => percent / 100;
 export const rateToPercent = (rate: number) => rate * 100;
+
+export const parsePercentInput = (raw: string): number => {
+  const normalized = raw.trim().replace(",", ".");
+  if (normalized === "") return Number.NaN;
+  return Number(normalized);
+};
 
 /** Formata fração (0–1) como percentual pt-BR, preservando decimais úteis. */
 export const formatRateAsPercent = (rate: number): string => {
@@ -103,6 +206,21 @@ export const validateCommissionPercents = (
   }
   if (p1 + p2 + p3 > 100) {
     return "A soma dos níveis não pode ultrapassar 100%.";
+  }
+  return null;
+};
+
+export const validateMlmMatrixPercents = (
+  matrix: MlmCommissionMatrixPercents,
+): string | null => {
+  for (const material of JEWELRY_MATERIALS) {
+    const p1 = parsePercentInput(matrix[material][1]);
+    const p2 = parsePercentInput(matrix[material][2]);
+    const p3 = parsePercentInput(matrix[material][3]);
+    const err = validateCommissionPercents(p1, p2, p3);
+    if (err) {
+      return `${material === "gold" ? "Ouro" : material === "silver" ? "Prata" : "Folheado"}: ${err}`;
+    }
   }
   return null;
 };

@@ -74,6 +74,8 @@ export type ProductBase = {
   image: string;
   images?: string[];
   active: boolean;
+  /** Tipo comercial MLM: gold|silver|plated. Null = pendente. */
+  jewelryMaterial?: "gold" | "silver" | "plated" | null;
 };
 
 /** Loja pública / cliente — sem cost nem wholesale. */
