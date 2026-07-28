@@ -294,14 +294,19 @@ export function StoreTemplatePickerSection({
               )}
             </div>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto bg-muted/40 p-4" data-testid="store-template-preview-scroll">
+          <div
+            className="flex-1 overflow-y-auto bg-muted/40 p-4 flex justify-center"
+            data-testid="store-template-preview-scroll"
+          >
             <div
-              className={`mx-auto bg-background shadow-lg overflow-hidden ${
+              className={`mx-auto bg-background shadow-lg border overflow-x-hidden ${
                 previewDevice === "mobile"
-                  ? "max-w-[390px] rounded-[1.5rem] border"
-                  : "max-w-4xl rounded-lg border"
+                  ? "w-[375px] max-w-[min(100%,390px)] max-h-[70vh] overflow-y-auto rounded-[1.5rem]"
+                  : "w-full max-w-4xl max-h-[70vh] overflow-y-auto rounded-lg"
               }`}
               data-testid="store-template-preview-frame"
+              data-preview-device={previewDevice}
+              data-preview-viewport={previewDevice === "mobile" ? "375" : "desktop"}
               data-preview-inert="true"
               data-preview-loading={previewLoading ? "true" : "false"}
               data-preview-product-count={String(previewProducts.length)}
@@ -309,7 +314,7 @@ export function StoreTemplatePickerSection({
               onSubmitCapture={blockPreviewNavigation}
             >
               {previewKey && (
-                <div className="pointer-events-none select-none">
+                <div className="pointer-events-none select-none overflow-x-hidden min-w-0 w-full">
                   <StoreTemplateRenderer
                     templateKey={previewKey}
                     store={previewStore}

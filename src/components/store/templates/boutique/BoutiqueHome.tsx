@@ -35,15 +35,15 @@ const BoutiqueHome = ({
     <>
       {/* Compact commercial hero */}
       <section className="bg-foreground text-background">
-        <div className="container py-6 sm:py-8 grid sm:grid-cols-[1.2fr_1fr] gap-6 items-center">
-          <div className="space-y-4 order-2 sm:order-1">
+        <div className="container py-6 @sm:py-8 grid @sm:grid-cols-[1.2fr_1fr] gap-6 items-center">
+          <div className="space-y-4 order-2 @sm:order-1">
             <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.28em] text-primary">
               <Percent className="h-3.5 w-3.5" /> Ofertas da loja
             </p>
-            <h1 className="font-display text-3xl sm:text-5xl font-medium leading-tight">
+            <h1 className="font-display text-3xl @sm:text-5xl font-medium leading-tight">
               {t.heroTitle1 || store.storeName}
             </h1>
-            <p className="text-sm sm:text-base text-background/80 max-w-md">
+            <p className="text-sm @sm:text-base text-background/80 max-w-md">
               {t.heroPromoText || t.description || "Peças selecionadas com preço claro e compra rápida pelo celular."}
             </p>
             <div className="flex flex-wrap gap-3">
@@ -62,7 +62,7 @@ const BoutiqueHome = ({
               )}
             </div>
           </div>
-          <div className="order-1 sm:order-2 aspect-[16/10] sm:aspect-square overflow-hidden rounded-xl bg-muted">
+          <div className="order-1 @sm:order-2 aspect-[16/10] @sm:aspect-square overflow-hidden rounded-xl bg-muted">
             {hero && <img src={hero} alt={store.storeName} className="w-full h-full object-cover" loading="eager" />}
           </div>
         </div>
@@ -103,7 +103,7 @@ const BoutiqueHome = ({
                     onActiveCategoryChange(c);
                     document.getElementById("vitrine")?.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="shrink-0 w-28 sm:w-32 text-left"
+                  className="shrink-0 w-28 @sm:w-32 text-left"
                 >
                   <div className="aspect-square rounded-lg overflow-hidden bg-muted mb-2">
                     {img && <img src={img} alt={c} loading="lazy" className="w-full h-full object-cover" />}
@@ -120,7 +120,7 @@ const BoutiqueHome = ({
       <section id="vitrine" className="container pb-16 scroll-mt-20">
         <div className="flex items-center justify-between gap-3 mb-5">
           <div>
-            <h2 className="font-display text-2xl sm:text-3xl font-medium">Produtos</h2>
+            <h2 className="font-display text-2xl @sm:text-3xl font-medium">Produtos</h2>
             <p className="text-xs text-muted-foreground mt-1">
               {filtered.length} {filtered.length === 1 ? "peça" : "peças"}
               {query ? ` para “${query}”` : ""}
@@ -128,14 +128,14 @@ const BoutiqueHome = ({
           </div>
           <button
             type="button"
-            className="sm:hidden inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs uppercase tracking-wider"
+            className="@sm:hidden inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs uppercase tracking-wider"
             onClick={() => setCatMenuOpen(true)}
           >
             <Menu className="h-4 w-4" /> {activeCategory}
           </button>
         </div>
 
-        <div className="hidden sm:flex flex-wrap gap-2 mb-6">
+        <div className="hidden @sm:flex flex-wrap gap-2 mb-6">
           {cats.map((c) => (
             <button
               key={c}
@@ -181,7 +181,7 @@ const BoutiqueHome = ({
         ) : filtered.length === 0 ? (
           <p className="text-center text-sm text-muted-foreground py-12">Nenhum produto encontrado.</p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+          <div className="grid grid-cols-2 @sm:grid-cols-3 @lg:grid-cols-4 gap-3 @sm:gap-5">
             {filtered.map((p) => (
               <StoreProductCard
                 key={p.id}
@@ -229,7 +229,7 @@ const BoutiqueHome = ({
 
       {(t.showFinalCta ?? true) && wa && (
         <section className="container pb-16">
-          <div className="rounded-2xl border border-primary/30 bg-gradient-gold-soft p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="rounded-2xl border border-primary/30 bg-gradient-gold-soft p-6 @sm:p-8 flex flex-col @sm:flex-row items-center justify-between gap-4">
             <div>
               <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-1">Atendimento rápido</p>
               <h3 className="font-display text-2xl font-medium">Tire dúvidas e feche no WhatsApp</h3>

@@ -49,7 +49,7 @@ const EleganceHome = ({
           ...(t.heroFontFamily ? { fontFamily: t.heroFontFamily } : {}),
         }}
       >
-        <div className="relative w-full h-[78vh] min-h-[520px] max-h-[860px]">
+        <div className="relative w-full h-[78vh] min-h-[280px] @sm:min-h-[520px] max-h-[860px]">
           {banners.map((b, i) => (
             <img
               key={b + i}
@@ -79,14 +79,14 @@ const EleganceHome = ({
                   field="heroTitle1"
                   value={t.heroTitle1 || store.storeName}
                   as="h1"
-                  className="block font-display text-5xl sm:text-7xl lg:text-[88px] font-light leading-[1] tracking-tight text-white"
+                  className="block font-display text-5xl @sm:text-7xl @lg:text-[88px] font-light leading-[1] tracking-tight text-white"
                 />
                 {(t.heroTitleHighlight || isPreview()) && (
                   <EditableText
                     field="heroTitleHighlight"
                     value={t.heroTitleHighlight || ""}
                     as="p"
-                    className="block font-display italic text-2xl sm:text-3xl mt-3 text-white/85"
+                    className="block font-display italic text-2xl @sm:text-3xl mt-3 text-white/85"
                     placeholder="Subtítulo"
                   />
                 )}
@@ -95,7 +95,7 @@ const EleganceHome = ({
                     field="heroPromoText"
                     value={t.heroPromoText || ""}
                     as="p"
-                    className="block text-sm sm:text-base mt-6 text-white/90 max-w-md"
+                    className="block text-sm @sm:text-base mt-6 text-white/90 max-w-md"
                     placeholder="Texto promocional"
                   />
                 )}
@@ -125,14 +125,14 @@ const EleganceHome = ({
               <button
                 onClick={() => setBannerIdx((i) => (i - 1 + banners.length) % banners.length)}
                 aria-label="Banner anterior"
-                className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-10 h-11 w-11 rounded-full bg-white/15 backdrop-blur-md border border-white/30 text-white flex items-center justify-center hover:bg-white hover:text-foreground transition-all"
+                className="absolute left-4 @sm:left-6 top-1/2 -translate-y-1/2 z-10 h-11 w-11 rounded-full bg-white/15 backdrop-blur-md border border-white/30 text-white flex items-center justify-center hover:bg-white hover:text-foreground transition-all"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <button
                 onClick={() => setBannerIdx((i) => (i + 1) % banners.length)}
                 aria-label="Próximo banner"
-                className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-10 h-11 w-11 rounded-full bg-white/15 backdrop-blur-md border border-white/30 text-white flex items-center justify-center hover:bg-white hover:text-foreground transition-all"
+                className="absolute right-4 @sm:right-6 top-1/2 -translate-y-1/2 z-10 h-11 w-11 rounded-full bg-white/15 backdrop-blur-md border border-white/30 text-white flex items-center justify-center hover:bg-white hover:text-foreground transition-all"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -167,7 +167,7 @@ const EleganceHome = ({
           >
             <div className="container flex flex-wrap items-center justify-center gap-x-10 gap-y-2 py-4 text-[12px] uppercase tracking-wider">
               {benefits.map((b, i) => (
-                <span key={i} className={`font-medium ${i >= 2 ? "hidden md:inline" : ""}`}>{b}</span>
+                <span key={i} className={`font-medium ${i >= 2 ? "hidden @md:inline" : ""}`}>{b}</span>
               ))}
             </div>
           </section>
@@ -185,20 +185,20 @@ const EleganceHome = ({
             ...(t.categoriesFontFamily ? { fontFamily: t.categoriesFontFamily } : {}),
           }}
         >
-          <div className="container pt-10 pb-14 sm:pt-16 sm:pb-24">
-          <div className="text-center mb-7 sm:mb-10">
+          <div className="container pt-10 pb-14 @sm:pt-16 @sm:pb-24">
+          <div className="text-center mb-7 @sm:mb-10">
             <EditableText
               field="categoriesTitle"
               value={t.categoriesTitle || `Joias ${store.storeName}`}
               as="h2"
-              className="block font-display text-2xl sm:text-5xl font-light tracking-[0.08em] sm:tracking-wide uppercase leading-tight break-words"
+              className="block font-display text-2xl @sm:text-5xl font-light tracking-[0.08em] @sm:tracking-wide uppercase leading-tight break-words"
               style={t.categoriesFontFamily ? { fontFamily: t.categoriesFontFamily } : undefined}
             />
             <EditableText
               field="categoriesSubtitle"
               value={t.categoriesSubtitle || "Escolha por categorias"}
               as="p"
-              className="block mt-2 sm:mt-3 text-[10px] sm:text-[11px] uppercase tracking-[0.3em] sm:tracking-[0.4em] opacity-70"
+              className="block mt-2 @sm:mt-3 text-[10px] @sm:text-[11px] uppercase tracking-[0.3em] @sm:tracking-[0.4em] opacity-70"
             />
             <div
               className="mx-auto mt-3"
@@ -212,7 +212,7 @@ const EleganceHome = ({
           {collections.length === 0 ? (
             <p className="text-center text-sm text-muted-foreground">Em breve novas coleções por aqui.</p>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 @sm:grid-cols-3 @md:grid-cols-4 @lg:grid-cols-6 gap-4 @sm:gap-6">
               {collections.map((c) => {
                 const sample = allProducts.find((p) => p.category === c);
                 const img = (t.categoryImages || {})[c] || sample?.image;
@@ -238,15 +238,15 @@ const EleganceHome = ({
       )}
 
       {/* Vitrine */}
-      <section id="vitrine" className="container pt-4 pb-14 sm:pb-20 scroll-mt-20">
-        <div className="text-center mb-8 sm:mb-12">
+      <section id="vitrine" className="container pt-4 pb-14 @sm:pb-20 scroll-mt-20">
+        <div className="text-center mb-8 @sm:mb-12">
           <p className="text-[10px] uppercase tracking-[0.4em] text-primary mb-3">Vitrine</p>
-          <h2 className="font-display text-2xl sm:text-5xl font-light leading-tight">Selecionadas para você</h2>
+          <h2 className="font-display text-2xl @sm:text-5xl font-light leading-tight">Selecionadas para você</h2>
           <div className="mx-auto mt-4 h-px w-12 bg-primary/60" />
         </div>
 
         {/* Mobile: botão sanduíche de categorias */}
-        <div className="sm:hidden mb-6 flex justify-center">
+        <div className="@sm:hidden mb-6 flex justify-center">
           <button
             onClick={() => setCatMenuOpen(true)}
             className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-[11px] uppercase tracking-[0.28em] font-light"
@@ -257,7 +257,7 @@ const EleganceHome = ({
         </div>
 
         {/* Desktop / tablet: barra horizontal */}
-        <div className="hidden sm:flex gap-1 overflow-x-auto pb-6 -mx-4 px-4 mb-10 justify-center">
+        <div className="hidden @sm:flex gap-1 overflow-x-auto pb-6 -mx-4 px-4 mb-10 justify-center">
           {cats.map((c) => (
             <button
               key={c}
@@ -318,7 +318,7 @@ const EleganceHome = ({
           </p>
         ) : (
           <>
-          <div className="grid grid-cols-3 gap-2 sm:hidden">
+          <div className="grid grid-cols-2 gap-3 @sm:hidden">
             {filtered.map((p) => (
               <button
                 key={p.id}
@@ -335,7 +335,7 @@ const EleganceHome = ({
               </button>
             ))}
           </div>
-          <div className="hidden sm:grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="hidden @sm:grid gap-x-6 gap-y-12 @sm:grid-cols-2 @lg:grid-cols-4">
             {filtered.map((p) => (
               <Link key={p.id} to={`/loja/${store.storeSlug}/produto/${p.id}`} className="group block">
                 <div className="relative aspect-square overflow-hidden bg-secondary/50 mb-5 transition-all duration-500 group-hover:shadow-[0_30px_60px_-20px_rgba(17,17,17,0.18)]">
@@ -403,8 +403,8 @@ const EleganceHome = ({
         }}
       >
         {/* Hero do sobre */}
-        <div className="rounded-2xl border border-primary/20 bg-gradient-gold-soft p-10 lg:p-14">
-          <div className="grid lg:grid-cols-2 gap-10 items-center">
+        <div className="rounded-2xl border border-primary/20 bg-gradient-gold-soft p-10 @lg:p-14">
+          <div className="grid @lg:grid-cols-2 gap-10 items-center">
             <div>
               <EditableText
                 field="aboutEyebrow"
@@ -416,7 +416,7 @@ const EleganceHome = ({
                 field="aboutTitle"
                 value={t.aboutTitle || store.storeName}
                 as="h3"
-                className="block font-display text-3xl sm:text-4xl font-light"
+                className="block font-display text-3xl @sm:text-4xl font-light"
               />
               <EditableText
                 field="aboutText"
@@ -477,17 +477,17 @@ const EleganceHome = ({
         <div>
           <div className="text-center mb-8">
             <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Materiais</p>
-            <h3 className="font-display text-3xl sm:text-4xl font-light">Joias com a qualidade que você merece</h3>
+            <h3 className="font-display text-3xl @sm:text-4xl font-light">Joias com a qualidade que você merece</h3>
             <p className="text-muted-foreground mt-3 max-w-2xl mx-auto">
               Trabalhamos com três linhas para você encontrar a peça ideal para cada ocasião — todas com garantia, embalagem para presente e nota fiscal.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-5">
-            <div className="rounded-2xl border border-border bg-card p-7 hover:border-primary/40 transition-colors">
+          <div className="grid grid-cols-1 @md:grid-cols-3 gap-5" data-testid="store-materials-grid">
+            <div className="rounded-2xl border border-border bg-card p-5 @md:p-7 hover:border-primary/40 transition-colors">
               <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <Crown className="h-6 w-6 text-primary" />
               </div>
-              <h4 className="font-display text-xl mb-2">Ouro 18k</h4>
+              <h4 className="font-display text-xl mb-2 leading-snug">Ouro 18k</h4>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Joias maciças em ouro 18 quilates com pureza certificada. Investimento que atravessa gerações, sem perder o brilho nem o valor.
               </p>
@@ -498,11 +498,11 @@ const EleganceHome = ({
               </ul>
             </div>
 
-            <div className="rounded-2xl border border-border bg-card p-7 hover:border-primary/40 transition-colors">
+            <div className="rounded-2xl border border-border bg-card p-5 @md:p-7 hover:border-primary/40 transition-colors">
               <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <Gem className="h-6 w-6 text-primary" />
               </div>
-              <h4 className="font-display text-xl mb-2">Prata 925</h4>
+              <h4 className="font-display text-xl mb-2 leading-snug">Prata 925</h4>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Prata de lei com 92,5% de pureza. Versátil, elegante e ideal para o uso diário. Combina com qualquer estilo e ocasião.
               </p>
@@ -513,11 +513,11 @@ const EleganceHome = ({
               </ul>
             </div>
 
-            <div className="rounded-2xl border border-border bg-card p-7 hover:border-primary/40 transition-colors">
+            <div className="rounded-2xl border border-border bg-card p-5 @md:p-7 hover:border-primary/40 transition-colors">
               <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <Sparkle className="h-6 w-6 text-primary" />
               </div>
-              <h4 className="font-display text-xl mb-2">Folheado a ouro</h4>
+              <h4 className="font-display text-xl mb-2 leading-snug">Folheado a ouro</h4>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Banho de ouro 18k sobre base nobre, com camada reforçada para durar muito mais. O brilho da joia fina, no preço que cabe no seu dia a dia.
               </p>
@@ -533,12 +533,12 @@ const EleganceHome = ({
 
         {/* Cuidados */}
         {(t.showCare ?? true) && (
-        <div className="rounded-2xl border border-border bg-secondary/20 p-8 lg:p-10">
+        <div className="rounded-2xl border border-border bg-secondary/20 p-8 @lg:p-10">
           <div className="text-center mb-8">
             <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-2">Cuidados</p>
-            <h3 className="font-display text-2xl sm:text-3xl font-light">Para suas joias durarem ainda mais</h3>
+            <h3 className="font-display text-2xl @sm:text-3xl font-light">Para suas joias durarem ainda mais</h3>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid @sm:grid-cols-2 @lg:grid-cols-4 gap-5">
             <div className="text-center">
               <div className="h-11 w-11 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
                 <Droplet className="h-5 w-5 text-primary" />
@@ -573,7 +573,7 @@ const EleganceHome = ({
 
         {/* Compra & garantia */}
         {(t.showGuarantee ?? true) && (
-        <div className="grid md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 @md:grid-cols-3 gap-5">
           <div className="rounded-2xl border border-border bg-card p-6">
             <Award className="h-6 w-6 text-primary mb-3" />
             <h4 className="font-display text-lg mb-2">Garantia real</h4>
@@ -595,7 +595,7 @@ const EleganceHome = ({
         {/* CTA final */}
         {(t.showFinalCta ?? true) && (
         <div
-          className="rounded-2xl border border-primary/30 bg-gradient-gold-soft p-8 lg:p-10 text-center"
+          className="rounded-2xl border border-primary/30 bg-gradient-gold-soft p-8 @lg:p-10 text-center"
           style={{
             ...(t.finalCtaBgColor ? { background: t.finalCtaBgColor } : {}),
             ...(t.finalCtaTextColor ? { color: t.finalCtaTextColor } : {}),
@@ -613,7 +613,7 @@ const EleganceHome = ({
             value={t.finalCtaTitle || "Não encontrou o que procurava? Fale comigo e eu ajudo a escolher a joia perfeita."}
             as="h3"
             multiline
-            className="block font-display text-2xl sm:text-3xl font-light max-w-2xl mx-auto"
+            className="block font-display text-2xl @sm:text-3xl font-light max-w-2xl mx-auto"
           />
           <div className="flex flex-wrap gap-3 mt-6 justify-center">
             {t.whatsapp || store.phone ? (

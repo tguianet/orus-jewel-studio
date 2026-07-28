@@ -80,8 +80,8 @@ export function StoreProductCard({
 
   return (
     <>
-      <div className="sm:hidden">{mobile}</div>
-      <div className="hidden sm:block">{desktop}</div>
+      <div className="@sm:hidden">{mobile}</div>
+      <div className="hidden @sm:block">{desktop}</div>
     </>
   );
 }

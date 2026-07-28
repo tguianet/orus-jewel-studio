@@ -380,3 +380,145 @@ describe("store templates — wiring e migration", () => {
     expect(renderer).toContain("Suspense");
   });
 });
+
+describe("store templates — prévia mobile responsiva", () => {
+  const readTpl = (rel: string) => readFileSync(join(process.cwd(), rel), "utf8");
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    loadPreview.mockResolvedValue([sampleProduct({ id: "p1", name: "Anel Real" })]);
+  });
+
+  it("preview mobile usa viewport limitada entre 360 e 390", async () => {
+    const picker = readTpl("src/components/seller/StoreTemplatePickerSection.tsx");
+    expect(picker).toContain("w-[375px]");
+    expect(picker).toContain("max-w-[min(100%,390px)]");
+    expect(picker).toContain('data-preview-viewport={previewDevice === "mobile" ? "375" : "desktop"}');
+
+    render(
+      <MemoryRouter>
+        <StoreTemplatePickerSection
+          storeId="store-1"
+          storeName="Loja"
+          storeSlug="loja"
+          theme={defaultTheme}
+          templateKey="elegance"
+          onTemplateKeyChange={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByTestId("store-template-preview-elegance"));
+    await screen.findByTestId("store-template-preview-dialog");
+    fireEvent.click(screen.getByRole("button", { name: /Celular/i }));
+    const frame = screen.getByTestId("store-template-preview-frame");
+    expect(frame.getAttribute("data-preview-device")).toBe("mobile");
+    expect(frame.getAttribute("data-preview-viewport")).toBe("375");
+    const vp = Number(frame.getAttribute("data-preview-viewport"));
+    expect(vp).toBeGreaterThanOrEqual(360);
+    expect(vp).toBeLessThanOrEqual(390);
+  });
+
+  it("não existe overflow horizontal no frame da prévia", () => {
+    const picker = readTpl("src/components/seller/StoreTemplatePickerSection.tsx");
+    const renderer = readTpl("src/components/store/templates/StoreTemplateRenderer.tsx");
+    expect(picker).toContain("overflow-x-hidden");
+    expect(renderer).toContain("overflow-x-hidden");
+    expect(renderer).toContain("@container");
+  });
+
+  it("seção de materiais não mantém 3 colunas no celular", () => {
+    const elegance = readTpl("src/components/store/templates/elegance/EleganceHome.tsx");
+    expect(elegance).toContain("store-materials-grid");
+    expect(elegance).toContain("grid grid-cols-1 @md:grid-cols-3");
+    expect(elegance).not.toContain("grid md:grid-cols-3");
+    // Vitrine estreita: no máximo 2 colunas (não 3)
+    expect(elegance).toContain("grid grid-cols-2 gap-3 @sm:hidden");
+    expect(elegance).not.toContain("grid grid-cols-3 gap-2");
+  });
+
+  it("textos dos templates não usam break-all", () => {
+    for (const rel of [
+      "src/components/store/templates/elegance/EleganceHome.tsx",
+      "src/components/store/templates/boutique/BoutiqueHome.tsx",
+      "src/components/store/templates/minimal/MinimalHome.tsx",
+    ]) {
+      expect(readTpl(rel)).not.toContain("break-all");
+    }
+  });
+
+  it("Elegance, Boutique e Minimal usam container queries em 360px", () => {
+    const renderer = readTpl("src/components/store/templates/StoreTemplateRenderer.tsx");
+    expect(renderer).toContain("@container");
+    expect(renderer).toContain("min-w-0");
+
+    const elegance = readTpl("src/components/store/templates/elegance/EleganceHome.tsx");
+    expect(elegance).toContain("grid-cols-2 gap-3 @sm:hidden");
+    expect(elegance).toContain("@sm:min-h-[520px]");
+    expect(elegance).toContain("@md:grid-cols-3");
+
+    const boutique = readTpl("src/components/store/templates/boutique/BoutiqueHome.tsx");
+    expect(boutique).toContain("grid grid-cols-2 @sm:grid-cols-3");
+    expect(boutique).toContain("@sm:grid-cols-[1.2fr_1fr]");
+
+    const minimal = readTpl("src/components/store/templates/minimal/MinimalHome.tsx");
+    expect(minimal).toContain("grid grid-cols-2 @lg:grid-cols-3");
+    expect(minimal).toContain("@sm:text-6xl");
+
+    const card = readTpl("src/components/store/templates/shared/StoreProductCard.tsx");
+    expect(card).toContain("@sm:hidden");
+    expect(card).toContain("hidden @sm:block");
+  });
+
+  it("desktop permanece com frame larga e device desktop", async () => {
+    const picker = readTpl("src/components/seller/StoreTemplatePickerSection.tsx");
+    expect(picker).toContain("max-w-4xl");
+
+    render(
+      <MemoryRouter>
+        <StoreTemplatePickerSection
+          storeId="store-1"
+          storeName="Loja"
+          storeSlug="loja"
+          theme={defaultTheme}
+          templateKey="elegance"
+          onTemplateKeyChange={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByTestId("store-template-preview-boutique"));
+    await screen.findByTestId("store-template-preview-dialog");
+    const frame = screen.getByTestId("store-template-preview-frame");
+    expect(frame.getAttribute("data-preview-device")).toBe("desktop");
+    expect(frame.getAttribute("data-preview-viewport")).toBe("desktop");
+  });
+
+  it("preview continua sem permitir cliques e fechar não salva template", async () => {
+    const onChange = vi.fn();
+    render(
+      <MemoryRouter>
+        <StoreTemplatePickerSection
+          storeId="store-1"
+          storeName="Loja"
+          storeSlug="loja"
+          theme={defaultTheme}
+          templateKey="elegance"
+          onTemplateKeyChange={onChange}
+        />
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByTestId("store-template-preview-minimal"));
+    const dialog = await screen.findByTestId("store-template-preview-dialog");
+    const frame = screen.getByTestId("store-template-preview-frame");
+    expect(frame.getAttribute("data-preview-inert")).toBe("true");
+    fireEvent.click(frame);
+    expect(updateTemplate).not.toHaveBeenCalled();
+
+    // Fecha pelo onOpenChange do Dialog (Escape)
+    fireEvent.keyDown(dialog, { key: "Escape", code: "Escape" });
+    await waitFor(() => {
+      expect(screen.queryByTestId("store-template-preview-dialog")).toBeNull();
+    });
+    expect(updateTemplate).not.toHaveBeenCalled();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+});
