@@ -1148,6 +1148,7 @@ export type Database = {
           status: Database["public"]["Enums"]["seller_store_status"]
           store_name: string
           store_slug: string
+          template_key: string
           theme: Json
           tier: string
           updated_at: string
@@ -1162,6 +1163,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["seller_store_status"]
           store_name: string
           store_slug: string
+          template_key?: string
           theme?: Json
           tier?: string
           updated_at?: string
@@ -1176,6 +1178,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["seller_store_status"]
           store_name?: string
           store_slug?: string
+          template_key?: string
           theme?: Json
           tier?: string
           updated_at?: string
