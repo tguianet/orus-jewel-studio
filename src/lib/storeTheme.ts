@@ -183,7 +183,7 @@ export const updateStoreTemplateKey = async (storeId: string, templateKey: strin
 
   const { data, error } = await supabase
     .from("seller_stores")
-    .update({ template_key: key } as never)
+    .update({ template_key: key })
     .eq("id", storeId)
     .select("template_key")
     .maybeSingle();

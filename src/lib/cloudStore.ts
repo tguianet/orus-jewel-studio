@@ -18,8 +18,8 @@ type SellerStoreStatus = Database["public"]["Enums"]["seller_store_status"];
 
 type PublicStoreRow = Pick<
   Tables<"seller_stores">,
-  "id" | "store_name" | "store_slug" | "status" | "tier" | "theme" | "created_at"
-> & { template_key?: string | null };
+  "id" | "store_name" | "store_slug" | "status" | "tier" | "theme" | "created_at" | "template_key"
+>;
 
 type StoreProductQueryRow = {
   id: string;
