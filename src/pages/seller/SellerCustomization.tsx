@@ -21,8 +21,11 @@ import {
 } from "@/lib/storeTheme";
 import { SectionStyleControls } from "@/components/seller/SectionStyleControls";
 import { AdminBannerPickerDialog } from "@/components/seller/AdminBannerPickerDialog";
+import { StoreTemplatePickerSection } from "@/components/seller/StoreTemplatePickerSection";
 import { PREDEFINED_STORE_BANNERS_BUTTON_LABEL } from "@/lib/marketingBanners";
 import { useAuth } from "@/contexts/AuthContext";
+import type { StoreTemplateKey } from "@/components/store/templates/types";
+import { normalizeStoreTemplateKey } from "@/components/store/templates/types";
 
 type Palette = { name: string; primary: string; secondary: string; custom?: boolean };
 
@@ -58,6 +61,7 @@ const SellerCustomization = () => {
   const [slug, setSlug] = useState("");
   const [phone, setPhone] = useState("");
   const [theme, setTheme] = useState<StoreTheme>(defaultTheme);
+  const [templateKey, setTemplateKey] = useState<StoreTemplateKey>("elegance");
   const [customPalettes, setCustomPalettes] = useState<Palette[]>(() => loadCustomPalettes());
   const [newPaletteName, setNewPaletteName] = useState("");
 
@@ -72,6 +76,7 @@ const SellerCustomization = () => {
         setSlug(s.storeSlug);
         setPhone(s.contactPhone || "");
         setTheme({ ...defaultTheme, ...s.theme });
+        setTemplateKey(normalizeStoreTemplateKey(s.templateKey));
       }
       setLoading(false);
     });
@@ -179,6 +184,15 @@ const SellerCustomization = () => {
       />
 
       <div className="space-y-5 max-w-3xl">
+        <StoreTemplatePickerSection
+          storeId={store.id}
+          storeName={name || store.storeName}
+          storeSlug={slug || store.storeSlug}
+          phone={phone || store.contactPhone}
+          theme={theme}
+          templateKey={templateKey}
+          onTemplateKeyChange={setTemplateKey}
+        />
 
         {/* Form — ordenado conforme a sequência visual da loja */}
         <div className="space-y-5">

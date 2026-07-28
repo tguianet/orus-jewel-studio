@@ -18,7 +18,7 @@ type SellerStoreStatus = Database["public"]["Enums"]["seller_store_status"];
 
 type PublicStoreRow = Pick<
   Tables<"seller_stores">,
-  "id" | "store_name" | "store_slug" | "status" | "tier" | "theme" | "created_at"
+  "id" | "store_name" | "store_slug" | "status" | "tier" | "theme" | "created_at" | "template_key"
 >;
 
 type StoreProductQueryRow = {
@@ -138,6 +138,7 @@ export const mapStore = (
   walletPending: 0,
   directReferrals: 0,
   networkSize: 0,
+  templateKey: row.template_key || "elegance",
 });
 
 export const loadPublicStore = async (slug?: string) => {
@@ -145,16 +146,33 @@ export const loadPublicStore = async (slug?: string) => {
   // Public-safe columns only. Anon has SELECT revoked on contact_phone,
   // commission_rate, owner_user_id, reseller_id. Phone for WhatsApp comes
   // from theme.whatsapp when the seller sets it.
-  const { data, error } = await supabase
+  const selectWithTemplate =
+    "id, store_name, store_slug, status, tier, theme, created_at, template_key";
+  const selectLegacy = "id, store_name, store_slug, status, tier, theme, created_at";
+
+  let { data, error } = await supabase
     .from("seller_stores")
-    .select("id, store_name, store_slug, status, tier, theme, created_at")
+    .select(selectWithTemplate)
     .eq("store_slug", slug)
     .eq("status", "approved")
     .maybeSingle();
 
+  if (error && /template_key/i.test(error.message || "")) {
+    ({ data, error } = await supabase
+      .from("seller_stores")
+      .select(selectLegacy)
+      .eq("store_slug", slug)
+      .eq("status", "approved")
+      .maybeSingle());
+  }
+
   if (error || !data) return null;
   const theme = (data.theme ?? {}) as ThemeWithWhatsapp;
-  return mapStore({ ...data, contact_phone: theme.whatsapp || null });
+  return mapStore({
+    ...(data as PublicStoreRow),
+    template_key: (data as { template_key?: string }).template_key || "elegance",
+    contact_phone: theme.whatsapp || null,
+  });
 };
 
 
@@ -198,6 +216,19 @@ export const loadStoreProducts = async (sellerStoreId: string): Promise<CloudSto
       } satisfies CloudStoreProduct;
     })
     .filter((item) => item !== null) as CloudStoreProduct[];
+};
+
+/** Limite de produtos na prévia de templates (evita payload grande). */
+export const STORE_TEMPLATE_PREVIEW_PRODUCT_LIMIT = 12;
+
+/** Reutiliza loadStoreProducts (ativos) e limita para a prévia. */
+export const loadStoreProductsForTemplatePreview = async (
+  sellerStoreId: string,
+  limit: number = STORE_TEMPLATE_PREVIEW_PRODUCT_LIMIT,
+): Promise<CloudStoreProduct[]> => {
+  const items = await loadStoreProducts(sellerStoreId);
+  const max = Math.min(Math.max(limit, 8), 12);
+  return items.slice(0, max);
 };
 
 

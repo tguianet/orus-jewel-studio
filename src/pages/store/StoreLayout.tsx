@@ -172,7 +172,12 @@ const StoreLayout = () => {
   }, [isPreview, slug]);
 
   const ctx = useMemo(
-    () => ({ store, theme, banner: theme.bannerUrl || DEFAULT_BANNER }),
+    () => ({
+      store,
+      theme,
+      banner: theme.bannerUrl || DEFAULT_BANNER,
+      templateKey: store?.templateKey || "elegance",
+    }),
     [store, theme],
   );
 
@@ -288,7 +293,11 @@ const StoreLayout = () => {
   }
 
   return (
-    <div className="store-light min-h-screen flex flex-col bg-background text-foreground" style={themeCssVars(theme.primaryColor, theme.secondaryColor)}>
+    <div
+      className="store-light min-h-screen flex flex-col bg-background text-foreground"
+      style={themeCssVars(theme.primaryColor, theme.secondaryColor)}
+      data-store-template={store.templateKey || "elegance"}
+    >
       {/* Top bar minimalista premium */}
       <div className="w-full text-[11px] tracking-[0.18em] uppercase border-b border-border/60" style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}>
         <div className="container grid grid-cols-3 items-center py-2.5 text-center">

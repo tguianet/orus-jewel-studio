@@ -81,6 +81,7 @@ export type StoreCustomization = {
   storeSlug: string;
   contactPhone: string | null;
   theme: StoreTheme;
+  templateKey: string;
 };
 
 export const defaultTheme: StoreTheme = {
@@ -90,17 +91,39 @@ export const defaultTheme: StoreTheme = {
 };
 
 export const loadCurrentSellerStore = async (storeId?: string): Promise<StoreCustomization | null> => {
-  let q = supabase.from("seller_stores").select("id, store_name, store_slug, contact_phone, theme");
-  if (storeId) q = q.eq("id", storeId);
-  else q = q.eq("status", "approved").order("created_at", { ascending: true }).limit(1);
-  const { data, error } = await q.maybeSingle();
+  let query = supabase
+    .from("seller_stores")
+    .select("id, store_name, store_slug, contact_phone, theme, template_key");
+  if (storeId) query = query.eq("id", storeId);
+  else query = query.eq("status", "approved").order("created_at", { ascending: true }).limit(1);
+
+  let { data, error } = await query.maybeSingle();
+
+  if (error && /template_key/i.test(error.message || "")) {
+    let legacy = supabase
+      .from("seller_stores")
+      .select("id, store_name, store_slug, contact_phone, theme");
+    if (storeId) legacy = legacy.eq("id", storeId);
+    else legacy = legacy.eq("status", "approved").order("created_at", { ascending: true }).limit(1);
+    ({ data, error } = await legacy.maybeSingle());
+  }
+
   if (error || !data) return null;
+  const row = data as unknown as {
+    id: string;
+    store_name: string;
+    store_slug: string;
+    contact_phone: string | null;
+    theme: StoreTheme | null;
+    template_key?: string;
+  };
   return {
-    id: data.id,
-    storeName: data.store_name,
-    storeSlug: data.store_slug,
-    contactPhone: data.contact_phone,
-    theme: (data.theme as StoreTheme) || {},
+    id: row.id,
+    storeName: row.store_name,
+    storeSlug: row.store_slug,
+    contactPhone: row.contact_phone,
+    theme: row.theme || {},
+    templateKey: row.template_key || "elegance",
   };
 };
 
@@ -130,6 +153,25 @@ export const saveStoreCustomization = async (
   if (patch.contactPhone !== undefined) update.contact_phone = patch.contactPhone;
   const { error } = await supabase.from("seller_stores").update(update).eq("id", storeId);
   if (error) throw error;
+};
+
+/** Atualiza somente o template visual da loja (não altera theme nem dados comerciais). */
+export const updateStoreTemplateKey = async (storeId: string, templateKey: string) => {
+  const key = String(templateKey || "")
+    .trim()
+    .toLowerCase();
+  if (key !== "elegance" && key !== "boutique" && key !== "minimal") {
+    throw new Error("Template inválido.");
+  }
+  const { data, error } = await supabase
+    .from("seller_stores")
+    .update({ template_key: key })
+    .eq("id", storeId)
+    .select("template_key")
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error("Loja não encontrada ou sem permissão para alterar o modelo.");
+  return data.template_key as string;
 };
 
 export const uploadStoreAsset = async (

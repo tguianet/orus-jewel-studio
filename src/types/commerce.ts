@@ -117,6 +117,7 @@ export type Sacoleira = {
   walletPending: number;
   directReferrals: number;
   networkSize: number;
+  templateKey?: string;
 };
 
 export type StoreProduct = {
