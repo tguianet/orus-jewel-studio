@@ -152,7 +152,16 @@ ${orders.map((o) => `
       setPendingJewelryCount(pending);
     } catch (e: unknown) {
       setCommissionLoaded(false);
-      setCommissionError(e instanceof Error ? e.message : "Falha ao carregar comissões do banco.");
+      const err = normalizeError(e, {
+        operation: "admin.commissions.load",
+        rpcName: "get_mlm_commission_rates",
+      });
+      reportError(err);
+      setCommissionError(
+        err.code === "MLM_COMMISSIONS_MODULE_MISSING" || err.code === "AUTH_ACCESS_DENIED"
+          ? err.userMessage
+          : `Não foi possível carregar as comissões. Código: ${err.correlationId}.`,
+      );
     } finally {
       setCommissionLoading(false);
     }
