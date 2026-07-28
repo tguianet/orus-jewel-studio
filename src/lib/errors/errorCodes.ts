@@ -70,6 +70,8 @@ export const ERROR_CODE_CATEGORY: Record<AppErrorCode, AppErrorCategory> = {
   RETURN_FAILED: "return",
   CONSENT_FAILED: "consent",
   PWA_UPDATE_FAILED: "pwa",
+  STORE_TEMPLATE_UNAVAILABLE: "database",
+  STORE_TEMPLATE_UPDATE_FAILED: "database",
   UNKNOWN_ERROR: "unknown",
 };
 
