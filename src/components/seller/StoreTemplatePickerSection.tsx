@@ -24,6 +24,7 @@ import {
   defaultTheme,
   DEFAULT_BANNER,
 } from "@/lib/storeTheme";
+import { normalizeError, showAppError } from "@/lib/errors";
 import {
   loadStoreProductsForTemplatePreview,
   type CloudStoreProduct,
@@ -162,10 +163,16 @@ export function StoreTemplatePickerSection({
       await updateStoreTemplateKey(storeId, key);
       // UI só atualiza após sucesso
       onTemplateKeyChange(key);
-      toast.success("Modelo da loja atualizado!");
+      toast.success("Modelo aplicado com sucesso.");
       setPreviewKey(null);
-    } catch {
-      toast.error("Não foi possível aplicar o modelo.");
+    } catch (err) {
+      const appError = normalizeError(err, {
+        operation: "update_store_template",
+        entityType: "seller_store",
+        entityId: storeId,
+        metadata: { template_key: key },
+      });
+      showAppError(appError);
     } finally {
       setSaving(false);
     }

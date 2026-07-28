@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { AppError } from "@/lib/errors";
 import defaultBanner from "@/assets/default-store-banner.jpg";
 
 export const DEFAULT_BANNER = defaultBanner;
@@ -155,23 +156,81 @@ export const saveStoreCustomization = async (
   if (error) throw error;
 };
 
-/** Atualiza somente o template visual da loja (não altera theme nem dados comerciais). */
+/**
+ * Atualiza somente o template visual da loja (não altera theme nem dados comerciais).
+ * Erros são normalizados em AppError com metadados sanitizados para diagnóstico.
+ */
 export const updateStoreTemplateKey = async (storeId: string, templateKey: string) => {
   const key = String(templateKey || "")
     .trim()
     .toLowerCase();
+
+  const baseContext = {
+    operation: "update_store_template",
+    entityType: "seller_store",
+    entityId: storeId,
+    metadata: { template_key: key },
+  } as const;
+
   if (key !== "elegance" && key !== "boutique" && key !== "minimal") {
-    throw new Error("Template inválido.");
+    throw new AppError({
+      code: "VALIDATION_FAILED",
+      userMessage: "Template inválido. Escolha Elegance, Boutique ou Minimal.",
+      technicalMessage: `Template inválido: ${key || "(vazio)"}`,
+      ...baseContext,
+    });
   }
+
   const { data, error } = await supabase
     .from("seller_stores")
-    .update({ template_key: key })
+    .update({ template_key: key } as never)
     .eq("id", storeId)
     .select("template_key")
     .maybeSingle();
-  if (error) throw error;
-  if (!data) throw new Error("Loja não encontrada ou sem permissão para alterar o modelo.");
-  return data.template_key as string;
+
+  if (error) {
+    const raw = error as { message?: string; code?: string; details?: string; hint?: string };
+    const text = `${raw.message ?? ""} ${raw.details ?? ""} ${raw.hint ?? ""}`.toLowerCase();
+    const missingColumn =
+      raw.code === "42703"
+      || raw.code === "PGRST204"
+      || (text.includes("template_key") && (text.includes("column") || text.includes("coluna")));
+    const denied =
+      raw.code === "42501" || text.includes("permission denied") || text.includes("row-level");
+    const constraint = raw.code === "23514" || text.includes("check constraint");
+
+    const code = missingColumn
+      ? "STORE_TEMPLATE_UNAVAILABLE"
+      : denied
+        ? "AUTH_ACCESS_DENIED"
+        : constraint
+          ? "DATABASE_VALIDATION"
+          : "STORE_TEMPLATE_UPDATE_FAILED";
+
+    throw new AppError({
+      code,
+      technicalMessage: String(raw.message ?? "erro desconhecido").slice(0, 400),
+      originalError: error,
+      ...baseContext,
+      metadata: {
+        ...baseContext.metadata,
+        pg_code: raw.code ?? null,
+        pg_details: raw.details ?? null,
+        pg_hint: raw.hint ?? null,
+      },
+    });
+  }
+
+  if (!data) {
+    throw new AppError({
+      code: "AUTH_ACCESS_DENIED",
+      userMessage: "Loja não encontrada ou sem permissão para alterar o modelo.",
+      technicalMessage: "update retornou 0 linhas (RLS/owner_user_id ou id inexistente)",
+      ...baseContext,
+    });
+  }
+
+  return (data as { template_key?: string }).template_key as string;
 };
 
 export const uploadStoreAsset = async (

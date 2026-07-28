@@ -18,8 +18,8 @@ type SellerStoreStatus = Database["public"]["Enums"]["seller_store_status"];
 
 type PublicStoreRow = Pick<
   Tables<"seller_stores">,
-  "id" | "store_name" | "store_slug" | "status" | "tier" | "theme" | "created_at" | "template_key"
->;
+  "id" | "store_name" | "store_slug" | "status" | "tier" | "theme" | "created_at"
+> & { template_key?: string | null };
 
 type StoreProductQueryRow = {
   id: string;
@@ -167,10 +167,11 @@ export const loadPublicStore = async (slug?: string) => {
   }
 
   if (error || !data) return null;
-  const theme = (data.theme ?? {}) as ThemeWithWhatsapp;
+  const row = data as unknown as PublicStoreRow;
+  const theme = (row.theme ?? {}) as ThemeWithWhatsapp;
   return mapStore({
-    ...(data as PublicStoreRow),
-    template_key: (data as { template_key?: string }).template_key || "elegance",
+    ...row,
+    template_key: row.template_key || "elegance",
     contact_phone: theme.whatsapp || null,
   });
 };

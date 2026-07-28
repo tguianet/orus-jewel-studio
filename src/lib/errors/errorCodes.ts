@@ -42,6 +42,8 @@ export type AppErrorCode =
   | "RETURN_FAILED"
   | "CONSENT_FAILED"
   | "PWA_UPDATE_FAILED"
+  | "STORE_TEMPLATE_UNAVAILABLE"
+  | "STORE_TEMPLATE_UPDATE_FAILED"
   | "UNKNOWN_ERROR";
 
 export const ERROR_CODE_CATEGORY: Record<AppErrorCode, AppErrorCategory> = {
@@ -68,6 +70,8 @@ export const ERROR_CODE_CATEGORY: Record<AppErrorCode, AppErrorCategory> = {
   RETURN_FAILED: "return",
   CONSENT_FAILED: "consent",
   PWA_UPDATE_FAILED: "pwa",
+  STORE_TEMPLATE_UNAVAILABLE: "database",
+  STORE_TEMPLATE_UPDATE_FAILED: "database",
   UNKNOWN_ERROR: "unknown",
 };
 
@@ -95,5 +99,7 @@ export const ERROR_CODE_SEVERITY: Record<AppErrorCode, AppErrorSeverity> = {
   RETURN_FAILED: "critical",
   CONSENT_FAILED: "error",
   PWA_UPDATE_FAILED: "warning",
+  STORE_TEMPLATE_UNAVAILABLE: "error",
+  STORE_TEMPLATE_UPDATE_FAILED: "error",
   UNKNOWN_ERROR: "error",
 };
