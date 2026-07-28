@@ -169,7 +169,9 @@ export type Database = {
           base_amount: number | null
           created_at: string
           id: string
-          jewelry_material: Database["public"]["Enums"]["jewelry_material"] | null
+          jewelry_material:
+            | Database["public"]["Enums"]["jewelry_material"]
+            | null
           level: number
           order_id: string
           order_item_id: string | null
@@ -186,7 +188,9 @@ export type Database = {
           base_amount?: number | null
           created_at?: string
           id?: string
-          jewelry_material?: Database["public"]["Enums"]["jewelry_material"] | null
+          jewelry_material?:
+            | Database["public"]["Enums"]["jewelry_material"]
+            | null
           level: number
           order_id: string
           order_item_id?: string | null
@@ -203,7 +207,9 @@ export type Database = {
           base_amount?: number | null
           created_at?: string
           id?: string
-          jewelry_material?: Database["public"]["Enums"]["jewelry_material"] | null
+          jewelry_material?:
+            | Database["public"]["Enums"]["jewelry_material"]
+            | null
           level?: number
           order_id?: string
           order_item_id?: string | null
@@ -538,6 +544,36 @@ export type Database = {
           },
         ]
       }
+      mlm_commission_rates: {
+        Row: {
+          created_at: string
+          id: string
+          jewelry_material: Database["public"]["Enums"]["jewelry_material"]
+          level: number
+          percentage: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          jewelry_material: Database["public"]["Enums"]["jewelry_material"]
+          level: number
+          percentage: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          jewelry_material?: Database["public"]["Enums"]["jewelry_material"]
+          level?: number
+          percentage?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       operational_error_logs: {
         Row: {
           actor_role: string | null
@@ -614,7 +650,9 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          jewelry_material: Database["public"]["Enums"]["jewelry_material"] | null
+          jewelry_material:
+            | Database["public"]["Enums"]["jewelry_material"]
+            | null
           order_id: string
           product_id: string | null
           product_name: string
@@ -626,7 +664,9 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
-          jewelry_material?: Database["public"]["Enums"]["jewelry_material"] | null
+          jewelry_material?:
+            | Database["public"]["Enums"]["jewelry_material"]
+            | null
           order_id: string
           product_id?: string | null
           product_name: string
@@ -638,7 +678,9 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
-          jewelry_material?: Database["public"]["Enums"]["jewelry_material"] | null
+          jewelry_material?:
+            | Database["public"]["Enums"]["jewelry_material"]
+            | null
           order_id?: string
           product_id?: string | null
           product_name?: string
@@ -930,7 +972,9 @@ export type Database = {
           id: string
           image_url: string | null
           images: string[]
-          jewelry_material: Database["public"]["Enums"]["jewelry_material"] | null
+          jewelry_material:
+            | Database["public"]["Enums"]["jewelry_material"]
+            | null
           min_order: number
           name: string
           seller_store_id: string | null
@@ -950,7 +994,9 @@ export type Database = {
           id?: string
           image_url?: string | null
           images?: string[]
-          jewelry_material?: Database["public"]["Enums"]["jewelry_material"] | null
+          jewelry_material?:
+            | Database["public"]["Enums"]["jewelry_material"]
+            | null
           min_order?: number
           name: string
           seller_store_id?: string | null
@@ -970,7 +1016,9 @@ export type Database = {
           id?: string
           image_url?: string | null
           images?: string[]
-          jewelry_material?: Database["public"]["Enums"]["jewelry_material"] | null
+          jewelry_material?:
+            | Database["public"]["Enums"]["jewelry_material"]
+            | null
           min_order?: number
           name?: string
           seller_store_id?: string | null
@@ -1605,36 +1653,6 @@ export type Database = {
         }
         Relationships: []
       }
-      mlm_commission_rates: {
-        Row: {
-          created_at: string
-          id: string
-          jewelry_material: Database["public"]["Enums"]["jewelry_material"]
-          level: number
-          percentage: number
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          jewelry_material: Database["public"]["Enums"]["jewelry_material"]
-          level: number
-          percentage: number
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          jewelry_material?: Database["public"]["Enums"]["jewelry_material"]
-          level?: number
-          percentage?: number
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: []
-      }
     }
     Views: {
       reseller_wallet_summary: {
@@ -1732,6 +1750,10 @@ export type Database = {
         Returns: number
       }
       _withdrawal_actor_role: { Args: never; Returns: string }
+      admin_count_products_pending_jewelry_material: {
+        Args: never
+        Returns: number
+      }
       admin_create_root_reseller: {
         Args: {
           p_reason: string
@@ -1741,10 +1763,6 @@ export type Database = {
           p_user_id: string
         }
         Returns: Json
-      }
-      admin_count_products_pending_jewelry_material: {
-        Args: never
-        Returns: number
       }
       admin_export_report: {
         Args: { p_filters?: Json; p_report_type: string }
@@ -2057,7 +2075,7 @@ export type Database = {
           level: number
           percentage: number
           updated_at: string
-          updated_by: string | null
+          updated_by: string
         }[]
       }
       get_my_consents: { Args: never; Returns: Json }
@@ -2306,10 +2324,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      update_mlm_commission_rates: {
-        Args: { p_rates: Json }
-        Returns: Json
-      }
+      update_mlm_commission_rates: { Args: { p_rates: Json }; Returns: Json }
       update_withdrawal_settings: { Args: { p_minimum: number }; Returns: Json }
       upsert_my_payout_profile: {
         Args: { p_payment_details: Json; p_payment_method: string }

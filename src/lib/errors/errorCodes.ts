@@ -44,6 +44,8 @@ export type AppErrorCode =
   | "PWA_UPDATE_FAILED"
   | "STORE_TEMPLATE_UNAVAILABLE"
   | "STORE_TEMPLATE_UPDATE_FAILED"
+  | "MLM_COMMISSIONS_MODULE_MISSING"
+  | "MLM_COMMISSIONS_LOAD_FAILED"
   | "UNKNOWN_ERROR";
 
 export const ERROR_CODE_CATEGORY: Record<AppErrorCode, AppErrorCategory> = {
@@ -72,6 +74,8 @@ export const ERROR_CODE_CATEGORY: Record<AppErrorCode, AppErrorCategory> = {
   PWA_UPDATE_FAILED: "pwa",
   STORE_TEMPLATE_UNAVAILABLE: "database",
   STORE_TEMPLATE_UPDATE_FAILED: "database",
+  MLM_COMMISSIONS_MODULE_MISSING: "database",
+  MLM_COMMISSIONS_LOAD_FAILED: "commission",
   UNKNOWN_ERROR: "unknown",
 };
 
@@ -101,5 +105,7 @@ export const ERROR_CODE_SEVERITY: Record<AppErrorCode, AppErrorSeverity> = {
   PWA_UPDATE_FAILED: "warning",
   STORE_TEMPLATE_UNAVAILABLE: "error",
   STORE_TEMPLATE_UPDATE_FAILED: "error",
+  MLM_COMMISSIONS_MODULE_MISSING: "error",
+  MLM_COMMISSIONS_LOAD_FAILED: "error",
   UNKNOWN_ERROR: "error",
 };
