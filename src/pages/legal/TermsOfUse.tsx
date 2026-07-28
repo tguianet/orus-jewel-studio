@@ -37,6 +37,15 @@ const TermsOfUse = () => (
         ),
       },
       {
+        id: "vitrines-da-rede",
+        title: "Vitrines da rede",
+        content: (
+          <p>
+            A Amada Amante poderá exibir campanhas institucionais e promocionais nas lojas da rede.
+          </p>
+        ),
+      },
+      {
         id: "precos",
         title: "Preços",
         content: (

@@ -2,7 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useOutletContext, useSearchParams } from "react-router-dom";
 import heroImg from "@/assets/hero-jewelry.jpg";
 import { CloudStoreProduct, loadStoreProducts } from "@/lib/cloudStore";
+import {
+  loadCampaignsForApprovedStore,
+  type GlobalStoreBanner,
+} from "@/lib/globalStoreBanners";
 import { DEFAULT_BANNER, StoreTheme, defaultTheme } from "@/lib/storeTheme";
+import { heroSlidesToBannerUrls, mergeStoreHeroSlides } from "@/lib/storeHeroSlides";
 import type { Sacoleira } from "@/types/commerce";
 import { StoreTemplateRenderer } from "@/components/store/templates/StoreTemplateRenderer";
 import { normalizeStoreTemplateKey } from "@/components/store/templates/types";
@@ -20,19 +25,45 @@ const StoreHome = () => {
   const query = (searchParams.get("q") || "").trim().toLowerCase();
   const t = { ...defaultTheme, ...(theme || {}) };
 
-  const banners = useMemo(() => {
-    const list = [
+  const sellerBannerUrls = useMemo(() => {
+    return [
       ...((t.bannerUrls || []).filter(Boolean)),
       ...(t.bannerUrl && !(t.bannerUrls || []).includes(t.bannerUrl) ? [t.bannerUrl] : []),
     ];
-    if (list.length === 0) list.push(banner || DEFAULT_BANNER || heroImg);
-    return list;
-  }, [t.bannerUrls, t.bannerUrl, banner]);
+  }, [t.bannerUrls, t.bannerUrl]);
 
+  const [campaigns, setCampaigns] = useState<GlobalStoreBanner[]>([]);
   const [cloudProducts, setCloudProducts] = useState<CloudStoreProduct[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [productsError, setProductsError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState("Todos");
+
+  // Campanhas globais: 1 consulta, não bloqueia produtos; falha = só banners próprios.
+  useEffect(() => {
+    let mounted = true;
+    loadCampaignsForApprovedStore(store.status)
+      .then((rows) => {
+        if (mounted) setCampaigns(rows);
+      })
+      .catch(() => {
+        if (mounted) setCampaigns([]);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [store.status, store.id]);
+
+  const heroSlides = useMemo(
+    () =>
+      mergeStoreHeroSlides({
+        campaigns,
+        sellerBannerUrls,
+        fallbackUrl: banner || DEFAULT_BANNER || heroImg,
+      }),
+    [campaigns, sellerBannerUrls, banner],
+  );
+
+  const banners = useMemo(() => heroSlidesToBannerUrls(heroSlides), [heroSlides]);
 
   useEffect(() => {
     let mounted = true;
@@ -84,6 +115,7 @@ const StoreHome = () => {
       store={store}
       theme={t}
       banners={banners}
+      heroSlides={heroSlides}
       products={cloudProducts}
       filteredProducts={filteredProducts}
       categories={categories}

@@ -7,13 +7,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { formatBRL } from "@/lib/format";
 import { defaultTheme } from "@/lib/storeTheme";
 import type { CloudStoreProduct } from "@/lib/cloudStore";
+import type { StoreHeroSlide } from "@/lib/storeHeroSlides";
 import type { StoreTemplateHomeProps } from "../types";
 import { StoreProductCard } from "../shared/StoreProductCard";
+import { StoreHeroBannerLayer } from "../shared/StoreHeroBannerLayer";
 
 const MinimalHome = ({
   store,
   theme,
   banners,
+  heroSlides,
   filteredProducts: filtered,
   categories: cats,
   activeCategory,
@@ -28,43 +31,57 @@ const MinimalHome = ({
   const narrowPreview = Boolean(previewMode && previewViewport === "mobile");
   const [catMenuOpen, setCatMenuOpen] = useState(false);
   const [quickProduct, setQuickProduct] = useState<CloudStoreProduct | null>(null);
+  const [activeSlide, setActiveSlide] = useState<StoreHeroSlide | null>(null);
   const navigate = useNavigate();
-  const hero = banners[0];
+  const campaign = activeSlide?.kind === "campaign" ? activeSlide : null;
+  const hasHero = (heroSlides && heroSlides.length > 0) || banners.length > 0;
 
   return (
     <div className="bg-background text-foreground">
       <section className="border-b border-border/60">
         <div className="container py-10 sm:py-14 max-w-3xl text-center">
           <p className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground mb-4">
-            {t.heroEyebrow || "Coleção"}
+            {campaign ? "Campanha oficial" : t.heroEyebrow || "Coleção"}
           </p>
           <h1 className="font-display text-4xl sm:text-6xl font-light tracking-tight">
-            {t.heroTitle1 || store.storeName}
+            {campaign?.title || t.heroTitle1 || store.storeName}
           </h1>
-          {(t.heroTitleHighlight || t.description) && (
+          {(campaign?.subtitle || t.heroTitleHighlight || t.description) && (
             <p className="mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed">
-              {t.heroTitleHighlight || t.description}
+              {campaign?.subtitle || t.heroTitleHighlight || t.description}
             </p>
           )}
           <div className="mt-8">
-            <a
-              href="#vitrine"
-              className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.35em] border-b border-foreground pb-1 hover:opacity-70 transition"
-            >
-              {t.heroCtaPrimary || "Ver peças"} <ArrowRight className="h-3.5 w-3.5" />
-            </a>
+            {campaign?.buttonUrl && campaign.buttonText ? (
+              <a
+                href={campaign.buttonUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.35em] border-b border-foreground pb-1 hover:opacity-70 transition"
+              >
+                {campaign.buttonText} <ArrowRight className="h-3.5 w-3.5" />
+              </a>
+            ) : (
+              <a
+                href="#vitrine"
+                className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.35em] border-b border-foreground pb-1 hover:opacity-70 transition"
+              >
+                {t.heroCtaPrimary || "Ver peças"} <ArrowRight className="h-3.5 w-3.5" />
+              </a>
+            )}
           </div>
         </div>
-        {hero && (
-          <div className="w-full max-h-[52vh] overflow-hidden bg-muted">
-            <img
-              src={hero}
-              alt=""
-              className="w-full max-h-[52vh] object-cover"
-              loading="eager"
-              decoding="async"
-            />
-          </div>
+        {hasHero && (
+          <StoreHeroBannerLayer
+            banners={banners}
+            heroSlides={heroSlides}
+            storeName={store.storeName}
+            preferMobile={narrowPreview}
+            previewMode={previewMode}
+            className="w-full max-h-[52vh] overflow-hidden bg-muted aspect-[16/7]"
+            imgClassName="absolute inset-0 w-full h-full max-h-[52vh] object-cover"
+            onSlideChange={(slide) => setActiveSlide(slide)}
+          />
         )}
       </section>
 

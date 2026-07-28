@@ -1,5 +1,6 @@
 import type { CloudStoreProduct } from "@/lib/cloudStore";
 import type { StoreTheme } from "@/lib/storeTheme";
+import type { StoreHeroSlide } from "@/lib/storeHeroSlides";
 import type { Sacoleira } from "@/types/commerce";
 
 export const STORE_TEMPLATE_KEYS = ["elegance", "boutique", "minimal"] as const;
@@ -20,7 +21,10 @@ export type StoreTemplateMeta = {
 export type StoreTemplateHomeProps = {
   store: Sacoleira;
   theme: StoreTheme;
+  /** URLs dos banners (compatibilidade / prévia). Preferir heroSlides. */
   banners: string[];
+  /** Contrato comum: campanhas oficiais + banners da sacoleira. */
+  heroSlides?: StoreHeroSlide[];
   products: CloudStoreProduct[];
   filteredProducts: CloudStoreProduct[];
   categories: string[];

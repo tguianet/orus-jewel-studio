@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { ImageIcon, Loader2, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AdminBannerPickerDialog } from "@/components/seller/AdminBannerPickerDialog";
+import { GLOBAL_CAMPAIGN_NOTICE_SELLER } from "@/lib/globalStoreBanners";
 import { PREDEFINED_STORE_BANNERS_BUTTON_LABEL } from "@/lib/marketingBanners";
 import { DEFAULT_BANNER, type StoreTheme } from "@/lib/storeTheme";
 import { CUSTOMIZATION_STEPS } from "./customizationCopy";
@@ -45,6 +46,13 @@ export function CoverStep({
         <p className="text-sm text-muted-foreground mt-1">
           Use uma imagem horizontal. O sistema ajustará automaticamente.
         </p>
+      </div>
+
+      <div
+        className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-muted-foreground"
+        data-testid="official-campaign-seller-notice"
+      >
+        {GLOBAL_CAMPAIGN_NOTICE_SELLER}
       </div>
 
       <div className="rounded-xl border border-border bg-card p-5 space-y-4">

@@ -1,19 +1,22 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { ArrowRight, Sparkles, Instagram, MessageCircle, Heart, Gem, Crown, Award, Droplet, Sun, Sparkle, CheckCircle2, Package, RefreshCw, CreditCard, ChevronLeft, ChevronRight, Menu, Check } from "lucide-react";
+import { ArrowRight, Sparkles, Instagram, MessageCircle, Heart, Gem, Crown, Award, Droplet, Sun, Sparkle, CheckCircle2, Package, RefreshCw, CreditCard, Menu, Check } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { defaultTheme } from "@/lib/storeTheme";
 import { EditableText, isPreview } from "@/components/preview/EditableText";
 import type { CloudStoreProduct } from "@/lib/cloudStore";
+import type { StoreHeroSlide } from "@/lib/storeHeroSlides";
 import type { StoreTemplateHomeProps } from "../types";
+import { StoreHeroBannerLayer } from "../shared/StoreHeroBannerLayer";
 
 const EleganceHome = ({
   store,
   theme,
   banners,
+  heroSlides,
   products: allProducts,
   filteredProducts: filtered,
   categories: cats,
@@ -28,17 +31,13 @@ const EleganceHome = ({
 }: StoreTemplateHomeProps) => {
   const t = { ...defaultTheme, ...(theme || {}) };
   const narrowPreview = Boolean(previewMode && previewViewport === "mobile");
-  const [bannerIdx, setBannerIdx] = useState(0);
-  useEffect(() => {
-    if (previewMode || banners.length < 2) return;
-    const id = setInterval(() => setBannerIdx((i) => (i + 1) % banners.length), 5000);
-    return () => clearInterval(id);
-  }, [banners.length, previewMode]);
+  const [activeSlide, setActiveSlide] = useState<StoreHeroSlide | null>(null);
   const [catMenuOpen, setCatMenuOpen] = useState(false);
   const [quickProduct, setQuickProduct] = useState<CloudStoreProduct | null>(null);
   const navigate = useNavigate();
 
   const accent = t.accentColor || "#f4a78a";
+  const campaignSlide = activeSlide?.kind === "campaign" ? activeSlide : null;
 
   return (
     <>
@@ -51,106 +50,113 @@ const EleganceHome = ({
           ...(t.heroFontFamily ? { fontFamily: t.heroFontFamily } : {}),
         }}
       >
-        <div className="relative w-full h-[78vh] min-h-[520px] max-h-[860px]">
-          {banners.map((b, i) => (
-            <img
-              key={b + i}
-              src={b}
-              alt={`Banner ${i + 1} ${store.storeName}`}
-              width={1600}
-              height={900}
-              decoding="async"
-              fetchPriority={i === 0 ? "high" : "low"}
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1400ms] ${i === bannerIdx ? "opacity-100" : "opacity-0"}`}
-            />
-          ))}
-
-          {/* Overlay editorial */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/25 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
-
-          <div className="absolute inset-0">
-            <div className="container h-full flex items-center">
-              <div className="max-w-xl text-white luxe-rise">
-                <EditableText
-                  field="heroEyebrow"
-                  value={t.heroEyebrow || "Nova Coleção"}
-                  className="block text-[10px] uppercase tracking-[0.5em] mb-5 text-white/85"
-                />
-                <EditableText
-                  field="heroTitle1"
-                  value={t.heroTitle1 || store.storeName}
-                  as="h1"
-                  className="block font-display text-5xl sm:text-7xl lg:text-[88px] font-light leading-[1] tracking-tight text-white"
-                />
-                {(t.heroTitleHighlight || isPreview()) && (
-                  <EditableText
-                    field="heroTitleHighlight"
-                    value={t.heroTitleHighlight || ""}
-                    as="p"
-                    className="block font-display italic text-2xl sm:text-3xl mt-3 text-white/85"
-                    placeholder="Subtítulo"
-                  />
-                )}
-                {(t.heroPromoText || isPreview()) && (
-                  <EditableText
-                    field="heroPromoText"
-                    value={t.heroPromoText || ""}
-                    as="p"
-                    className="block text-sm sm:text-base mt-6 text-white/90 max-w-md"
-                    placeholder="Texto promocional"
-                  />
-                )}
-                <div className="mt-10 flex flex-wrap items-center gap-3">
-                  <a
-                    href="#vitrine"
-                    className="inline-flex items-center gap-3 px-8 py-3.5 text-[11px] uppercase tracking-[0.32em] font-medium border border-white/80 text-white hover:bg-white hover:text-foreground transition-all duration-500"
-                  >
-                    {t.heroCtaPrimary || "Descobrir coleção"}
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </a>
-                  {(t.heroCtaSecondary || isPreview()) && (
-                    <a
-                      href="#sobre"
-                      className="inline-flex items-center gap-3 px-8 py-3.5 text-[11px] uppercase tracking-[0.32em] font-medium text-white/90 hover:text-white border border-transparent hover:border-white/40 transition-all duration-500"
-                    >
-                      {t.heroCtaSecondary || "Sobre a loja"}
-                    </a>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {banners.length > 1 && (
+        <StoreHeroBannerLayer
+          banners={banners}
+          heroSlides={heroSlides}
+          storeName={store.storeName}
+          preferMobile={narrowPreview}
+          previewMode={previewMode}
+          className="relative w-full h-[78vh] min-h-[520px] max-h-[860px]"
+          onSlideChange={(slide) => setActiveSlide(slide)}
+        >
+          {() => (
             <>
-              <button
-                onClick={() => setBannerIdx((i) => (i - 1 + banners.length) % banners.length)}
-                aria-label="Banner anterior"
-                className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-10 h-11 w-11 rounded-full bg-white/15 backdrop-blur-md border border-white/30 text-white flex items-center justify-center hover:bg-white hover:text-foreground transition-all"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setBannerIdx((i) => (i + 1) % banners.length)}
-                aria-label="Próximo banner"
-                className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-10 h-11 w-11 rounded-full bg-white/15 backdrop-blur-md border border-white/30 text-white flex items-center justify-center hover:bg-white hover:text-foreground transition-all"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-              <div className="absolute bottom-7 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                {banners.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setBannerIdx(i)}
-                    aria-label={`Banner ${i + 1}`}
-                    className={`h-[2px] rounded-full transition-all ${i === bannerIdx ? "w-10 bg-white" : "w-5 bg-white/50 hover:bg-white/80"}`}
-                  />
-                ))}
+              <div className="absolute inset-0 z-[5] bg-gradient-to-r from-black/55 via-black/25 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 z-[5] bg-gradient-to-b from-transparent via-transparent to-black/40 pointer-events-none" />
+              <div className="absolute inset-0 z-[6]">
+                <div className="container h-full flex items-center">
+                  <div className="max-w-xl text-white luxe-rise">
+                    {campaignSlide ? (
+                      <>
+                        <p className="block text-[10px] uppercase tracking-[0.5em] mb-5 text-white/85">
+                          Campanha
+                        </p>
+                        <h1 className="block font-display text-5xl sm:text-7xl lg:text-[88px] font-light leading-[1] tracking-tight text-white">
+                          {campaignSlide.title || store.storeName}
+                        </h1>
+                        {campaignSlide.subtitle && (
+                          <p className="block font-display italic text-2xl sm:text-3xl mt-3 text-white/85">
+                            {campaignSlide.subtitle}
+                          </p>
+                        )}
+                        <div className="mt-10 flex flex-wrap items-center gap-3">
+                          {campaignSlide.buttonUrl && campaignSlide.buttonText ? (
+                            <a
+                              href={campaignSlide.buttonUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-3 px-8 py-3.5 text-[11px] uppercase tracking-[0.32em] font-medium border border-white/80 text-white hover:bg-white hover:text-foreground transition-all duration-500"
+                            >
+                              {campaignSlide.buttonText}
+                              <ArrowRight className="h-3.5 w-3.5" />
+                            </a>
+                          ) : (
+                            <a
+                              href="#vitrine"
+                              className="inline-flex items-center gap-3 px-8 py-3.5 text-[11px] uppercase tracking-[0.32em] font-medium border border-white/80 text-white hover:bg-white hover:text-foreground transition-all duration-500"
+                            >
+                              {t.heroCtaPrimary || "Descobrir coleção"}
+                              <ArrowRight className="h-3.5 w-3.5" />
+                            </a>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <EditableText
+                          field="heroEyebrow"
+                          value={t.heroEyebrow || "Nova Coleção"}
+                          className="block text-[10px] uppercase tracking-[0.5em] mb-5 text-white/85"
+                        />
+                        <EditableText
+                          field="heroTitle1"
+                          value={t.heroTitle1 || store.storeName}
+                          as="h1"
+                          className="block font-display text-5xl sm:text-7xl lg:text-[88px] font-light leading-[1] tracking-tight text-white"
+                        />
+                        {(t.heroTitleHighlight || isPreview()) && (
+                          <EditableText
+                            field="heroTitleHighlight"
+                            value={t.heroTitleHighlight || ""}
+                            as="p"
+                            className="block font-display italic text-2xl sm:text-3xl mt-3 text-white/85"
+                            placeholder="Subtítulo"
+                          />
+                        )}
+                        {(t.heroPromoText || isPreview()) && (
+                          <EditableText
+                            field="heroPromoText"
+                            value={t.heroPromoText || ""}
+                            as="p"
+                            className="block text-sm sm:text-base mt-6 text-white/90 max-w-md"
+                            placeholder="Texto promocional"
+                          />
+                        )}
+                        <div className="mt-10 flex flex-wrap items-center gap-3">
+                          <a
+                            href="#vitrine"
+                            className="inline-flex items-center gap-3 px-8 py-3.5 text-[11px] uppercase tracking-[0.32em] font-medium border border-white/80 text-white hover:bg-white hover:text-foreground transition-all duration-500"
+                          >
+                            {t.heroCtaPrimary || "Descobrir coleção"}
+                            <ArrowRight className="h-3.5 w-3.5" />
+                          </a>
+                          {(t.heroCtaSecondary || isPreview()) && (
+                            <a
+                              href="#sobre"
+                              className="inline-flex items-center gap-3 px-8 py-3.5 text-[11px] uppercase tracking-[0.32em] font-medium text-white/90 hover:text-white border border-transparent hover:border-white/40 transition-all duration-500"
+                            >
+                              {t.heroCtaSecondary || "Sobre a loja"}
+                            </a>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
             </>
           )}
-        </div>
+        </StoreHeroBannerLayer>
       </section>
 
       {/* Benefits strip */}

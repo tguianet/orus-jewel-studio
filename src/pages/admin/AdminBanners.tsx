@@ -23,6 +23,7 @@ import {
 } from "@/lib/marketingBanners";
 import { cn } from "@/lib/utils";
 import { AdminPopupsSection } from "@/components/admin/AdminPopupsSection";
+import { AdminGlobalStoreBannersSection } from "@/components/admin/AdminGlobalStoreBannersSection";
 
 const AdminBanners = () => {
   const { formatSlug } = useParams<{ formatSlug?: string }>();
@@ -117,6 +118,7 @@ const AdminBanners = () => {
         }
       />
       <AdminPopupsSection />
+      <AdminGlobalStoreBannersSection />
 
       {/* Tabs de formato */}
       <div className="flex flex-wrap gap-2 mb-6">

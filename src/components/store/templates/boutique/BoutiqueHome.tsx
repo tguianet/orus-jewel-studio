@@ -7,13 +7,16 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { formatBRL } from "@/lib/format";
 import { defaultTheme } from "@/lib/storeTheme";
 import type { CloudStoreProduct } from "@/lib/cloudStore";
+import type { StoreHeroSlide } from "@/lib/storeHeroSlides";
 import type { StoreTemplateHomeProps } from "../types";
 import { StoreProductCard } from "../shared/StoreProductCard";
+import { StoreHeroBannerLayer } from "../shared/StoreHeroBannerLayer";
 
 const BoutiqueHome = ({
   store,
   theme,
   banners,
+  heroSlides,
   products: allProducts,
   filteredProducts: filtered,
   categories: cats,
@@ -30,9 +33,10 @@ const BoutiqueHome = ({
   const narrowPreview = Boolean(previewMode && previewViewport === "mobile");
   const [catMenuOpen, setCatMenuOpen] = useState(false);
   const [quickProduct, setQuickProduct] = useState<CloudStoreProduct | null>(null);
+  const [activeSlide, setActiveSlide] = useState<StoreHeroSlide | null>(null);
   const navigate = useNavigate();
-  const hero = banners[0];
   const wa = (t.whatsapp || store.phone || "").replace(/\D/g, "");
+  const campaign = activeSlide?.kind === "campaign" ? activeSlide : null;
 
   return (
     <>
@@ -41,21 +45,33 @@ const BoutiqueHome = ({
         <div className={`container py-6 sm:py-8 gap-6 items-center ${narrowPreview ? "grid grid-cols-1" : "grid sm:grid-cols-[1.2fr_1fr]"}`}>
           <div className={`space-y-4 ${narrowPreview ? "order-2" : "order-2 sm:order-1"}`}>
             <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.28em] text-primary">
-              <Percent className="h-3.5 w-3.5" /> Ofertas da loja
+              <Percent className="h-3.5 w-3.5" /> {campaign ? "Campanha oficial" : "Ofertas da loja"}
             </p>
             <h1 className="font-display text-3xl sm:text-5xl font-medium leading-tight">
-              {t.heroTitle1 || store.storeName}
+              {campaign?.title || t.heroTitle1 || store.storeName}
             </h1>
             <p className="text-sm sm:text-base text-background/80 max-w-md">
-              {t.heroPromoText || t.description || "Peças selecionadas com preço claro e compra rápida pelo celular."}
+              {campaign?.subtitle ||
+                t.heroPromoText ||
+                t.description ||
+                "Peças selecionadas com preço claro e compra rápida pelo celular."}
             </p>
             <div className="flex flex-wrap gap-3">
-              <a href="#vitrine">
-                <Button variant="gold" size="lg" className="min-h-12 px-6 text-sm">
-                  {t.heroCtaPrimary || "Ver produtos"}
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </a>
+              {campaign?.buttonUrl && campaign.buttonText ? (
+                <a href={campaign.buttonUrl} target="_blank" rel="noopener noreferrer">
+                  <Button variant="gold" size="lg" className="min-h-12 px-6 text-sm">
+                    {campaign.buttonText}
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </a>
+              ) : (
+                <a href="#vitrine">
+                  <Button variant="gold" size="lg" className="min-h-12 px-6 text-sm">
+                    {t.heroCtaPrimary || "Ver produtos"}
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </a>
+              )}
               {wa && (
                 <a href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer">
                   <Button variant="whatsapp" size="lg" className="min-h-12 px-6 text-sm">
@@ -65,9 +81,16 @@ const BoutiqueHome = ({
               )}
             </div>
           </div>
-          <div className={`${narrowPreview ? "order-1 aspect-[16/10]" : "order-1 sm:order-2 aspect-[16/10] sm:aspect-square"} overflow-hidden rounded-xl bg-muted`}>
-            {hero && <img src={hero} alt={store.storeName} className="w-full h-full object-cover" loading="eager" />}
-          </div>
+          <StoreHeroBannerLayer
+            banners={banners}
+            heroSlides={heroSlides}
+            storeName={store.storeName}
+            preferMobile={narrowPreview}
+            previewMode={previewMode}
+            className={`${narrowPreview ? "order-1 aspect-[16/10]" : "order-1 sm:order-2 aspect-[16/10] sm:aspect-square"} overflow-hidden rounded-xl bg-muted`}
+            imgClassName="absolute inset-0 w-full h-full object-cover"
+            onSlideChange={(slide) => setActiveSlide(slide)}
+          />
         </div>
       </section>
 
