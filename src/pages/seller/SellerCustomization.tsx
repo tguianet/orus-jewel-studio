@@ -184,16 +184,6 @@ const SellerCustomization = () => {
       />
 
       <div className="space-y-5 max-w-3xl">
-        <StoreTemplatePickerSection
-          storeId={store.id}
-          storeName={name || store.storeName}
-          storeSlug={slug || store.storeSlug}
-          phone={phone || store.contactPhone}
-          theme={theme}
-          templateKey={templateKey}
-          onTemplateKeyChange={setTemplateKey}
-        />
-
         {/* Form — ordenado conforme a sequência visual da loja */}
         <div className="space-y-5">
 
@@ -312,6 +302,16 @@ const SellerCustomization = () => {
               </Button>
             </div>
           </div>
+
+          <StoreTemplatePickerSection
+            storeId={store.id}
+            storeName={name || store.storeName}
+            storeSlug={slug || store.storeSlug}
+            phone={phone || store.contactPhone}
+            theme={theme}
+            templateKey={templateKey}
+            onTemplateKeyChange={setTemplateKey}
+          />
 
           {/* 3. Faixa superior (top bar) */}
           <div className="rounded-xl border border-border bg-card p-6 space-y-3">
