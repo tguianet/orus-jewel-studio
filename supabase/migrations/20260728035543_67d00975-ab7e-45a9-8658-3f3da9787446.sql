@@ -1,0 +1,1 @@
+GRANT SELECT (jewelry_material) ON public.products TO authenticated, anon;
