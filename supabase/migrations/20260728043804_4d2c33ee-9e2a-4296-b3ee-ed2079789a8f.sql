@@ -1,7 +1,5 @@
 -- =============================================================================
 -- Campanhas globais de banner nas lojas (Amada Amante)
--- Lovable Cloud — NÃO aplicar via CLI; aplicar manualmente no Cloud.
--- NÃO altera seller_stores.theme nem banners próprios.
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS public.global_store_banners (
@@ -29,7 +27,7 @@ CREATE TABLE IF NOT EXISTS public.global_store_banners (
 );
 
 COMMENT ON TABLE public.global_store_banners IS
-  'Campanhas oficiais de banner exibidas em todas as lojas aprovadas (não copia para theme JSONB).';
+  'Campanhas oficiais de banner exibidas em todas as lojas aprovadas (nao copia para theme JSONB).';
 
 CREATE INDEX IF NOT EXISTS global_store_banners_active_period_idx
   ON public.global_store_banners (is_active, position, created_at)
@@ -55,7 +53,6 @@ CREATE TRIGGER global_store_banners_set_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION public.trg_global_store_banners_updated_at();
 
--- Validação de URL de botão (http/https apenas)
 CREATE OR REPLACE FUNCTION public.is_safe_http_url(p_url text)
 RETURNS boolean
 LANGUAGE plpgsql
@@ -97,12 +94,10 @@ ALTER TABLE public.global_store_banners
     OR mobile_image_url LIKE '/%'
   );
 
--- RLS
 ALTER TABLE public.global_store_banners ENABLE ROW LEVEL SECURITY;
 
 REVOKE ALL ON TABLE public.global_store_banners FROM PUBLIC, anon, authenticated;
 
--- Leitura pública: só campanhas ativas e dentro do período
 DROP POLICY IF EXISTS "Public can view active global store banners" ON public.global_store_banners;
 CREATE POLICY "Public can view active global store banners"
 ON public.global_store_banners
@@ -114,7 +109,6 @@ USING (
   AND (ends_at IS NULL OR ends_at > now())
 );
 
--- Admin vê todas
 DROP POLICY IF EXISTS "Admins can select all global store banners" ON public.global_store_banners;
 CREATE POLICY "Admins can select all global store banners"
 ON public.global_store_banners
@@ -122,7 +116,6 @@ FOR SELECT
 TO authenticated
 USING (public.is_admin(auth.uid()));
 
--- Escrita só via RPC DEFINER (sem INSERT/UPDATE/DELETE direto para authenticated)
 GRANT SELECT ON TABLE public.global_store_banners TO anon, authenticated;
 GRANT ALL ON TABLE public.global_store_banners TO service_role;
 
@@ -177,26 +170,26 @@ BEGIN
   v_btn_url := NULLIF(trim(COALESCE(p_payload->>'button_url', '')), '');
 
   IF v_title = '' THEN
-    RAISE EXCEPTION 'Título é obrigatório';
+    RAISE EXCEPTION 'Titulo e obrigatorio';
   END IF;
   IF v_image = '' THEN
-    RAISE EXCEPTION 'Imagem é obrigatória';
+    RAISE EXCEPTION 'Imagem e obrigatoria';
   END IF;
   IF NOT public.is_safe_http_url(v_image) AND v_image NOT LIKE '/%' THEN
-    RAISE EXCEPTION 'URL da imagem inválida';
+    RAISE EXCEPTION 'URL da imagem invalida';
   END IF;
   IF v_mobile IS NOT NULL AND NOT public.is_safe_http_url(v_mobile) AND v_mobile NOT LIKE '/%' THEN
-    RAISE EXCEPTION 'URL da imagem mobile inválida';
+    RAISE EXCEPTION 'URL da imagem mobile invalida';
   END IF;
   IF v_btn_url IS NOT NULL AND NOT public.is_safe_http_url(v_btn_url) THEN
-    RAISE EXCEPTION 'Link do botão inválido. Use http:// ou https://';
+    RAISE EXCEPTION 'Link do botao invalido. Use http:// ou https://';
   END IF;
 
   IF v_id IS NOT NULL THEN
     SELECT to_jsonb(g) INTO v_before
     FROM public.global_store_banners g WHERE g.id = v_id;
     IF v_before IS NULL THEN
-      RAISE EXCEPTION 'Campanha não encontrada';
+      RAISE EXCEPTION 'Campanha nao encontrada';
     END IF;
 
     UPDATE public.global_store_banners SET
@@ -276,7 +269,7 @@ BEGIN
 
   SELECT to_jsonb(g) INTO v_before FROM public.global_store_banners g WHERE g.id = p_id;
   IF v_before IS NULL THEN
-    RAISE EXCEPTION 'Campanha não encontrada';
+    RAISE EXCEPTION 'Campanha nao encontrada';
   END IF;
 
   UPDATE public.global_store_banners
@@ -316,7 +309,7 @@ BEGIN
 
   SELECT to_jsonb(g) INTO v_before FROM public.global_store_banners g WHERE g.id = p_id;
   IF v_before IS NULL THEN
-    RAISE EXCEPTION 'Campanha não encontrada';
+    RAISE EXCEPTION 'Campanha nao encontrada';
   END IF;
 
   DELETE FROM public.global_store_banners WHERE id = p_id;
@@ -354,14 +347,14 @@ BEGIN
 
   SELECT * INTO v_src FROM public.global_store_banners WHERE id = p_id;
   IF v_src.id IS NULL THEN
-    RAISE EXCEPTION 'Campanha não encontrada';
+    RAISE EXCEPTION 'Campanha nao encontrada';
   END IF;
 
   INSERT INTO public.global_store_banners (
     title, subtitle, image_url, mobile_image_url, button_text, button_url,
     is_active, is_mandatory, position, starts_at, ends_at, created_by, updated_by
   ) VALUES (
-    v_src.title || ' (cópia)',
+    v_src.title || ' (copia)',
     v_src.subtitle,
     v_src.image_url,
     v_src.mobile_image_url,
