@@ -163,63 +163,6 @@ export type Database = {
         }
         Relationships: []
       }
-      global_store_banners: {
-        Row: {
-          button_text: string | null
-          button_url: string | null
-          created_at: string
-          created_by: string | null
-          ends_at: string | null
-          id: string
-          image_url: string
-          is_active: boolean
-          is_mandatory: boolean
-          mobile_image_url: string | null
-          position: number
-          starts_at: string | null
-          subtitle: string | null
-          title: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          button_text?: string | null
-          button_url?: string | null
-          created_at?: string
-          created_by?: string | null
-          ends_at?: string | null
-          id?: string
-          image_url: string
-          is_active?: boolean
-          is_mandatory?: boolean
-          mobile_image_url?: string | null
-          position?: number
-          starts_at?: string | null
-          subtitle?: string | null
-          title: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          button_text?: string | null
-          button_url?: string | null
-          created_at?: string
-          created_by?: string | null
-          ends_at?: string | null
-          id?: string
-          image_url?: string
-          is_active?: boolean
-          is_mandatory?: boolean
-          mobile_image_url?: string | null
-          position?: number
-          starts_at?: string | null
-          subtitle?: string | null
-          title?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: []
-      }
       commissions: {
         Row: {
           amount: number
@@ -1967,26 +1910,6 @@ export type Database = {
         Returns: Json
       }
       admin_list_administrators: { Args: never; Returns: Json }
-      admin_delete_global_store_banner: {
-        Args: { p_id: string }
-        Returns: Json
-      }
-      admin_duplicate_global_store_banner: {
-        Args: { p_id: string }
-        Returns: Database["public"]["Tables"]["global_store_banners"]["Row"]
-      }
-      admin_list_global_store_banners: {
-        Args: never
-        Returns: Database["public"]["Tables"]["global_store_banners"]["Row"][]
-      }
-      admin_set_global_store_banner_active: {
-        Args: { p_id: string; p_is_active: boolean }
-        Returns: Database["public"]["Tables"]["global_store_banners"]["Row"]
-      }
-      admin_upsert_global_store_banner: {
-        Args: { p_payload: Json }
-        Returns: Database["public"]["Tables"]["global_store_banners"]["Row"]
-      }
       admin_list_legal_consents: {
         Args: {
           p_context?: string
