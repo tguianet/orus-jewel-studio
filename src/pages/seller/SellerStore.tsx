@@ -136,6 +136,11 @@ const SellerStore = () => {
         </div>
 
         <div className="space-y-3">
+          <Link to="/sacoleira/studio-v2" className="block rounded-xl border border-primary/50 bg-primary/5 p-5 hover:border-primary transition-all relative overflow-hidden">
+            <span className="absolute top-3 right-3 text-[9px] uppercase tracking-widest bg-primary text-primary-foreground rounded-full px-2 py-0.5">Novo</span>
+            <h4 className="font-display text-lg">Studio V2</h4>
+            <p className="text-xs text-muted-foreground mt-1">Editor visual — clique e edite sua loja direto na página</p>
+          </Link>
           <Link to="/sacoleira/personalizacao" className="block rounded-xl border border-border bg-card p-5 hover:border-primary/40 transition-all">
             <h4 className="font-display text-lg">Personalizar visual</h4>
             <p className="text-xs text-muted-foreground mt-1">Logo, banner e cores</p>
