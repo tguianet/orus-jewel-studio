@@ -235,7 +235,7 @@ export const updateStoreTemplateKey = async (storeId: string, templateKey: strin
 
 export const uploadStoreAsset = async (
   storeId: string,
-  kind: "banner" | "logo",
+  kind: "banner" | "logo" | "media",
   file: File
 ): Promise<string> => {
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";

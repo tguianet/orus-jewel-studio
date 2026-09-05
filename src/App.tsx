@@ -58,6 +58,7 @@ const AdminBanners = lazy(() => import("./pages/admin/AdminBanners"));
 const SellerDashboard = lazy(() => import("./pages/seller/SellerDashboard"));
 const SellerStore = lazy(() => import("./pages/seller/SellerStore"));
 const SellerCustomization = lazy(() => import("./pages/seller/SellerCustomization"));
+const SellerStudioV2 = lazy(() => import("./pages/seller/SellerStudioV2"));
 const SellerCatalog = lazy(() => import("./pages/seller/SellerCatalog"));
 const SellerProducts = lazy(() => import("./pages/seller/SellerProducts"));
 const SellerOrders = lazy(() => import("./pages/seller/SellerOrders"));
@@ -157,6 +158,7 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
                 <Route path="/sacoleira" element={<Seller><SellerDashboard /></Seller>} />
                 <Route path="/sacoleira/loja" element={<Seller><SellerStore /></Seller>} />
                 <Route path="/sacoleira/personalizacao" element={<Seller><SellerCustomization /></Seller>} />
+                <Route path="/sacoleira/studio-v2" element={<Seller><SellerStudioV2 /></Seller>} />
                 <Route path="/sacoleira/catalogo" element={<Seller><SellerCatalog /></Seller>} />
                 <Route path="/sacoleira/meus-produtos" element={<Seller><SellerProducts /></Seller>} />
                 <Route path="/sacoleira/pedidos" element={<Seller><SellerOrders /></Seller>} />
