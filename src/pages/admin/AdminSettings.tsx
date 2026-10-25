@@ -32,6 +32,7 @@ import { JEWELRY_MATERIAL_OPTIONS, type JewelryMaterial } from "@/lib/jewelryMat
 import { normalizeError, reportError } from "@/lib/errors";
 import { PwaInstallButton } from "@/components/pwa/PwaInstallButton";
 import { PwaInstallInstructions } from "@/components/pwa/PwaInstallInstructions";
+import { JfCatalogPreview } from "@/components/admin/JfCatalogPreview";
 
 const AdminSettings = () => {
   const [formats, setFormats] = useState<ImageFormat[]>([]);
@@ -268,6 +269,7 @@ ${orders.map((o) => `
         </TabsList>
 
         <TabsContent value="geral" className="mt-6 space-y-5">
+          <JfCatalogPreview />
           <div className="rounded-xl border border-border bg-card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 max-w-4xl">
             <div>
               <h3 className="font-display text-xl">Aplicativo Admin</h3>
